@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import LandingPage from './pages/LandingPage';
 import WorkerDashboard from './pages/WorkerDashboard';
 import MarkAttendance from './pages/MarkAttendance';
 import CreateTask from './pages/CreateTask';
@@ -29,7 +30,9 @@ function App() {
             <Router>
                 <Routes>
                     <Route path="/login" element={<Login />} />
-
+                    <Route path="/worker/login" element={<Login />} />
+                    <Route path="/teamlead/login" element={<Login />} />
+                    <Route path="/admin/login" element={<Login />} />
                     {/* Admin Routes */}
                     <Route
                         path="/admin/*"
@@ -80,7 +83,7 @@ function App() {
                         }
                     />
 
-                    <Route path="/" element={<Navigate to="/login" replace />} />
+                    <Route path="/" element={<LandingPage />} />
                     <Route path="/unauthorized" element={<div className="h-screen flex items-center justify-center">Unauthorized Access</div>} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
