@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const taskController = require('../controllers/task.controller');
-const { verifyToken, isTeamLead } = require('../middlewares/auth.middleware');
+const { verifyToken, authorizeRoles } = require('../middleware/authMiddleware');
 
-router.post('/create', verifyToken, isTeamLead, taskController.create);
+router.post('/create', verifyToken, authorizeRoles('TEAM_LEAD', 'ADMIN'), taskController.create);
 router.get('/worker', verifyToken, taskController.getWorkerTasks);
-router.get('/all', verifyToken, isTeamLead, taskController.getAll);
+router.get('/all', verifyToken, authorizeRoles('TEAM_LEAD', 'ADMIN'), taskController.getAll);
 
 module.exports = router;

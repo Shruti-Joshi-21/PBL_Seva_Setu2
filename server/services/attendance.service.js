@@ -1,13 +1,14 @@
-const db = require('../config/db');
 const axios = require('axios');
+const Task = require('../models/Task');
+const AttendanceRecord = require('../models/AttendanceRecord');
+const FieldReport = require('../models/FieldReport');
 
 const validateCheckIn = async (taskId, lat, lon) => {
-    const [rows] = await db.execute('SELECT latitude, longitude, radius FROM task_locations tl JOIN tasks t ON t.location_id = tl.id WHERE t.id = ?', [taskId]);
-    if (rows.length === 0) return false;
+    const task = await Task.findById(taskId);
+    if (!task) return false;
 
-    const { latitude, longitude, radius } = rows[0];
-    const distance = calculateDistance(lat, lon, latitude, longitude);
-    return distance <= radius;
+    const distance = calculateDistance(lat, lon, task.latitude, task.longitude);
+    return distance <= task.allowedRadius;
 };
 
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -39,59 +40,62 @@ const verifyFaceMatch = async (imagePath, storedEncodingB64) => {
 };
 
 const createCheckIn = async (checkInData) => {
-    const { userId, taskId, lat, lon, imagePath, status, matchScore } = checkInData;
-    const [result] = await db.execute(
-        'INSERT INTO attendance_records (user_id, task_id, check_in_lat, check_in_long, check_in_image_path, check_in_face_match_score, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [userId, taskId, lat, lon, imagePath, matchScore, status]
-    );
-    return result.insertId;
+    const { userId, taskId, lat, lon, imagePath, status, faceMatched, flagReasons } = checkInData;
+
+    const rec = await AttendanceRecord.create({
+        worker: userId,
+        task: taskId,
+        checkInTime: new Date(),
+        checkInLocation: { latitude: lat, longitude: lon },
+        checkInFaceMatch: faceMatched,
+        beforeImage: imagePath,
+        status,
+        flagReasons: flagReasons || [],
+    });
+
+    return rec._id.toString();
 };
 
 const createCheckOut = async (attendanceId, checkoutData) => {
-    const { lat, lon, imagePath, status, matchScore } = checkoutData;
-    await db.execute(
-        `UPDATE attendance_records SET 
-     check_out_time = NOW(), 
-     check_out_lat = ?, 
-     check_out_long = ?, 
-     check_out_image_path = ?, 
-     check_out_face_match_score = ?,
-     status = ?
-     WHERE id = ?`,
-        [lat, lon, imagePath, matchScore, status, attendanceId]
-    );
+    const { lat, lon, imagePath, status, faceMatched, flagReasons } = checkoutData;
+    await AttendanceRecord.findByIdAndUpdate(attendanceId, {
+        $set: {
+            checkOutTime: new Date(),
+            checkOutLocation: { latitude: lat, longitude: lon },
+            checkOutFaceMatch: faceMatched,
+            afterImage: imagePath,
+            status,
+        },
+        ...(flagReasons && flagReasons.length ? { $addToSet: { flagReasons: { $each: flagReasons } } } : {}),
+    });
 };
 
-const createFlag = async (attendanceId, reason, severity) => {
-    await db.execute(
-        'INSERT INTO attendance_flags (attendance_id, reason, severity) VALUES (?, ?, ?)',
-        [attendanceId, reason, severity]
-    );
+const createFlag = async (attendanceId, reason) => {
+    await AttendanceRecord.findByIdAndUpdate(attendanceId, { $addToSet: { flagReasons: reason }, $set: { status: 'FLAGGED' } });
 };
 
 const submitReport = async (reportData) => {
-    const { attendanceId, description, imagesPaths } = reportData;
-    const [result] = await db.execute(
-        'INSERT INTO field_reports (attendance_id, description, images_paths) VALUES (?, ?, ?)',
-        [attendanceId, description, JSON.stringify(imagesPaths)]
-    );
-    return result.insertId;
+    const { workerId, taskId, attendanceId, description, imagesPaths } = reportData;
+    const report = await FieldReport.create({
+        worker: workerId,
+        task: taskId,
+        attendance: attendanceId,
+        description,
+        images: imagesPaths || [],
+        status: 'SUBMITTED',
+    });
+    return report._id.toString();
 };
 
 const getAllAttendance = async () => {
-    const [rows] = await db.execute(`
-        SELECT ar.*, u.name as worker_name, t.title as task_title, 
-        (SELECT GROUP_CONCAT(reason) FROM attendance_flags WHERE attendance_id = ar.id) as flags
-        FROM attendance_records ar
-        JOIN users u ON ar.user_id = u.id
-        JOIN tasks t ON ar.task_id = t.id
-        ORDER BY ar.check_in_time DESC
-    `);
-    return rows;
+    return AttendanceRecord.find({ isDeleted: false })
+        .populate('worker', 'fullName username role')
+        .populate('task', 'title locationName date startTime endTime')
+        .sort({ checkInTime: -1, createdAt: -1 });
 };
 
 const reviewAttendance = async (id, status) => {
-    await db.execute('UPDATE attendance_records SET status = ? WHERE id = ?', [status, id]);
+    await AttendanceRecord.findByIdAndUpdate(id, { $set: { status } });
 };
 
 module.exports = {

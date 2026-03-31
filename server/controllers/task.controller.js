@@ -6,7 +6,7 @@ const create = async (req, res) => {
         const createdBy = req.userId;
 
         const taskId = await taskService.createTask({
-            title, description, location_id, start_time, end_time, created_by: createdBy
+            title, description, location_id, start_time, end_time, created_by: createdBy, worker_ids
         });
 
         if (worker_ids && worker_ids.length > 0) {

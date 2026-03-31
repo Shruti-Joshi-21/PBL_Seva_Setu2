@@ -1,5 +1,5 @@
 const axios = require('axios');
-const db = require('../config/db');
+const TaskLocation = require('../models/TaskLocation');
 
 const searchLocation = async (req, res) => {
     try {
@@ -38,15 +38,19 @@ const saveLocation = async (req, res) => {
         const { name, address, latitude, longitude, radius } = req.body;
         const userId = req.userId;
 
-        const [result] = await db.execute(
-            'INSERT INTO task_locations (name, address, latitude, longitude, radius, created_by) VALUES (?, ?, ?, ?, ?, ?)',
-            [name, address, latitude, longitude, radius || 200, userId]
-        );
+        const loc = await TaskLocation.create({
+            name,
+            address,
+            latitude: Number(latitude),
+            longitude: Number(longitude),
+            radius: radius != null ? Number(radius) : 200,
+            createdBy: userId,
+        });
 
         res.status(201).json({
             success: true,
             message: 'Location saved successfully',
-            data: { id: result.insertId }
+            data: { id: loc._id.toString() }
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -55,8 +59,8 @@ const saveLocation = async (req, res) => {
 
 const getLocations = async (req, res) => {
     try {
-        const [rows] = await db.execute('SELECT * FROM task_locations');
-        res.json({ success: true, data: rows });
+        const locations = await TaskLocation.find({ isDeleted: false }).sort({ createdAt: -1 });
+        res.json({ success: true, data: locations });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

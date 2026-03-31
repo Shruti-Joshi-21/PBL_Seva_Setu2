@@ -32,7 +32,21 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (email, password) => {
         const response = await axios.post('http://localhost:5000/api/auth/login', { email, password });
-        const { token, user } = response.data.data;
+        const payload = response.data?.data ?? response.data;
+        const token = payload?.token;
+        const user =
+            payload?.user ??
+            (payload?.userId || payload?.role || payload?.fullName
+                ? {
+                      id: payload.userId,
+                      role: payload.role,
+                      fullName: payload.fullName,
+                  }
+                : null);
+
+        if (!token || !user) {
+            throw new Error('Login response missing token/user');
+        }
         localStorage.setItem('token', token);
         setUser(user);
         return user;

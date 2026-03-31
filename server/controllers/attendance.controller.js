@@ -1,10 +1,11 @@
-const db = require('../config/db');
 const attendanceService = require('../services/attendance.service');
+const AttendanceRecord = require('../models/AttendanceRecord');
+const User = require('../models/User');
 
 const checkIn = async (req, res) => {
     try {
         const { taskId, lat, lon } = req.body;
-        const userId = req.user.id;
+        const userId = req.userId;
 
         // 1. Validate Location
         const isLocationValid = await attendanceService.validateCheckIn(taskId, lat, lon);
@@ -17,14 +18,14 @@ const checkIn = async (req, res) => {
         }
 
         // 2. Face Match (if image provided)
-        let matchScore = 1.0;
+        let faceMatched = true;
         let imagePath = null;
         if (req.file) {
             imagePath = req.file.path;
-            const [[faceData]] = await db.execute('SELECT encoding FROM face_data WHERE user_id = ?', [userId]);
-            if (faceData) {
-                const matchResult = await attendanceService.verifyFaceMatch(imagePath, faceData.encoding.toString('base64'));
-                matchScore = matchResult.score;
+            const user = await User.findById(userId).select('faceEncoding role');
+            if (user?.role === 'FIELD_WORKER' && user.faceEncoding) {
+                const matchResult = await attendanceService.verifyFaceMatch(imagePath, user.faceEncoding.toString('base64'));
+                faceMatched = !!matchResult.matched;
                 if (!matchResult.matched) {
                     status = 'FLAGGED';
                     flags.push('FACE_MISMATCH_CHECKIN');
@@ -34,13 +35,8 @@ const checkIn = async (req, res) => {
 
         // 3. Create Record
         const attendanceId = await attendanceService.createCheckIn({
-            userId, taskId, lat, lon, imagePath, status, matchScore
+            userId, taskId, lat: Number(lat), lon: Number(lon), imagePath, status, faceMatched, flagReasons: flags
         });
-
-        // 4. Create Flags
-        for (const flag of flags) {
-            await attendanceService.createFlag(attendanceId, flag, 'MEDIUM');
-        }
 
         res.json({ success: true, message: 'Check-in recorded', data: { id: attendanceId, status, flags } });
     } catch (error) {
@@ -51,18 +47,17 @@ const checkIn = async (req, res) => {
 const checkOut = async (req, res) => {
     try {
         const { taskId, lat, lon } = req.body;
-        const workerId = req.user.id;
+        const workerId = req.userId;
 
-        const [records] = await db.execute(
-            'SELECT * FROM attendance_records WHERE task_id = ? AND user_id = ? AND check_out_time IS NULL ORDER BY check_in_time DESC LIMIT 1',
-            [taskId, workerId]
-        );
+        const attendance = await AttendanceRecord.findOne({
+            task: taskId,
+            worker: workerId,
+            checkOutTime: { $exists: false },
+        }).sort({ checkInTime: -1, createdAt: -1 });
 
-        if (records.length === 0) {
+        if (!attendance) {
             return res.status(400).json({ success: false, message: 'Active check-in not found' });
         }
-
-        const attendance = records[0];
         const isLocationValid = await attendanceService.validateCheckIn(taskId, lat, lon);
         let status = 'VERIFIED';
         let flags = [];
@@ -72,14 +67,14 @@ const checkOut = async (req, res) => {
             flags.push('OUT_OF_RADIUS_CHECKOUT');
         }
 
-        let matchScore = 1.0;
+        let faceMatched = true;
         let imagePath = null;
         if (req.file) {
             imagePath = req.file.path;
-            const [[faceData]] = await db.execute('SELECT encoding FROM face_data WHERE user_id = ?', [workerId]);
-            if (faceData) {
-                const matchResult = await attendanceService.verifyFaceMatch(imagePath, faceData.encoding.toString('base64'));
-                matchScore = matchResult.score;
+            const user = await User.findById(workerId).select('faceEncoding role');
+            if (user?.role === 'FIELD_WORKER' && user.faceEncoding) {
+                const matchResult = await attendanceService.verifyFaceMatch(imagePath, user.faceEncoding.toString('base64'));
+                faceMatched = !!matchResult.matched;
                 if (!matchResult.matched) {
                     status = 'FLAGGED';
                     flags.push('FACE_MISMATCH_CHECKOUT');
@@ -87,13 +82,9 @@ const checkOut = async (req, res) => {
             }
         }
 
-        await attendanceService.createCheckOut(attendance.id, {
-            lat, lon, imagePath, status, matchScore
+        await attendanceService.createCheckOut(attendance._id.toString(), {
+            lat: Number(lat), lon: Number(lon), imagePath, status, faceMatched, flagReasons: flags
         });
-
-        for (const flag of flags) {
-            await attendanceService.createFlag(attendance.id, flag, 'MEDIUM');
-        }
 
         res.json({ success: true, message: 'Check-out successful', data: { status, flags } });
     } catch (error) {
@@ -104,19 +95,15 @@ const checkOut = async (req, res) => {
 const submitReport = async (req, res) => {
     try {
         const { taskId, description } = req.body;
-        const workerId = req.user.id;
+        const workerId = req.userId;
 
-        const [records] = await db.execute(
-            'SELECT id FROM attendance_records WHERE task_id = ? AND user_id = ? ORDER BY check_in_time DESC LIMIT 1',
-            [taskId, workerId]
-        );
-
-        if (records.length === 0) {
+        const attendance = await AttendanceRecord.findOne({ task: taskId, worker: workerId }).sort({ checkInTime: -1, createdAt: -1 });
+        if (!attendance) {
             return res.status(400).json({ success: false, message: 'Attendance record not found' });
         }
 
         const imagesPaths = req.files ? req.files.map(f => f.path) : [];
-        await attendanceService.submitReport({ attendanceId: records[0].id, description, imagesPaths });
+        await attendanceService.submitReport({ workerId, taskId, attendanceId: attendance._id.toString(), description, imagesPaths });
 
         res.json({ success: true, message: 'Report submitted successfully' });
     } catch (error) {
@@ -147,12 +134,9 @@ const reviewAttendance = async (req, res) => {
 const getCurrentAttendance = async (req, res) => {
     try {
         const { taskId } = req.params;
-        const workerId = req.user.id;
-        const [records] = await db.execute(
-            'SELECT * FROM attendance_records WHERE task_id = ? AND user_id = ? ORDER BY check_in_time DESC LIMIT 1',
-            [taskId, workerId]
-        );
-        res.json({ success: true, data: records.length > 0 ? records[0] : null });
+        const workerId = req.userId;
+        const record = await AttendanceRecord.findOne({ task: taskId, worker: workerId }).sort({ checkInTime: -1, createdAt: -1 });
+        res.json({ success: true, data: record || null });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
