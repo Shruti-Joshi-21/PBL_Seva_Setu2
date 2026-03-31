@@ -12,11 +12,26 @@ import {
   Instagram, 
   Github
 } from 'lucide-react';
+import RegisterModal from '../components/RegisterModal';
+import LoginModal from '../components/LoginModal';
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(null);
+
+  const handleOpenRegister = (role) => {
+    setSelectedRole(role);
+    setIsRegisterModalOpen(true);
+  };
+
+  const handleOpenLogin = (role) => {
+    setSelectedRole(role);
+    setIsLoginModalOpen(true);
+  };
 
   useEffect(() => {
     // Inject fonts
@@ -174,18 +189,24 @@ export default function LandingPage() {
                 <li className="flex items-center gap-2"><span className="text-[#427A43] font-bold">✓</span> View assigned tasks</li>
               </ul>
               <button 
-                onClick={() => navigate('/worker/login')}
+                onClick={() => handleOpenLogin('Volunteer')}
                 className="w-full bg-[#427A43] hover:bg-[#005F02] text-white rounded-lg py-2.5 transition-colors font-medium mt-auto"
               >
                 Login as Volunteer
               </button>
+              <p className="mt-4 text-[0.8rem] text-gray-500">
+                Don't have an account?{' '}
+                <button 
+                  onClick={() => handleOpenRegister('Volunteer')}
+                  className="text-[#427A43] font-bold hover:underline"
+                >
+                  Sign up
+                </button>
+              </p>
             </div>
 
-            {/* Card 2 - Team Lead (Featured) */}
-            <div className="relative bg-[#F9F9F5] border border-[#E0D9C8] border-t-4 border-t-[#005F02] rounded-2xl p-8 shadow-sm hover:shadow-md hover:border-[#427A43] hover:-translate-y-1 transition-all duration-250 flex flex-col items-center mt-0 lg:-mt-4 lg:mb-4">
-              <div className="absolute top-4 right-4 bg-[#F8AC3B] text-[#1A1A1A] text-xs font-bold px-2 py-1 rounded">
-                Most Used
-              </div>
+            {/* Card 2 - Team Lead */}
+            <div className="bg-[#F9F9F5] border border-[#E0D9C8] rounded-2xl p-8 shadow-sm hover:shadow-md hover:border-[#427A43] hover:-translate-y-1 transition-all duration-250 flex flex-col items-center">
               <div className="w-16 h-16 rounded-full bg-[#005F02] flex items-center justify-center mb-6 mt-2">
                 <Users size={32} color="#ffffff" />
               </div>
@@ -202,11 +223,20 @@ export default function LandingPage() {
                 <li className="flex items-center gap-2"><span className="text-[#005F02] font-bold">✓</span> Team performance reports</li>
               </ul>
               <button 
-                onClick={() => navigate('/teamlead/login')}
+                onClick={() => handleOpenLogin('Team Lead')}
                 className="w-full bg-[#005F02] hover:bg-[#003D01] text-white rounded-lg py-2.5 transition-colors font-medium mt-auto"
               >
                 Login as Team Lead
               </button>
+              <p className="mt-4 text-[0.8rem] text-gray-500">
+                Don't have an account?{' '}
+                <button 
+                  onClick={() => handleOpenRegister('Team Lead')}
+                  className="text-[#005F02] font-bold hover:underline"
+                >
+                  Sign up
+                </button>
+              </p>
             </div>
 
             {/* Card 3 - Admin */}
@@ -227,11 +257,20 @@ export default function LandingPage() {
                 <li className="flex items-center gap-2"><span className="text-[#F8AC3B] font-bold">✓</span> Advanced reporting</li>
               </ul>
               <button 
-                onClick={() => navigate('/admin/login')}
+                onClick={() => handleOpenLogin('Administrator')}
                 className="w-full bg-[#F8AC3B] hover:bg-[#a89a5e] text-[#1A1A1A] rounded-lg py-2.5 transition-colors font-medium mt-auto"
               >
                 Login as Admin
               </button>
+              <p className="mt-4 text-[0.8rem] text-gray-500">
+                Don't have an account?{' '}
+                <button 
+                  onClick={() => handleOpenRegister('Administrator')}
+                  className="text-[#F8AC3B] font-bold hover:underline"
+                >
+                  Sign up
+                </button>
+              </p>
             </div>
 
           </div>
@@ -351,6 +390,18 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      <RegisterModal 
+        isOpen={isRegisterModalOpen} 
+        onClose={() => setIsRegisterModalOpen(false)} 
+        role={selectedRole} 
+      />
+
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        role={selectedRole}
+      />
     </div>
   );
 }

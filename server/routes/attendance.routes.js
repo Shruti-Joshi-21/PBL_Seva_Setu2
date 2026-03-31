@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const attendanceController = require('../controllers/attendance.controller');
-const { verifyToken } = require('../middlewares/auth.middleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const upload = require('../middlewares/upload.middleware');
 
 // GET /api/attendance/...

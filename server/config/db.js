@@ -1,14 +1,19 @@
-const mysql = require('mysql2/promise');
-require('dotenv').config();
+const mongoose = require('mongoose');
 
-const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'sevasetu',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+async function connectDB() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    console.error('MONGODB_URI is not set in environment variables');
+    process.exit(1);
+  }
 
-module.exports = pool;
+  try {
+    const conn = await mongoose.connect(uri, { dbName: 'sevasetu' });
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (err) {
+    console.error('MongoDB connection error:', err.message);
+    process.exit(1);
+  }
+}
+
+module.exports = connectDB;

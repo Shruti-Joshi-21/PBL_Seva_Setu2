@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
-import Login from './pages/Login';
 import LandingPage from './pages/LandingPage';
 import WorkerDashboard from './pages/WorkerDashboard';
 import MarkAttendance from './pages/MarkAttendance';
@@ -29,10 +28,12 @@ function App() {
         <AuthProvider>
             <Router>
                 <Routes>
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/worker/login" element={<Login />} />
-                    <Route path="/teamlead/login" element={<Login />} />
-                    <Route path="/admin/login" element={<Login />} />
+                    {/* Redirect separate login pages to landing page */}
+                    <Route path="/login" element={<Navigate to="/" replace />} />
+                    <Route path="/worker/login" element={<Navigate to="/" replace />} />
+                    <Route path="/teamlead/login" element={<Navigate to="/" replace />} />
+                    <Route path="/admin/login" element={<Navigate to="/" replace />} />
+
                     {/* Admin Routes */}
                     <Route
                         path="/admin/*"
