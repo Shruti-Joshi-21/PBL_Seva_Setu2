@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/admin.controller');
-const { verifyToken, authorizeRoles } = require('../middleware/authMiddleware');
+const { verifyToken, authorizeRoles } = require('../middlewares/authMiddleware');
 
 router.get('/users', verifyToken, authorizeRoles('ADMIN'), adminController.getAllUsers);
 router.patch('/users/:id/status', verifyToken, authorizeRoles('ADMIN'), adminController.toggleUserStatus);

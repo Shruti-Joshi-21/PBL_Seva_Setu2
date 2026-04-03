@@ -4,7 +4,7 @@ const newAuthController = require('../controllers/authController');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middlewares/authMiddleware');
 
 // New MongoDB auth endpoints (required)
 const facesDir = path.join(__dirname, '..', 'uploads', 'faces');

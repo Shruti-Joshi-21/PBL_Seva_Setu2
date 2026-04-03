@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../utils/api';
 import { X, Mail, Lock, Loader, User, Shield, Users } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -19,12 +20,18 @@ const LoginModal = ({ isOpen, onClose, role }) => {
         setError('');
 
         try {
-            const user = await login(email, password);
+            const { data } = await api.post('/auth/login', { email, password });
+            const payload = data.data;
+            const user = login({
+                token: payload.token,
+                role: payload.role,
+                fullName: payload.fullName,
+                userId: payload.userId,
+            });
             toast.success(`Welcome back, ${user.role}!`);
-            
-            // Redirect based on role
+
             if (user.role === 'ADMIN') navigate('/admin');
-            else if (user.role === 'TEAM_LEAD') navigate('/team-lead');
+            else if (user.role === 'TEAM_LEAD') navigate('/teamlead');
             else navigate('/worker');
             
             onClose();
