@@ -90,6 +90,20 @@ const checkOut = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
+    const attendanceId = await attendanceService.createCheckIn({
+      userId,
+      taskId,
+      lat,
+      lon,
+      imagePath,
+      status,
+      faceMatched,
+      flagReasons: flags,
+    });
+    return sendSuccess(res, { id: attendanceId, status, flags }, 'Check-in recorded');
+  } catch (error) {
+    return next(error);
+  }
 };
 
 const submitReport = async (req, res) => {
@@ -109,26 +123,52 @@ const submitReport = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
+    await attendanceService.createCheckOut(attendance._id.toString(), {
+      lat,
+      lon,
+      imagePath,
+      status,
+      faceMatched,
+      flagReasons: flags,
+    });
+    return sendSuccess(res, { status, flags }, 'Check-out successful');
+  } catch (error) {
+    return next(error);
+  }
 };
 
-const getAllAttendance = async (req, res) => {
-    try {
-        const data = await attendanceService.getAllAttendance();
-        res.json({ success: true, data });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+const submitReport = async (req, res, next) => {
+  try {
+    const { taskId, description } = req.body;
+    const workerId = req.userId;
+    const attendance = await AttendanceRecord.findOne({ task: taskId, worker: workerId }).sort({
+      checkInTime: -1,
+      createdAt: -1,
+    });
+    if (!attendance) {
+      return sendError(res, 'Attendance record not found', 400);
     }
+    const imagesPaths = req.files ? req.files.map((f) => f.path) : [];
+    await attendanceService.submitReport({
+      workerId,
+      taskId,
+      attendanceId: attendance._id.toString(),
+      description,
+      imagesPaths,
+    });
+    return sendSuccess(res, {}, 'Report submitted successfully');
+  } catch (error) {
+    return next(error);
+  }
 };
 
-const reviewAttendance = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
-        await attendanceService.reviewAttendance(id, status);
-        res.json({ success: true, message: 'Attendance reviewed' });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
+const getAllAttendance = async (req, res, next) => {
+  try {
+    const data = await attendanceService.getAllAttendance();
+    return sendSuccess(res, data);
+  } catch (error) {
+    return next(error);
+  }
 };
 
 const getCurrentAttendance = async (req, res) => {
@@ -143,10 +183,10 @@ const getCurrentAttendance = async (req, res) => {
 };
 
 module.exports = {
-    checkIn,
-    checkOut,
-    submitReport,
-    getAllAttendance,
-    reviewAttendance,
-    getCurrentAttendance
+  checkIn,
+  checkOut,
+  submitReport,
+  getAllAttendance,
+  reviewAttendance,
+  getCurrentAttendance,
 };

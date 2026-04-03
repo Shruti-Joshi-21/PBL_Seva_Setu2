@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { Users, UserPlus, Search, MoreVertical, Shield, UserX, UserCheck, Trash2, Loader } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -14,10 +14,7 @@ const UserManagement = () => {
 
     const fetchUsers = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:5000/api/admin/users', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/admin/users');
             setUsers(response.data.data);
         } catch (error) {
             toast.error('Failed to fetch users');
@@ -28,11 +25,7 @@ const UserManagement = () => {
 
     const handleToggleStatus = async (id, currentStatus) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.patch(`http://localhost:5000/api/admin/users/${id}/status`,
-                { is_active: !currentStatus },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.patch(`/admin/users/${id}/status`, { is_active: !currentStatus });
             toast.success('User status updated');
             fetchUsers();
         } catch (error) {
@@ -43,10 +36,7 @@ const UserManagement = () => {
     const handleDeleteUser = async (id) => {
         if (!window.confirm('Are you sure you want to delete this user?')) return;
         try {
-            const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/api/admin/users/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.delete(`/admin/users/${id}`);
             toast.success('User deleted');
             fetchUsers();
         } catch (error) {

@@ -63,3 +63,5 @@ module.exports = {
     deleteUser,
     getStats
 };
+
+module.exports = { getAllUsers, toggleUserStatus, deleteUser, getStats };

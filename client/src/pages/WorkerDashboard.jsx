@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { Calendar, MapPin, Clock, ArrowRight, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const WorkerDashboard = () => {
@@ -14,10 +14,7 @@ const WorkerDashboard = () => {
 
     const fetchTasks = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:5000/api/tasks/worker', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/tasks/worker');
             setTasks(response.data.data);
         } catch (error) {
             console.error('Failed to fetch tasks', error);
@@ -45,8 +42,13 @@ const WorkerDashboard = () => {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {tasks.map(task => (
-                        <div key={task.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+                    {tasks.map(task => {
+                        const tid = task._id || task.id;
+                        const loc = task.locationName || task.location_name;
+                        const st = task.startTime || task.start_time;
+                        const et = task.endTime || task.end_time;
+                        return (
+                        <div key={tid} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-4">
                                 <h3 className="text-lg font-bold text-gray-800">{task.title}</h3>
                                 <span className={`px-2 py-1 rounded text-xs font-bold ${task.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
@@ -58,23 +60,23 @@ const WorkerDashboard = () => {
                             <div className="space-y-3 mb-6">
                                 <div className="flex items-center gap-2 text-gray-600 text-sm">
                                     <MapPin className="w-4 h-4 text-[#427A43]" />
-                                    <span>{task.location_name}</span>
+                                    <span>{loc}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-gray-600 text-sm">
                                     <Clock className="w-4 h-4 text-[#427A43]" />
-                                    <span>{new Date(task.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} -
-                                        {new Date(task.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    <span>{st} – {et}</span>
                                 </div>
                             </div>
 
                             <button
-                                onClick={() => navigate(`/worker/attendance/${task.id}`)}
+                                onClick={() => navigate(`/worker/attendance/${tid}`)}
                                 className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#005F02] text-white rounded-xl font-semibold hover:bg-[#427A43] transition-colors"
                             >
                                 Mark Attendance <ArrowRight className="w-4 h-4" />
                             </button>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

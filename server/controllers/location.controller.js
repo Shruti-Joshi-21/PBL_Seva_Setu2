@@ -1,36 +1,25 @@
 const axios = require('axios');
 const TaskLocation = require('../models/TaskLocation');
 
-const searchLocation = async (req, res) => {
-    try {
-        const { q } = req.query;
-        if (!q) {
-            return res.status(400).json({ success: false, message: 'Query parameter is required' });
-        }
-
-        // Using OpenStreetMap Nominatim API
-        const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
-            params: {
-                q,
-                format: 'json',
-                addressdetails: 1,
-                limit: 5
-            },
-            headers: {
-                'User-Agent': 'SevaSetu-App'
-            }
-        });
-
-        const locations = response.data.map(item => ({
-            display_name: item.display_name,
-            lat: item.lat,
-            lon: item.lon
-        }));
-
-        res.json({ success: true, data: locations });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+const searchLocation = async (req, res, next) => {
+  try {
+    const { q } = req.query;
+    if (!q) {
+      return sendError(res, 'Query parameter is required', 400);
     }
+    const response = await axios.get('https://nominatim.openstreetmap.org/search', {
+      params: { q, format: 'json', addressdetails: 1, limit: 5 },
+      headers: { 'User-Agent': 'SevaSetu-App' },
+    });
+    const locations = response.data.map((item) => ({
+      display_name: item.display_name,
+      lat: item.lat,
+      lon: item.lon,
+    }));
+    return sendSuccess(res, locations);
+  } catch (error) {
+    return next(error);
+  }
 };
 
 const saveLocation = async (req, res) => {
@@ -66,8 +55,4 @@ const getLocations = async (req, res) => {
     }
 };
 
-module.exports = {
-    searchLocation,
-    saveLocation,
-    getLocations
-};
+module.exports = { searchLocation, saveLocation, getLocations };

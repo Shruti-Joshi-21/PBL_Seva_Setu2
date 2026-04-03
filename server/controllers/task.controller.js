@@ -1,4 +1,5 @@
 const taskService = require('../services/task.service');
+const { sendSuccess, sendError } = require('../utils/response');
 
 const create = async (req, res) => {
     try {
@@ -21,29 +22,31 @@ const create = async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
-};
-
-const getWorkerTasks = async (req, res) => {
-    try {
-        const userId = req.userId;
-        const tasks = await taskService.getTasksByWorker(userId);
-        res.json({ success: true, data: tasks });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
+    return sendSuccess(res, { taskId }, 'Task created and assigned successfully', 201);
+  } catch (error) {
+    if (error.statusCode === 400) {
+      return sendError(res, error.message, 400);
     }
+    return next(error);
+  }
 };
 
-const getAll = async (req, res) => {
-    try {
-        const tasks = await taskService.getAllTasks();
-        res.json({ success: true, data: tasks });
-    } catch (error) {
-        res.status(500).json({ success: false, message: error.message });
-    }
+const getWorkerTasks = async (req, res, next) => {
+  try {
+    const tasks = await taskService.getTasksByWorker(req.userId);
+    return sendSuccess(res, tasks);
+  } catch (error) {
+    return next(error);
+  }
 };
 
-module.exports = {
-    create,
-    getWorkerTasks,
-    getAll
+const getAll = async (req, res, next) => {
+  try {
+    const tasks = await taskService.getAllTasks();
+    return sendSuccess(res, tasks);
+  } catch (error) {
+    return next(error);
+  }
 };
+
+module.exports = { create, getWorkerTasks, getAll };

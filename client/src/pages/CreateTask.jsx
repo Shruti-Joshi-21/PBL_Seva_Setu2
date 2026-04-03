@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { Search, MapPin, Users, Calendar, Clock, Plus, Loader, CheckCircle } from 'lucide-react';
 
 const CreateTask = () => {
@@ -28,19 +28,11 @@ const CreateTask = () => {
 
     const fetchWorkers = async () => {
         try {
-            const token = localStorage.getItem('token');
-            // In a real app, you'd have an endpoint to get workers. Mocked for now.
-            const response = await axios.get('http://localhost:5000/api/auth/me', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            // Mock worker list (in production, fetch all FIELD_WORKER users)
-            setWorkers([
-                { id: 1, name: 'Rahul Sharma' },
-                { id: 2, name: 'Anjali Gupta' },
-                { id: 3, name: 'Vikram Singh' }
-            ]);
+            const response = await api.get('/teamlead/workers');
+            setWorkers(response.data.data || []);
         } catch (err) {
             console.error(err);
+            setWorkers([]);
         }
     };
 
@@ -48,10 +40,7 @@ const CreateTask = () => {
         if (!searchQuery) return;
         setSearchLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get(`http://localhost:5000/api/locations/search?q=${searchQuery}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get(`/locations/search?q=${encodeURIComponent(searchQuery)}`);
             setLocations(response.data.data);
         } catch (err) {
             console.error(err);
@@ -62,15 +51,12 @@ const CreateTask = () => {
 
     const handleSaveLocation = async (loc) => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:5000/api/locations/save', {
+            const response = await api.post('/locations/save', {
                 name: loc.display_name.split(',')[0],
                 address: loc.display_name,
                 latitude: loc.lat,
                 longitude: loc.lon,
                 radius: formData.radius
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
             });
             setFormData({ ...formData, location_id: response.data.data.id });
             setLocations([]);
@@ -84,11 +70,8 @@ const CreateTask = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('http://localhost:5000/api/tasks/create', formData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            navigate('/team-lead');
+            await api.post('/tasks/create', formData);
+            navigate('/teamlead');
         } catch (err) {
             alert(err.response?.data?.message || 'Failed to create task');
         } finally {

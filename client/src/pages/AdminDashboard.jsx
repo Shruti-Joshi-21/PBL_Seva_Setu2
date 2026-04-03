@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { LayoutDashboard, Users, CheckCircle, AlertTriangle, ArrowRight, BarChart3, TrendingUp, Bell } from 'lucide-react';
 import { Line, Bar } from 'react-chartjs-2';
 import {
@@ -35,10 +35,7 @@ const AdminDashboard = () => {
 
     const fetchStats = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:5000/api/admin/stats', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/admin/stats');
             setStats(response.data.data);
         } catch (error) {
             console.error('Failed to fetch stats', error);

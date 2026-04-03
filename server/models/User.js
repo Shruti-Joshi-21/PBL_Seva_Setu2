@@ -25,4 +25,3 @@ userSchema.pre('validate', function enforceRoleFields(next) {
 });
 
 module.exports = mongoose.model('User', userSchema);
-

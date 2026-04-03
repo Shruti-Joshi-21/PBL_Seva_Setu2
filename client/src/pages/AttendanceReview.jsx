@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { CheckCircle, AlertTriangle, Clock, MapPin, User, Shield, Camera, Filter, Search, Loader } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -14,11 +14,7 @@ const AttendanceReview = () => {
 
     const fetchRecords = async () => {
         try {
-            const token = localStorage.getItem('token');
-            // Assuming this endpoint returns attendance records with user and task details
-            const response = await axios.get('http://localhost:5000/api/attendance/all', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/attendance/all');
             setRecords(response.data.data);
         } catch (error) {
             toast.error('Failed to fetch attendance records');
@@ -29,10 +25,7 @@ const AttendanceReview = () => {
 
     const handleAction = async (id, action) => {
         try {
-            const token = localStorage.getItem('token');
-            await axios.patch(`http://localhost:5000/api/attendance/${id}/review`, { status: action }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.patch(`/attendance/${id}/review`, { status: action });
             toast.success(`Record marked as ${action}`);
             fetchRecords();
         } catch (error) {

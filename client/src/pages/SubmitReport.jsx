@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { FileText, Camera, Send, Loader, ArrowLeft, Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -49,13 +49,7 @@ const SubmitReport = () => {
             formData.append('description', description);
             images.forEach(img => formData.append('images', img));
 
-            const token = localStorage.getItem('token');
-            await axios.post('http://localhost:5000/api/attendance/report', formData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            await api.post('/attendance/report', formData);
 
             toast.success('Report submitted successfully!');
             navigate('/worker');
