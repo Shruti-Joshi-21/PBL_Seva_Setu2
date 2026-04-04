@@ -1,8 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { sendError } = require('../utils/response');
 function verifyToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const token = req.headers.authorization?.split(' ')[1] || null;
 
   if (!token) {
     return sendError(res, 'Unauthorized', 401);
@@ -10,8 +9,9 @@ function verifyToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { userId: decoded.userId, role: decoded.role };
-    req.userId = decoded.userId;
+    const userId = decoded.id ?? decoded.userId;
+    req.user = { userId, role: decoded.role, name: decoded.name };
+    req.userId = userId;
     req.userRole = decoded.role;
     return next();
   } catch (err) {

@@ -14,11 +14,11 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/worker', require('./routes/workerRoutes'));
 app.use('/api/teamlead', require('./routes/teamleadRoutes'));
-app.use('/api/admin', require('./routes/adminRoutes'));
-app.use('/api/attendance', require('./routes/attendanceRoutes'));
+app.use('/api/admin', require('./routes/admin.routes'));
+app.use('/api/attendance', require('./routes/attendance.routes'));
 app.use('/api/leave', require('./routes/leaveRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
 

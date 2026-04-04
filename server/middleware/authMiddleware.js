@@ -7,7 +7,9 @@ function verifyToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { userId: decoded.userId, role: decoded.role };
+    const userId = decoded.id ?? decoded.userId;
+    req.user = { userId, role: decoded.role, name: decoded.name };
+    req.userId = userId;
     return next();
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Unauthorized' });
