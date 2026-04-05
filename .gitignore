@@ -1,6 +1,23 @@
+# Python
 venv/
 __pycache__/
 *.pyc
-.env
+
+# Node
 node_modules/
+
+# Build files
+dist/
+build/
+
+# Environment
+.env
+
+# Uploads
 uploads/
+
+# Vite cache
+.vite/
+
+# Logs
+npm-debug.log*
