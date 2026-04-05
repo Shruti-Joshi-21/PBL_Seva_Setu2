@@ -24,14 +24,34 @@ const DashboardPlaceholder = ({ title }) => (
 );
 
 const teamLeadNested = (
-  <Layout>
-    <Routes>
-      <Route index element={<TeamLeadDashboard />} />
-      <Route path="tasks/create" element={<CreateTask />} />
-      <Route path="locations" element={<DashboardPlaceholder title="Manage Locations" />} />
-      <Route path="attendance" element={<AttendanceReview />} />
-    </Routes>
-  </Layout>
+  <Routes>
+    <Route index element={<TeamLeadDashboard />} />
+    <Route path="tasks" element={<Navigate to="/teamlead/tasks/create" replace />} />
+    <Route
+      path="tasks/create"
+      element={
+        <Layout>
+          <CreateTask />
+        </Layout>
+      }
+    />
+    <Route
+      path="locations"
+      element={
+        <Layout>
+          <DashboardPlaceholder title="Manage Locations" />
+        </Layout>
+      }
+    />
+    <Route
+      path="attendance"
+      element={
+        <Layout>
+          <AttendanceReview />
+        </Layout>
+      }
+    />
+  </Routes>
 );
 
 function App() {

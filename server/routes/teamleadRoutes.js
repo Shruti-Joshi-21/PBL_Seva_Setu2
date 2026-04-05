@@ -4,6 +4,14 @@ const User = require('../models/User');
 const { verifyToken, authorizeRoles } = require('../middlewares/authMiddleware');
 const { ROLES } = require('../utils/constants');
 const { sendSuccess } = require('../utils/response');
+const teamleadController = require('../controllers/teamlead.controller');
+
+router.get(
+  '/dashboard-summary',
+  verifyToken,
+  authorizeRoles(ROLES.TEAM_LEAD),
+  teamleadController.getDashboardSummary
+);
 
 router.get(
   '/workers',
