@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, Loader } from 'lucide-react';
+import { User, Lock, Loader } from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '../utils/api';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -16,22 +16,22 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
 
     try {
-      const { data } = await api.post('/auth/login', { email, password });
-      const payload = data.data;
-      login({
-        token: payload.token,
-        role: payload.role,
-        fullName: payload.fullName,
-        userId: payload.userId,
-      });
-      if (payload.role === 'ADMIN') navigate('/admin');
-      else if (payload.role === 'TEAM_LEAD') navigate('/teamlead');
-      else navigate('/worker');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to login. Please check your credentials.');
+      const response = await api.post('/auth/login', { username, password });
+      const { token, role, name, id } = response.data.data;
+
+      localStorage.setItem('sevasetu_token', token);
+      localStorage.setItem('sevasetu_role', role);
+
+      login({ token, role, name, id });
+
+      if (role === 'ADMIN') navigate('/admin');
+      else if (role === 'TEAM_LEAD') navigate('/team-lead');
+      else if (role === 'FIELD_WORKER') navigate('/field-worker');
+      else navigate('/');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -45,22 +45,19 @@ const Login = () => {
           <p className="text-[#427A43] mt-2">Smart Field Workforce Management</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6">{error}</div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
-                type="email"
+                type="text"
                 required
+                autoComplete="username"
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005F02] focus:border-transparent transition-all outline-none"
-                placeholder="admin@sevasetu.gov.in"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Username / Email"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
           </div>
@@ -72,8 +69,9 @@ const Login = () => {
               <input
                 type="password"
                 required
+                autoComplete="current-password"
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005F02] focus:border-transparent transition-all outline-none"
-                placeholder="••••••••"
+                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -90,8 +88,8 @@ const Login = () => {
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-6">
-          <Link to="/signup" className="text-[#005F02] font-medium">
-            Create an account
+          <Link to="/" className="text-[#005F02] font-medium">
+            Back to home
           </Link>
         </p>
 

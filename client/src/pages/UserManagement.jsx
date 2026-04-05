@@ -15,7 +15,8 @@ const UserManagement = () => {
     const fetchUsers = async () => {
         try {
             const response = await api.get('/admin/users');
-            setUsers(response.data.data);
+            const d = response.data.data;
+            setUsers(Array.isArray(d) ? d : d.users || []);
         } catch (error) {
             toast.error('Failed to fetch users');
         } finally {
@@ -45,8 +46,8 @@ const UserManagement = () => {
     };
 
     const filteredUsers = users.filter(user =>
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase())
+        (user.fullName || user.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (user.username || user.email || '').toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     if (loading) return <div className="flex justify-center py-10"><Loader className="animate-spin text-[#005F02]" /></div>;
@@ -89,31 +90,37 @@ const UserManagement = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {filteredUsers.map((user) => (
-                                <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                            {filteredUsers.map((user) => {
+                                const uid = user._id || user.id;
+                                const displayName = user.fullName || user.name || '';
+                                const displayLogin = user.username || user.email || '';
+                                const roleName = user.role || user.role_name;
+                                const isActive = user.isActive ?? user.is_active;
+                                return (
+                                <tr key={uid} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-9 h-9 rounded-full bg-[#F2E3BB] text-[#005F02] flex items-center justify-center font-bold">
-                                                {user.name.charAt(0)}
+                                                {(displayName.charAt(0) || '?').toUpperCase()}
                                             </div>
                                             <div>
-                                                <div className="font-semibold text-gray-800 text-sm">{user.name}</div>
-                                                <div className="text-gray-500 text-xs">{user.email}</div>
+                                                <div className="font-semibold text-gray-800 text-sm">{displayName}</div>
+                                                <div className="text-gray-500 text-xs">{displayLogin}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-1.5 text-xs font-semibold">
-                                            <Shield className={`w-3.5 h-3.5 ${user.role_name === 'ADMIN' ? 'text-red-500' :
-                                                    user.role_name === 'TEAM_LEAD' ? 'text-blue-500' : 'text-green-500'
+                                            <Shield className={`w-3.5 h-3.5 ${roleName === 'ADMIN' ? 'text-red-500' :
+                                                    roleName === 'TEAM_LEAD' ? 'text-blue-500' : 'text-green-500'
                                                 }`} />
-                                            <span className="text-gray-700 uppercase">{user.role_name}</span>
+                                            <span className="text-gray-700 uppercase">{roleName}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                             }`}>
-                                            {user.is_active ? 'Active' : 'Inactive'}
+                                            {isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-600 font-medium">
@@ -122,15 +129,15 @@ const UserManagement = () => {
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
-                                                onClick={() => handleToggleStatus(user.id, user.is_active)}
-                                                className={`p-2 rounded-lg transition-colors ${user.is_active ? 'text-yellow-600 hover:bg-yellow-50' : 'text-green-600 hover:bg-green-50'
+                                                onClick={() => handleToggleStatus(uid, isActive)}
+                                                className={`p-2 rounded-lg transition-colors ${isActive ? 'text-yellow-600 hover:bg-yellow-50' : 'text-green-600 hover:bg-green-50'
                                                     }`}
-                                                title={user.is_active ? 'Deactivate' : 'Activate'}
+                                                title={isActive ? 'Deactivate' : 'Activate'}
                                             >
-                                                {user.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                                                {isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                                             </button>
                                             <button
-                                                onClick={() => handleDeleteUser(user.id)}
+                                                onClick={() => handleDeleteUser(uid)}
                                                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                 title="Delete"
                                             >
@@ -139,7 +146,8 @@ const UserManagement = () => {
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>

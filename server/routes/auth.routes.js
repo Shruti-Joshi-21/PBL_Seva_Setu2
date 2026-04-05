@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const newAuthController = require('../controllers/authController');
+const authController = require('../controllers/auth.controller');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { verifyToken } = require('../middlewares/authMiddleware');
 
-// New MongoDB auth endpoints (required)
 const facesDir = path.join(__dirname, '..', 'uploads', 'faces');
 if (!fs.existsSync(facesDir)) fs.mkdirSync(facesDir, { recursive: true });
 const upload = multer({
@@ -18,10 +17,10 @@ const upload = multer({
   },
 });
 
-router.post('/signup/field-worker', upload.single('faceImage'), newAuthController.signupFieldWorker);
-router.post('/signup/team-lead', newAuthController.signupTeamLead);
-router.post('/signup/admin', newAuthController.signupAdmin);
-router.post('/login', newAuthController.login);
-router.get('/me', verifyToken, newAuthController.getMe);
+router.post('/signup/field-worker', upload.single('faceImage'), authController.signupFieldWorker);
+router.post('/signup/team-lead', authController.signupTeamLead);
+router.post('/signup/admin', authController.signupAdmin);
+router.post('/login', authController.login);
+router.get('/me', verifyToken, authController.getMe);
 
 module.exports = router;

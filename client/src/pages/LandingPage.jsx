@@ -188,7 +188,7 @@ export default function LandingPage() {
                 <li className="flex items-center gap-2"><span className="text-[#427A43] font-bold">✓</span> Request leave</li>
                 <li className="flex items-center gap-2"><span className="text-[#427A43] font-bold">✓</span> View assigned tasks</li>
               </ul>
-              <button 
+              <button
                 onClick={() => handleOpenLogin('Volunteer')}
                 className="w-full bg-[#427A43] hover:bg-[#005F02] text-white rounded-lg py-2.5 transition-colors font-medium mt-auto"
               >
@@ -222,7 +222,7 @@ export default function LandingPage() {
                 <li className="flex items-center gap-2"><span className="text-[#005F02] font-bold">✓</span> Leave approval workflow</li>
                 <li className="flex items-center gap-2"><span className="text-[#005F02] font-bold">✓</span> Team performance reports</li>
               </ul>
-              <button 
+              <button
                 onClick={() => handleOpenLogin('Team Lead')}
                 className="w-full bg-[#005F02] hover:bg-[#003D01] text-white rounded-lg py-2.5 transition-colors font-medium mt-auto"
               >
@@ -256,7 +256,7 @@ export default function LandingPage() {
                 <li className="flex items-center gap-2"><span className="text-[#F8AC3B] font-bold">✓</span> System configuration</li>
                 <li className="flex items-center gap-2"><span className="text-[#F8AC3B] font-bold">✓</span> Advanced reporting</li>
               </ul>
-              <button 
+              <button
                 onClick={() => handleOpenLogin('Administrator')}
                 className="w-full bg-[#F8AC3B] hover:bg-[#a89a5e] text-[#1A1A1A] rounded-lg py-2.5 transition-colors font-medium mt-auto"
               >

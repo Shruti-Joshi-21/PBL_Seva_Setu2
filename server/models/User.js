@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
     isDeleted: { type: Boolean, default: false },
     faceImagePath: { type: String, default: null },
     faceEncoding: { type: Buffer, default: null },
+    assignedTeamLead: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   },
   { timestamps: true }
 );

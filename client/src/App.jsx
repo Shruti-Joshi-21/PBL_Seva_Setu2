@@ -12,6 +12,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/UserManagement';
 import SubmitReport from './pages/SubmitReport';
 import AttendanceReview from './pages/AttendanceReview';
+import Login from './pages/Login';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -39,47 +40,44 @@ function App() {
             <Router>
                 <Routes>
                     {/* Redirect separate login pages to landing page */}
-                    <Route path="/login" element={<Navigate to="/" replace />} />
+                    <Route path="/login" element={<Login />} />
                     <Route path="/worker/login" element={<Navigate to="/" replace />} />
                     <Route path="/teamlead/login" element={<Navigate to="/" replace />} />
                     <Route path="/admin/login" element={<Navigate to="/" replace />} />
 
-                    {/* Admin Routes */}
                     <Route
                         path="/admin/*"
                         element={
                             <ProtectedRoute allowedRoles={['ADMIN']}>
-                                <Layout>
-                                    <Routes>
-                                        <Route index element={<AdminDashboard />} />
-                                        <Route path="users" element={<UserManagement />} />
-                                        <Route path="reports" element={<DashboardPlaceholder title="System Reports" />} />
-                                    </Routes>
-                                </Layout>
+                                <Routes>
+                                    <Route index element={<AdminDashboard />} />
+                                    <Route
+                                        path="users"
+                                        element={
+                                            <Layout>
+                                                <UserManagement />
+                                            </Layout>
+                                        }
+                                    />
+                                    <Route
+                                        path="reports"
+                                        element={
+                                            <Layout>
+                                                <DashboardPlaceholder title="System Reports" />
+                                            </Layout>
+                                        }
+                                    />
+                                </Routes>
                             </ProtectedRoute>
                         }
                     />
-
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
-                <Layout>
-                  <Routes>
-                    <Route index element={<AdminDashboard />} />
-                    <Route path="users" element={<UserManagement />} />
-                    <Route path="reports" element={<DashboardPlaceholder title="System Reports" />} />
-                  </Routes>
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
 
           <Route
             path="/teamlead/*"
             element={<ProtectedRoute allowedRoles={['TEAM_LEAD']}>{teamLeadNested}</ProtectedRoute>}
           />
           <Route path="/team-lead/*" element={<Navigate to="/teamlead" replace />} />
+          <Route path="/field-worker/*" element={<Navigate to="/worker" replace />} />
 
           <Route
             path="/worker/*"

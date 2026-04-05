@@ -19,6 +19,7 @@ const AttendanceRecordSchema = new mongoose.Schema(
     checkOutFaceMatch: { type: Boolean },
     afterImage: { type: String },
     status: { type: String, enum: ['PENDING', 'VERIFIED', 'FLAGGED', 'REJECTED'], default: 'PENDING' },
+    isLate: { type: Boolean, default: false },
     flagReasons: [{ type: String }],
     isDeleted: { type: Boolean, default: false },
   },

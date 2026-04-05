@@ -10,7 +10,22 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const rehydrate = useCallback(() => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const role = localStorage.getItem(ROLE_KEY);
+    if (token && role) {
+      setUser((prev) => ({
+        ...prev,
+        token,
+        role,
+        fullName: prev?.fullName ?? '',
+        userId: prev?.userId ?? '',
+      }));
+    }
+  }, []);
+
   useEffect(() => {
+    rehydrate();
     const token = localStorage.getItem(TOKEN_KEY);
     if (!token) {
       setLoading(false);
@@ -22,11 +37,13 @@ export const AuthProvider = ({ children }) => {
         const u = data.data;
         setUser({
           token,
-          role: u.role_name || u.role,
-          fullName: u.name || u.fullName || '',
-          userId: u.id || (u._id && String(u._id)) || '',
+          role: u.role || u.role_name,
+          fullName: u.fullName || u.name || '',
+          userId: u._id ? String(u._id) : u.id || '',
         });
-        localStorage.setItem(ROLE_KEY, u.role_name || u.role);
+        if (u.role || u.role_name) {
+          localStorage.setItem(ROLE_KEY, u.role || u.role_name);
+        }
       } catch {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(ROLE_KEY);
@@ -35,14 +52,14 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [rehydrate]);
 
   const login = useCallback((userData) => {
     const next = {
       token: userData.token,
       role: userData.role,
-      fullName: userData.fullName ?? '',
-      userId: userData.userId ?? '',
+      fullName: userData.fullName ?? userData.name ?? '',
+      userId: userData.userId ?? userData.id ?? '',
     };
     localStorage.setItem(TOKEN_KEY, next.token);
     localStorage.setItem(ROLE_KEY, next.role);
@@ -69,8 +86,9 @@ export const AuthProvider = ({ children }) => {
       logout,
       isAuthenticated,
       hasRole,
+      rehydrate,
     }),
-    [user, loading, login, logout, isAuthenticated, hasRole]
+    [user, loading, login, logout, isAuthenticated, hasRole, rehydrate]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
