@@ -26,7 +26,32 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     rehydrate();
-    setLoading(false);
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    (async () => {
+      try {
+        const { data } = await api.get('/auth/me');
+        const u = data.data;
+        setUser({
+          token,
+          role: u.role || u.role_name,
+          fullName: u.fullName || u.name || '',
+          userId: u._id ? String(u._id) : u.id || '',
+        });
+        if (u.role || u.role_name) {
+          localStorage.setItem(ROLE_KEY, u.role || u.role_name);
+        }
+      } catch {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(ROLE_KEY);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [rehydrate]);
 
   const login = useCallback((userData) => {
@@ -51,10 +76,7 @@ export const AuthProvider = ({ children }) => {
 
   const isAuthenticated = !!user?.token;
 
-  const hasRole = useCallback(
-    (role) => user?.role === role,
-    [user]
-  );
+  const hasRole = useCallback((role) => user?.role === role, [user]);
 
   const value = useMemo(
     () => ({
