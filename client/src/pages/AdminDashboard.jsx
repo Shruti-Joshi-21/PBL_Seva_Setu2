@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { format, formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -23,7 +24,7 @@ import {
   Inbox,
   BarChart2,
   CalendarDays,
-  Bell,
+  LogOut,
   Leaf,
   CheckSquare,
   Clock,
@@ -31,7 +32,6 @@ import {
   UserCheck,
   UserX,
   TrendingUp,
-  Pencil,
   X,
   Paperclip,
   Download,
@@ -1130,6 +1130,8 @@ const TAB_LEAVE = 'leave';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  const currentUser = user;
+  const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState(TAB_OVERVIEW);
 
@@ -1444,10 +1446,6 @@ const AdminDashboard = () => {
     return `${m} min ago`;
   }, [lastRefreshAt, tick]);
 
-  const unreadBell = useMemo(() => {
-    return systemAlerts.filter((a) => a.severity === 'critical' || a.severity === 'warning').length;
-  }, [systemAlerts]);
-
   const wasteDelta = useMemo(() => {
     if (!impactMetrics) return 0;
     return Math.round((impactMetrics.wasteCollectedTonnes - impactMetrics.wasteCollectedLastMonthTonnes) * 10) / 10;
@@ -1573,6 +1571,19 @@ const AdminDashboard = () => {
       );
   }, [users, activeRoleFilter, searchQuery]);
 
+  const handleToggleUserStatus = useCallback(async (u) => {
+    const prev = u.isActive;
+    setUsers((list) =>
+      list.map((x) => (x._id === u._id ? { ...x, isActive: !x.isActive } : x))
+    );
+    try {
+      await api.patch(`/admin/users/${u._id}/toggle`);
+    } catch (err) {
+      setUsers((list) => list.map((x) => (x._id === u._id ? { ...x, isActive: prev } : x)));
+      toast.error(err.response?.data?.message || 'Update failed');
+    }
+  }, []);
+
   const roleCounts = useMemo(
     () => ({
       ALL: users.length,
@@ -1619,14 +1630,28 @@ const AdminDashboard = () => {
             );
           })}
         </nav>
-        <div className="p-3 border-t border-white/10 flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-[#427A43] flex items-center justify-center text-[#F2E3BB] text-[10px] font-medium">
-            {initialsFromName(user?.fullName)}
+        <div className="p-3 border-t border-white/10">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-[#427A43] flex items-center justify-center text-[#F2E3BB] text-[10px] font-medium">
+              {initialsFromName(user?.fullName)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-white/65 text-[11px] truncate">{user?.fullName || 'Admin'}</div>
+              <div className="text-white/30 text-[10px]">{user?.role || 'ADMIN'}</div>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="text-white/65 text-[11px] truncate">{user?.fullName || 'Admin'}</div>
-            <div className="text-white/30 text-[10px]">{user?.role || 'ADMIN'}</div>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem('sevasetu_token');
+              localStorage.removeItem('sevasetu_role');
+              navigate('/login');
+            }}
+            className="flex items-center gap-2 w-full px-3 py-2 mt-1 text-white/50 hover:text-white/80 hover:bg-white/8 rounded-lg cursor-pointer transition-colors text-xs"
+          >
+            <LogOut size={14} />
+            Logout
+          </button>
         </div>
       </aside>
 
@@ -1635,14 +1660,11 @@ const AdminDashboard = () => {
           <span className="text-sm font-medium text-gray-800">{tabTitle}</span>
           <div className="flex items-center gap-3">
             <span className="text-[10px] text-gray-400">Last updated {minutesAgo}</span>
-            <div className="relative">
-              <Bell className="w-7 h-7 text-gray-500" />
-              {unreadBell > 0 && (
-                <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-red-500" />
-              )}
-            </div>
-            <div className="w-7 h-7 rounded-full bg-[#005F02] flex items-center justify-center text-white text-[10px] font-medium">
-              {initialsFromName(user?.fullName)}
+            <div
+              title={currentUser?.fullName || currentUser?.username || 'Admin'}
+              className="w-7 h-7 rounded-full bg-[#005F02] flex items-center justify-center text-white text-[10px] font-medium"
+            >
+              {initialsFromName(currentUser?.fullName)}
             </div>
           </div>
         </header>
@@ -2171,7 +2193,7 @@ const AdminDashboard = () => {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      {['User', 'Username', 'Role', 'Assigned Lead', 'Status', 'Actions'].map((h) => (
+                      {['User', 'Username', 'Role', 'Status'].map((h) => (
                         <th
                           key={h}
                           className="px-4 py-3 text-left text-[10px] uppercase tracking-wide text-gray-500"
@@ -2185,7 +2207,7 @@ const AdminDashboard = () => {
                     {usersLoading
                       ? [1, 2, 3, 4, 5].map((i) => (
                           <tr key={i} className="border-b border-gray-100">
-                            <td colSpan={6} className="px-4 py-3">
+                            <td colSpan={4} className="px-4 py-3">
                               <div className="h-8 animate-pulse bg-gray-200 rounded" />
                             </td>
                           </tr>
@@ -2193,7 +2215,7 @@ const AdminDashboard = () => {
                       : filteredUsersTable.length === 0
                         ? (
                             <tr>
-                              <td colSpan={6} className="px-4 py-12 text-center">
+                              <td colSpan={4} className="px-4 py-12 text-center">
                                 <Users className="w-8 h-8 mx-auto text-gray-300 mb-2" />
                                 <p className="text-sm text-gray-400">No users found</p>
                                 <p className="text-xs text-gray-300 mt-1">Try adjusting filters</p>
@@ -2232,11 +2254,6 @@ const AdminDashboard = () => {
                                     {u.role}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-xs text-gray-600">
-                                  {u.role === 'FIELD_WORKER' && u.assignedTeamLead?.fullName
-                                    ? u.assignedTeamLead.fullName
-                                    : '—'}
-                                </td>
                                 <td className="px-4 py-3">
                                   <span
                                     className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
@@ -2247,50 +2264,6 @@ const AdminDashboard = () => {
                                   >
                                     {u.isActive ? 'Active' : 'Inactive'}
                                   </span>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <div className="flex items-center">
-                                    <button
-                                      type="button"
-                                      onClick={async () => {
-                                        const prev = u.isActive;
-                                        setUsers((list) =>
-                                          list.map((x) =>
-                                            x._id === u._id ? { ...x, isActive: !x.isActive } : x
-                                          )
-                                        );
-                                        try {
-                                          await api.patch(`/admin/users/${u._id}/toggle`);
-                                        } catch (err) {
-                                          setUsers((list) =>
-                                            list.map((x) =>
-                                              x._id === u._id ? { ...x, isActive: prev } : x
-                                            )
-                                          );
-                                          toast.error(err.response?.data?.message || 'Update failed');
-                                        }
-                                      }}
-                                      className={`relative w-9 h-5 rounded-full transition-colors ${
-                                        u.isActive ? 'bg-[#005F02]' : 'bg-gray-300'
-                                      }`}
-                                    >
-                                      <span
-                                        className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                                          u.isActive ? 'translate-x-4' : 'translate-x-0.5'
-                                        }`}
-                                      />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setSelectedUser({ ...u });
-                                        setEditDrawerOpen(true);
-                                      }}
-                                      className="ml-2 text-gray-400 hover:text-[#005F02]"
-                                    >
-                                      <Pencil size={14} />
-                                    </button>
-                                  </div>
                                 </td>
                               </tr>
                             );
