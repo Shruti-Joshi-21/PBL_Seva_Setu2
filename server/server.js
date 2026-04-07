@@ -28,11 +28,13 @@ const locationRoutes = require('./routes/location.routes');
 const taskRoutes = require('./routes/task.routes');
 const attendanceRoutes = require('./routes/attendance.routes');
 const adminRoutes = require('./routes/admin.routes');
+const workerRoutes = require('./routes/workerRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/worker', workerRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

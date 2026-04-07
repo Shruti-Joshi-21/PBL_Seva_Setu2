@@ -18,4 +18,7 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
     return d;
 };
 
-module.exports = { getDistance };
+/** Alias for clarity in attendance flows (distance in meters). */
+const getDistanceInMeters = getDistance;
+
+module.exports = { getDistance, getDistanceInMeters };
