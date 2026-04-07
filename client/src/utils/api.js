@@ -1,29 +1,19 @@
 import axios from 'axios';
 
+// In dev, use same-origin `/api` so Vite proxies to Express (see vite.config.js).
+// Set VITE_API_URL in .env to override (e.g. production API URL).
+const baseURL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? '/api' : 'http://localhost:5000/api');
+
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
-  headers: { 'Content-Type': 'application/json' },
+  baseURL,
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('sevasetu_token');
+  const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
-  if (config.data instanceof FormData) {
-    delete config.headers['Content-Type'];
-  }
   return config;
 });
-
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('sevasetu_token');
-      localStorage.removeItem('sevasetu_role');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
 
 export default api;
