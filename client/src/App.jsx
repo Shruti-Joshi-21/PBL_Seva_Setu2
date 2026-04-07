@@ -8,6 +8,10 @@ import WorkerDashboard from './pages/WorkerDashboard';
 import MarkAttendance from './pages/MarkAttendance';
 import CreateTask from './pages/CreateTask';
 import TeamLeadDashboard from './pages/TeamLeadDashboard';
+import Tasks from './pages/Tasks';
+import LeaveManagement from './pages/LeaveManagement';
+import FlaggedRecords from './pages/FlaggedRecords';
+import FieldReports from './pages/FieldReports';
 import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/UserManagement';
 import SubmitReport from './pages/SubmitReport';
@@ -27,9 +31,13 @@ const teamLeadNested = (
   <Layout>
     <Routes>
       <Route index element={<TeamLeadDashboard />} />
+      <Route path="tasks" element={<Tasks />} />
       <Route path="tasks/create" element={<CreateTask />} />
       <Route path="locations" element={<DashboardPlaceholder title="Manage Locations" />} />
       <Route path="attendance" element={<AttendanceReview />} />
+      <Route path="leave" element={<LeaveManagement />} />
+      <Route path="flags" element={<FlaggedRecords />} />
+      <Route path="reports" element={<FieldReports />} />
     </Routes>
   </Layout>
 );

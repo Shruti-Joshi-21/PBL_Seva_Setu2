@@ -1,138 +1,194 @@
-import React, { useState, useEffect } from 'react';
-import api from '../utils/api';
-import { CheckCircle, AlertTriangle, Clock, MapPin, User, Shield, Camera, Filter, Search, Loader } from 'lucide-react';
-import { toast } from 'react-toastify';
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { ChevronDown } from 'lucide-react';
+import api from '../utils/api.js';
+import { useAuth } from '../context/AuthContext';
 
 const AttendanceReview = () => {
-    const [records, setRecords] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState('ALL');
+  useAuth();
+  const [attendanceData, setAttendanceData] = useState({
+    grouped: [],
+    summary: { present: 0, absent: 0, flagged: 0, pending: 0 },
+  });
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [expandedTask, setExpandedTask] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        fetchRecords();
-    }, []);
+  const fetchData = async (date) => {
+    setLoading(true);
+    try {
+      const response = await api.get(`/teamlead/attendance?date=${date}`);
+      const { data } = response.data;
+      setAttendanceData(data || { grouped: [], summary: {} });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const fetchRecords = async () => {
-        try {
-            const response = await api.get('/attendance/all');
-            setRecords(response.data.data);
-        } catch (error) {
-            toast.error('Failed to fetch attendance records');
-        } finally {
-            setLoading(false);
-        }
-    };
+  useEffect(() => {
+    fetchData(selectedDate);
+  }, [selectedDate]);
+  useEffect(() => {
+    const t = setInterval(() => fetchData(selectedDate), 30000);
+    return () => clearInterval(t);
+  }, [selectedDate]);
 
-    const handleAction = async (id, action) => {
-        try {
-            await api.patch(`/attendance/${id}/review`, { status: action });
-            toast.success(`Record marked as ${action}`);
-            fetchRecords();
-        } catch (error) {
-            toast.error('Action failed');
-        }
-    };
+  const statusBadge = (s) =>
+    s === 'FLAGGED'
+      ? 'bg-[#fcebeb] text-[#791F1F]'
+      : s === 'PENDING'
+        ? 'bg-[#faeeda] text-[#633806]'
+        : s === 'REJECTED'
+          ? 'bg-[#fcebeb] text-[#791F1F]'
+          : s === 'VERIFIED'
+            ? 'bg-[#eaf3de] text-[#27500A]'
+            : 'bg-gray-100 text-gray-500';
 
-    const filteredRecords = records.filter(r => filter === 'ALL' || r.status === filter);
-
-    if (loading) return <div className="flex justify-center py-20"><Loader className="animate-spin text-[#005F02]" /></div>;
-
-    return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-2xl font-bold text-[#005F02]">Attendance Review</h2>
-                    <p className="text-gray-500">Review flagged records and verify field reports.</p>
-                </div>
-                <div className="flex items-center gap-2 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
-                    {['ALL', 'VERIFIED', 'FLAGGED'].map(f => (
-                        <button
-                            key={f}
-                            onClick={() => setFilter(f)}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filter === f ? 'bg-[#005F02] text-white' : 'text-gray-500 hover:bg-gray-50'
-                                }`}
-                        >
-                            {f}
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-                {filteredRecords.map((record) => (
-                    <div key={record.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-full bg-[#F2E3BB] flex items-center justify-center text-[#005F02] font-bold text-lg">
-                                    {record.worker_name?.charAt(0)}
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-gray-800">{record.worker_name}</h3>
-                                    <p className="text-sm text-gray-500 flex items-center gap-1">
-                                        <Shield className="w-3.5 h-3.5" /> {record.task_title}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1 max-w-2xl">
-                                <div>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Check-in</p>
-                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                                        <Clock className="w-4 h-4 text-green-500" />
-                                        {new Date(record.check_in_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </div>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Check-out</p>
-                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                                        <Clock className="w-4 h-4 text-orange-500" />
-                                        {record.check_out_time ? new Date(record.check_out_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                                    </div>
-                                </div>
-                                <div className="col-span-2 lg:col-span-1">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Status</p>
-                                    <div className={`flex items-center gap-1.5 font-bold text-xs uppercase ${record.status === 'VERIFIED' ? 'text-green-600' : 'text-yellow-600'
-                                        }`}>
-                                        {record.status === 'VERIFIED' ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
-                                        {record.status}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={() => handleAction(record.id, 'VERIFIED')}
-                                    className="flex-1 lg:flex-none px-4 py-2 bg-green-50 text-green-700 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors"
-                                >
-                                    Approve
-                                </button>
-                                <button
-                                    onClick={() => handleAction(record.id, 'REJECTED')}
-                                    className="flex-1 lg:flex-none px-4 py-2 bg-red-50 text-red-700 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors"
-                                >
-                                    Reject
-                                </button>
-                            </div>
-                        </div>
-
-                        {record.status === 'FLAGGED' && (
-                            <div className="px-6 py-3 bg-red-50/50 border-t border-red-50 flex items-center gap-2 text-xs font-semibold text-red-700">
-                                <AlertTriangle className="w-3.5 h-3.5" />
-                                <span>Detected anomalies: {record.flags || 'Possible location mismatch'}</span>
-                            </div>
-                        )}
-                    </div>
-                ))}
-            </div>
-
-            {filteredRecords.length === 0 && (
-                <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
-                    <CheckCircle className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                    <p className="text-gray-500 font-medium">No attendance records found for this filter.</p>
-                </div>
-            )}
+  return (
+    <div className="bg-[#f5f0e8] min-h-screen p-6">
+      <div className="flex justify-between items-center mb-5 flex-wrap gap-3">
+        <div className="flex gap-2 items-center">
+          <input
+            type="date"
+            className="border border-[#e8e0d0] rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+          <button
+            type="button"
+            className="bg-white border border-[#e8e0d0] text-gray-600 text-xs font-normal px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+            onClick={() => setSelectedDate(new Date().toISOString().slice(0, 10))}
+          >
+            Today
+          </button>
         </div>
-    );
+      </div>
+      <div className="flex gap-2 flex-wrap mb-5">
+        <span className="bg-[#eaf3de] text-[#27500A] text-sm font-normal px-4 py-1.5 rounded-full">
+          {attendanceData.summary.present || 0} Present
+        </span>
+        <span className="bg-gray-100 text-gray-600 text-sm font-normal px-4 py-1.5 rounded-full">
+          {attendanceData.summary.absent || 0} Absent
+        </span>
+        <span className="bg-[#fcebeb] text-[#791F1F] text-sm font-normal px-4 py-1.5 rounded-full">
+          {attendanceData.summary.flagged || 0} Flagged
+        </span>
+        <span className="bg-[#faeeda] text-[#633806] text-sm font-normal px-4 py-1.5 rounded-full">
+          {attendanceData.summary.pending || 0} Pending
+        </span>
+      </div>
+      {loading ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-14 w-full bg-gray-200 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      ) : (
+        attendanceData.grouped.map((g) => (
+          <div key={g.task?._id} className="bg-white rounded-xl border border-[#e8e0d0] overflow-hidden mb-3">
+            <button
+              type="button"
+              className="w-full px-5 py-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors text-left"
+              onClick={() => setExpandedTask(expandedTask === g.task?._id ? '' : g.task?._id)}
+            >
+              <div>
+                <p className="text-sm font-medium text-gray-800">{g.task?.title}</p>
+                <p className="text-xs text-gray-400 font-normal mt-0.5">{g.task?.locationName}</p>
+              </div>
+              <ChevronDown
+                className={`w-4 h-4 text-gray-400 transition-transform duration-200 shrink-0 ${
+                  expandedTask === g.task?._id ? 'rotate-180' : ''
+                }`}
+              />
+            </button>
+            {expandedTask === g.task?._id ? (
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: 'auto' }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden border-t border-[#e8e0d0]"
+              >
+                <div className="px-5 py-4 overflow-x-auto">
+                  <table className="w-full min-w-[640px]">
+                    <thead>
+                      <tr className="text-[10px] uppercase tracking-widest text-gray-400 font-normal">
+                        <th className="text-left pb-2 border-b border-[#e8e0d0] font-normal">Worker</th>
+                        <th className="text-left pb-2 border-b border-[#e8e0d0] font-normal">Check-in</th>
+                        <th className="text-left pb-2 border-b border-[#e8e0d0] font-normal">Check-out</th>
+                        <th className="text-left pb-2 border-b border-[#e8e0d0] font-normal">Location</th>
+                        <th className="text-left pb-2 border-b border-[#e8e0d0] font-normal">Face</th>
+                        <th className="text-left pb-2 border-b border-[#e8e0d0] font-normal">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(g.records || []).map((r) => (
+                        <tr key={r._id} className="text-sm text-gray-600 py-3 border-b border-[#e8e0d0] last:border-0">
+                          <td className="py-3 font-normal">{r.worker?.fullName || '—'}</td>
+                          <td className="py-3 font-normal">
+                            {r.checkInTime
+                              ? new Date(r.checkInTime).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : '—'}
+                          </td>
+                          <td className="py-3 font-normal">
+                            {r.checkOutTime
+                              ? new Date(r.checkOutTime).toLocaleTimeString([], {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })
+                              : '—'}
+                          </td>
+                          <td className="py-3 font-normal">
+                            {r.distanceAtCheckIn == null ? (
+                              '—'
+                            ) : r.distanceAtCheckIn <= (g.task?.allowedRadius || 0) ? (
+                              <span className="bg-[#eaf3de] text-[#27500A] text-xs px-2 py-0.5 rounded-full font-medium inline-block">
+                                Within radius
+                              </span>
+                            ) : (
+                              <span className="bg-[#fcebeb] text-[#791F1F] text-xs px-2 py-0.5 rounded-full font-medium inline-block">
+                                Out of range ({r.distanceAtCheckIn}m)
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 font-normal">
+                            {r.checkInFaceMatch == null ? (
+                              '—'
+                            ) : r.checkInFaceMatch ? (
+                              <span className="bg-[#eaf3de] text-[#27500A] text-xs px-2 py-0.5 rounded-full font-medium">
+                                Matched
+                              </span>
+                            ) : (
+                              <span className="bg-[#fcebeb] text-[#791F1F] text-xs px-2 py-0.5 rounded-full font-medium">
+                                Mismatch
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 font-normal">
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusBadge(r.status)}`}>
+                              {r.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </motion.div>
+            ) : null}
+          </div>
+        ))
+      )}
+      {!loading && attendanceData.grouped.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <p className="text-sm font-medium text-gray-400">No attendance records for this date</p>
+          <p className="text-xs text-gray-300 mt-1 font-normal">Pick another date or check back later</p>
+        </div>
+      ) : null}
+    </div>
+  );
 };
 
 export default AttendanceReview;
