@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Webcam from 'react-webcam';
-import axios from 'axios';
+import api from '../utils/api';
 import { Camera, MapPin, Loader, CheckCircle2, AlertTriangle, ArrowLeft, LogOut, LogIn, FileText } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -29,10 +29,7 @@ const MarkAttendance = () => {
 
     const fetchStatus = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get(`http://localhost:5000/api/attendance/current/${taskId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get(`/attendance/current/${taskId}`);
             setAttendance(response.data.data);
         } catch (err) {
             console.error(err);
@@ -48,7 +45,9 @@ const MarkAttendance = () => {
         }
 
         const imageSrc = webcamRef.current.getScreenshot();
-        const mode = attendance ? 'check-out' : 'check-in';
+        const hasOpenSession =
+            attendance && !attendance.checkOutTime && !attendance.check_out_time;
+        const mode = hasOpenSession ? 'check-out' : 'check-in';
 
         setLoading(true);
         setError('');
@@ -63,13 +62,8 @@ const MarkAttendance = () => {
             formData.append('lat', location.lat);
             formData.append('lon', location.lon);
 
-            const token = localStorage.getItem('token');
-            const response = await axios.post(`http://localhost:5000/api/attendance/${mode}`, formData, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            const path = mode === 'check-in' ? '/attendance/check-in' : '/attendance/check-out';
+            const response = await api.post(path, formData);
 
             setResult(response.data.data);
             toast.success(`${mode === 'check-in' ? 'Check-in' : 'Check-out'} recorded!`);

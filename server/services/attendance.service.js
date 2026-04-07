@@ -27,16 +27,16 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 const verifyFaceMatch = async (imagePath, storedEncodingB64) => {
-    try {
-        const response = await axios.post('http://localhost:8000/verify', {
-            image_path: imagePath,
-            stored_encoding: storedEncodingB64
-        });
-        return response.data;
-    } catch (error) {
-        console.error('Face verification service error:', error.message);
-        return { matched: true, score: 1.0, note: 'Service fallback' };
-    }
+  try {
+    const response = await axios.post('http://localhost:8000/verify', {
+      image_path: imagePath,
+      stored_encoding: storedEncodingB64,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Face verification service error:', error.message);
+    return { matched: true, score: 1.0, note: 'Service fallback' };
+  }
 };
 
 const createCheckIn = async (checkInData) => {
@@ -99,12 +99,12 @@ const reviewAttendance = async (id, status) => {
 };
 
 module.exports = {
-    validateCheckIn,
-    verifyFaceMatch,
-    createCheckIn,
-    createFlag,
-    createCheckOut,
-    submitReport,
-    getAllAttendance,
-    reviewAttendance
+  validateCheckIn,
+  verifyFaceMatch,
+  createCheckIn,
+  createFlag,
+  createCheckOut,
+  submitReport,
+  getAllAttendance,
+  reviewAttendance,
 };

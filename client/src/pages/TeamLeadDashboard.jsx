@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { LayoutDashboard, CheckCircle, AlertCircle, Plus, MapPin, Users, ArrowRight } from 'lucide-react';
 
 const TeamLeadDashboard = () => {
@@ -15,11 +15,7 @@ const TeamLeadDashboard = () => {
 
     const fetchData = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const [tasksRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/tasks/all', { headers: { Authorization: `Bearer ${token}` } })
-            ]);
-
+            const tasksRes = await api.get('/tasks/all');
             const tasks = tasksRes.data.data;
             setRecentTasks(tasks.slice(0, 5));
             setStats({
@@ -56,7 +52,7 @@ const TeamLeadDashboard = () => {
                     <p className="text-gray-500">Monitor field work and verify attendance records.</p>
                 </div>
                 <button
-                    onClick={() => navigate('/team-lead/tasks/create')}
+                    onClick={() => navigate('/teamlead/tasks/create')}
                     className="flex items-center justify-center gap-2 px-6 py-3 bg-[#005F02] text-white rounded-xl font-bold hover:bg-[#427A43] transition-all shadow-md active:scale-95"
                 >
                     <Plus className="w-5 h-5" /> Create New Task
@@ -79,7 +75,7 @@ const TeamLeadDashboard = () => {
                     </div>
                     <div className="divide-y divide-gray-50">
                         {recentTasks.map(task => (
-                            <div key={task.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                            <div key={task._id || task.id} className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                                 <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 rounded-full bg-[#F2E3BB] flex items-center justify-center text-[#005F02]">
                                         <CheckSquare className="w-5 h-5" />
@@ -87,7 +83,7 @@ const TeamLeadDashboard = () => {
                                     <div>
                                         <h4 className="font-semibold text-gray-800 text-sm">{task.title}</h4>
                                         <p className="text-xs text-gray-500 flex items-center gap-1">
-                                            <MapPin className="w-3 h-3" /> {task.location_name}
+                                            <MapPin className="w-3 h-3" /> {task.locationName || task.location_name}
                                         </p>
                                     </div>
                                 </div>

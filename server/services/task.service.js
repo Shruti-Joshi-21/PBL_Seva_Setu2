@@ -3,14 +3,12 @@ const TaskLocation = require('../models/TaskLocation');
 
 const createTask = async (taskData) => {
   const { title, description, location_id, start_time, end_time, created_by, worker_ids } = taskData;
-
   const loc = await TaskLocation.findById(location_id);
   if (!loc) {
     const err = new Error('Location not found');
     err.statusCode = 400;
     throw err;
   }
-
   const task = await Task.create({
     title,
     description: description || '',
@@ -25,7 +23,6 @@ const createTask = async (taskData) => {
     createdBy: created_by,
     assignedWorkers: Array.isArray(worker_ids) ? worker_ids : [],
   });
-
   return task._id.toString();
 };
 

@@ -74,10 +74,7 @@ const Layout = ({ children }) => {
                         <SidebarLink
                             key={link.to}
                             {...link}
-                            active={
-                                location.pathname === link.to ||
-                                (link.to === '/worker' && location.pathname === '/worker/tasks')
-                            }
+                            active={location.pathname === link.to}
                         />
                     ))}
                 </nav>
@@ -104,7 +101,7 @@ const Layout = ({ children }) => {
                 {/* Header Desktop */}
                 <header className="hidden md:flex bg-white h-16 border-b border-gray-200 items-center justify-between px-8 sticky top-0 z-10">
                     <div className="text-gray-500 font-medium">
-                        Welcome back, <span className="text-[#005F02]">{user?.fullName || user?.name}</span>
+                        Welcome back, <span className="text-[#005F02]">{user?.name}</span>
                     </div>
                     <div className="flex items-center gap-4">
                         <button className="p-2 text-gray-400 hover:text-[#005F02] transition-colors"><Bell className="w-5 h-5" /></button>
@@ -134,10 +131,7 @@ const Layout = ({ children }) => {
                                 <SidebarLink
                                     key={link.to}
                                     {...link}
-                                    active={
-                                        location.pathname === link.to ||
-                                        (link.to === '/worker' && location.pathname === '/worker/tasks')
-                                    }
+                                    active={location.pathname === link.to}
                                     onClick={() => setSidebarOpen(false)}
                                 />
                             ))}

@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
     isDeleted: { type: Boolean, default: false },
     faceImagePath: { type: String, default: null },
     faceEncoding: { type: Buffer, default: null },
+    assignedTeamLead: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   },
   { timestamps: true }
 );
@@ -25,4 +26,3 @@ userSchema.pre('validate', function enforceRoleFields(next) {
 });
 
 module.exports = mongoose.model('User', userSchema);
-

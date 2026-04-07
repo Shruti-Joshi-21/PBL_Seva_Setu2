@@ -1,15 +1,18 @@
 const path = require('path');
 const fs = require('fs');
 const axios = require('axios');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
+const bcrypt = require('bcrypt');
 const User = require('../models/User');
+const { sendSuccess, sendError } = require('../utils/response');
 
 function signToken(user) {
-  return jwt.sign({ userId: user._id.toString(), role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: '7d',
-  });
+  const id = user._id.toString();
+  return jwt.sign(
+    { id, role: user.role, name: user.fullName },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
 }
 
 function toSafeUser(user) {
@@ -31,15 +34,15 @@ async function signupFieldWorker(req, res) {
   try {
     const { fullName, username, password } = req.body;
     if (!fullName || !username || !password) {
-      return res.status(400).json({ success: false, message: 'fullName, username, password are required' });
+      return sendError(res, 'fullName, username, password are required', 400);
     }
     if (!req.file) {
-      return res.status(400).json({ success: false, message: 'faceImage file is required' });
+      return sendError(res, 'faceImage file is required', 400);
     }
 
     const normalizedUsername = String(username).toLowerCase().trim();
     const existing = await User.findOne({ username: normalizedUsername });
-    if (existing) return res.status(400).json({ success: false, message: 'Username already taken' });
+    if (existing) return sendError(res, 'Username already taken', 400);
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -49,14 +52,19 @@ async function signupFieldWorker(req, res) {
     const finalImagePath = path.join(facesDir, `${normalizedUsername}.jpg`);
     fs.renameSync(req.file.path, finalImagePath);
 
-    const pythonResp = await axios.post('http://localhost:5001/register-face', {
-      imagePath: finalImagePath,
-      userId: normalizedUsername,
-    });
+    let encoding = null;
+    try {
+      const pythonResp = await axios.post('http://localhost:5001/register-face', {
+        imagePath: finalImagePath,
+        userId: normalizedUsername,
+      });
+      encoding = pythonResp?.data?.encoding;
+    } catch (e) {
+      return sendError(res, 'Face registration service unavailable', 503);
+    }
 
-    const encoding = pythonResp?.data?.encoding;
     if (!Array.isArray(encoding) || encoding.length !== 128) {
-      return res.status(500).json({ success: false, message: 'Invalid face encoding from Python service' });
+      return sendError(res, 'Invalid face encoding from Python service', 500);
     }
 
     const user = await User.create({
@@ -69,16 +77,17 @@ async function signupFieldWorker(req, res) {
     });
 
     const token = signToken(user);
-    return res.status(201).json({
-      success: true,
-      message: 'Field worker registered successfully',
-      data: {
+    return sendSuccess(
+      res,
+      {
         token,
         user: toSafeUser(user),
       },
-    });
+      'Field worker registered successfully',
+      201
+    );
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return sendError(res, error.message || 'Signup failed', 500);
   }
 }
 
@@ -86,12 +95,12 @@ async function signupTeamLead(req, res) {
   try {
     const { fullName, username, password } = req.body;
     if (!fullName || !username || !password) {
-      return res.status(400).json({ success: false, message: 'fullName, username, password are required' });
+      return sendError(res, 'fullName, username, password are required', 400);
     }
 
     const normalizedUsername = String(username).toLowerCase().trim();
     const existing = await User.findOne({ username: normalizedUsername });
-    if (existing) return res.status(400).json({ success: false, message: 'Username already taken' });
+    if (existing) return sendError(res, 'Username already taken', 400);
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
@@ -104,16 +113,17 @@ async function signupTeamLead(req, res) {
     });
 
     const token = signToken(user);
-    return res.status(201).json({
-      success: true,
-      message: 'Team lead registered successfully',
-      data: {
+    return sendSuccess(
+      res,
+      {
         token,
         user: toSafeUser(user),
       },
-    });
+      'Team lead registered successfully',
+      201
+    );
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return sendError(res, error.message || 'Signup failed', 500);
   }
 }
 
@@ -121,12 +131,12 @@ async function signupAdmin(req, res) {
   try {
     const { fullName, username, password } = req.body;
     if (!fullName || !username || !password) {
-      return res.status(400).json({ success: false, message: 'fullName, username, password are required' });
+      return sendError(res, 'fullName, username, password are required', 400);
     }
 
     const normalizedUsername = String(username).toLowerCase().trim();
     const existing = await User.findOne({ username: normalizedUsername });
-    if (existing) return res.status(400).json({ success: false, message: 'Username already taken' });
+    if (existing) return sendError(res, 'Username already taken', 400);
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
@@ -139,60 +149,71 @@ async function signupAdmin(req, res) {
     });
 
     const token = signToken(user);
-    return res.status(201).json({
-      success: true,
-      message: 'Admin registered successfully',
-      data: {
+    return sendSuccess(
+      res,
+      {
         token,
         user: toSafeUser(user),
       },
-    });
+      'Admin registered successfully',
+      201
+    );
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return sendError(res, error.message || 'Signup failed', 500);
   }
 }
 
-async function login(req, res) {
+const login = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    const rawUsername = username ?? email;
-    if (!rawUsername || !password) {
-      return res.status(400).json({ success: false, message: 'username and password are required' });
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return sendError(res, 'Username and password are required', 400);
     }
 
-    const normalizedUsername = String(rawUsername).toLowerCase().trim();
+    const normalizedUsername = String(username).toLowerCase().trim();
     const user = await User.findOne({ username: normalizedUsername, isDeleted: false });
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (!user) {
+      return sendError(res, 'Invalid credentials', 401);
+    }
 
-    const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return sendError(res, 'Invalid credentials', 401);
+    }
 
     const token = signToken(user);
-    return res.json({
-      success: true,
-      data: {
+    return sendSuccess(
+      res,
+      {
         token,
-        user: toSafeUser(user),
+        role: user.role,
+        name: user.fullName,
+        id: user._id.toString(),
       },
-    });
+      'Login successful'
+    );
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return sendError(res, error.message || 'Login failed', 500);
   }
-}
+};
 
-async function getMe(req, res) {
+const getMe = async (req, res) => {
   try {
     const userId = req.user?.userId;
-    if (!userId) return res.status(401).json({ success: false, message: 'Unauthorized' });
+    if (!userId) {
+      return sendError(res, 'Unauthorized', 401);
+    }
 
     const user = await User.findById(userId).select('-password');
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (!user) {
+      return sendError(res, 'User not found', 404);
+    }
 
-    return res.json({ success: true, data: user });
+    return sendSuccess(res, user);
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return sendError(res, error.message || 'Failed to load user', 500);
   }
-}
+};
 
 module.exports = {
   signupFieldWorker,
@@ -201,4 +222,3 @@ module.exports = {
   login,
   getMe,
 };
-
