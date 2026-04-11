@@ -5,6 +5,9 @@ import {
     LayoutDashboard,
     MapPin,
     CheckSquare,
+    Clock, 
+    Flag,
+    Calendar,
     Users,
     FileText,
     Bell,
@@ -40,11 +43,14 @@ const Layout = ({ children }) => {
     ];
 
     const teamLeadLinks = [
-        { to: '/team-lead', icon: LayoutDashboard, label: 'Overview' },
-        { to: '/team-lead/tasks/create', icon: CheckSquare, label: 'Create Task' },
-        { to: '/team-lead/locations', icon: MapPin, label: 'Locations' },
-        { to: '/team-lead/attendance', icon: Bell, label: 'Attendance' },
-    ];
+        { to: '/teamlead', icon: LayoutDashboard, label: 'Overview' },
+        { to: '/teamlead/tasks', icon: CheckSquare, label: 'Tasks' },
+        { to: '/teamlead/tasks/create', icon: CheckSquare, label: 'Create Task' },
+        { to: '/teamlead/attendance', icon: Clock, label: 'Attendance' },
+        { to: '/teamlead/flags', icon: Flag, label: 'Flagged records' },
+        { to: '/teamlead/leave', icon: Calendar, label: 'Leave requests' },
+        { to: '/teamlead/reports', icon: FileText, label: 'Field reports' },
+      ];
 
     const workerLinks = [
         { to: '/worker', icon: LayoutDashboard, label: 'My Tasks' },

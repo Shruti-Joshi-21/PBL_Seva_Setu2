@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const router = express.Router();
 const workerController = require('../controllers/workerController');
-const { verifyToken, authorizeRoles } = require('../middleware/authMiddleware');
+const { verifyToken, authorizeRoles } = require('../middlewares/authMiddleware');
 const { ROLES } = require('../utils/constants');
 
 const attendanceDir = path.join(__dirname, '..', 'uploads', 'attendance');

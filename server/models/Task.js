@@ -14,6 +14,15 @@ const TaskSchema = new mongoose.Schema(
     workType: { type: String, required: true, trim: true },
     checkInBuffer: { type: Number, default: 15 },
     checkOutBuffer: { type: Number, default: 15 },
+    reportFields: {
+      type: [
+        {
+          fieldName: { type: String, trim: true },
+          fieldType: { type: String, trim: true },
+        },
+      ],
+      default: [],
+    },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     assignedWorkers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     status: { type: String, enum: ['ACTIVE', 'COMPLETED', 'CANCELLED'], default: 'ACTIVE' },

@@ -1,241 +1,546 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
-import { Search, MapPin, Users, Calendar, Clock, Plus, Loader, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
+import api from '../utils/api.js';
+import { useAuth } from '../context/AuthContext';
+import { MapPin, Plus, Loader2 } from 'lucide-react';
+
+const WORK_TYPE_OPTIONS = [
+  'Waste Collection',
+  'Recycling Drive',
+  'Awareness Campaign',
+  'Shoreline Cleanup',
+  'Tree Plantation',
+  'Survey Drive',
+  'Other',
+];
+
+const RADIUS_PRESETS = [100, 200, 300, 500];
+
+const FIELD_SUGGESTIONS = [
+  { label: 'Total weight (kg)', type: 'Number' },
+  { label: 'Volunteers present', type: 'Number' },
+  { label: 'Vehicles deployed', type: 'Number' },
+  { label: 'Site photo', type: 'Image' },
+  { label: 'Hazards found', type: 'Text' },
+  { label: 'Water bodies affected', type: 'Text' },
+  { label: 'Task completed?', type: 'Yes/No' },
+  { label: 'General remarks', type: 'Text' },
+  { label: 'Hours on site', type: 'Number' },
+  { label: 'Weather conditions', type: 'Text' },
+  { label: 'Waste segregated?', type: 'Yes/No' },
+  { label: 'Public feedback', type: 'Text' },
+];
 
 const CreateTask = () => {
-    const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
-    const [searchLoading, setSearchLoading] = useState(false);
-    const [locations, setLocations] = useState([]);
-    const [workers, setWorkers] = useState([]);
+  useAuth();
+  const navigate = useNavigate();
+  const debounceRef = useRef(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [availableWorkers, setAvailableWorkers] = useState([]);
+  const [selectedWorkers, setSelectedWorkers] = useState([]);
+  const [isLocFetching, setIsLocFetching] = useState(false);
+  const [isWorkerFetching, setIsWorkerFetching] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [locationQuery, setLocationQuery] = useState('');
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    workType: '',
+    locationName: '',
+    latitude: '',
+    longitude: '',
+    allowedRadius: 200,
+    date: '',
+    startTime: '',
+    endTime: '',
+    checkInBuffer: 15,
+    checkOutBuffer: 15,
+  });
+  const [reportFields, setReportFields] = useState([
+    { fieldName: 'Waste collected (kg)', fieldType: 'Number' },
+    { fieldName: 'Area covered (sq m)', fieldType: 'Number' },
+    { fieldName: 'Issues encountered', fieldType: 'Text' },
+  ]);
 
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        location_id: '',
-        radius: 200,
-        start_time: '',
-        end_time: '',
-        worker_ids: []
-    });
+  useEffect(() => {
+    if (locationQuery.trim().length < 3) return setLocationSuggestions([]);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      setIsLocFetching(true);
+      try {
+        const response = await api.get(`/teamlead/location-search?q=${encodeURIComponent(locationQuery)}`);
+        const { data } = response.data;
+        setLocationSuggestions(data || []);
+      } catch {
+        setLocationSuggestions([]);
+      } finally {
+        setIsLocFetching(false);
+      }
+    }, 500);
+  }, [locationQuery]);
 
-    const [searchQuery, setSearchQuery] = useState('');
-
-    useEffect(() => {
-        fetchWorkers();
-    }, []);
-
-    const fetchWorkers = async () => {
-        try {
-            const response = await api.get('/teamlead/workers');
-            setWorkers(response.data.data || []);
-        } catch (err) {
-            console.error(err);
-            setWorkers([]);
-        }
+  useEffect(() => {
+    const loadWorkers = async () => {
+      if (currentStep !== 2 || !formData.date || !formData.startTime || !formData.endTime) return;
+      setIsWorkerFetching(true);
+      try {
+        const response = await api.get(
+          `/teamlead/available-workers?date=${formData.date}&startTime=${formData.startTime}&endTime=${formData.endTime}`
+        );
+        const { data } = response.data;
+        setAvailableWorkers(data || []);
+      } catch (err) {
+        toast.error(err.response?.data?.message || 'Failed to fetch workers');
+      } finally {
+        setIsWorkerFetching(false);
+      }
     };
+    loadWorkers();
+  }, [currentStep, formData.date, formData.startTime, formData.endTime]);
 
-    const handleSearch = async () => {
-        if (!searchQuery) return;
-        setSearchLoading(true);
-        try {
-            const response = await api.get(`/locations/search?q=${encodeURIComponent(searchQuery)}`);
-            setLocations(response.data.data);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setSearchLoading(false);
-        }
-    };
+  const submit = async () => {
+    if (!reportFields.length) return;
+    setIsSubmitting(true);
+    try {
+      const response = await api.post('/teamlead/tasks', {
+        ...formData,
+        assignedWorkers: selectedWorkers,
+        reportFields,
+      });
+      const { data } = response.data;
+      if (data) toast.success('Task created successfully!');
+      navigate('/teamlead/tasks');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create task');
+      setIsSubmitting(false);
+    }
+  };
 
-    const handleSaveLocation = async (loc) => {
-        try {
-            const response = await api.post('/locations/save', {
-                name: loc.display_name.split(',')[0],
-                address: loc.display_name,
-                latitude: loc.lat,
-                longitude: loc.lon,
-                radius: formData.radius
-            });
-            setFormData({ ...formData, location_id: response.data.data.id });
-            setLocations([]);
-            setSearchQuery(loc.display_name.split(',')[0]);
-        } catch (err) {
-            console.error(err);
-        }
-    };
+  const stepLabels = ['Task details', 'Assign workers', 'Report fields'];
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            await api.post('/tasks/create', formData);
-            navigate('/teamlead');
-        } catch (err) {
-            alert(err.response?.data?.message || 'Failed to create task');
-        } finally {
-            setLoading(false);
-        }
-    };
+  return (
+    <div className="bg-[#f5f0e8] min-h-screen p-6 space-y-5">
+      <button
+        type="button"
+        className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1.5 mb-5 font-normal"
+        onClick={() => navigate('/teamlead/tasks')}
+      >
+        ← Back
+      </button>
+      <h1 className="text-xl font-medium text-gray-800 mb-6">Create new task</h1>
 
-    return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            <div>
-                <h2 className="text-2xl font-bold text-[#005F02]">Create New Task</h2>
-                <p className="text-gray-500">Assign workers to a verified location with geofencing.</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-                        <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-[#005F02]" /> General Information
-                        </h3>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Task Title</label>
-                            <input
-                                type="text"
-                                required
-                                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-[#005F02]"
-                                placeholder="e.g., Survey at Central Park"
-                                value={formData.title}
-                                onChange={e => setFormData({ ...formData, title: e.target.value })}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                            <textarea
-                                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-[#005F02] h-24"
-                                placeholder="Details about the field work..."
-                                value={formData.description}
-                                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                            ></textarea>
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-                        <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                            <MapPin className="w-5 h-5 text-[#005F02]" /> Location & Radius
-                        </h3>
-                        <div className="relative">
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    className="flex-1 px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-[#005F02]"
-                                    placeholder="Search location..."
-                                    value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleSearch}
-                                    className="px-4 py-2 bg-[#F2E3BB] text-[#005F02] font-bold rounded-lg hover:bg-[#C0B87A]"
-                                >
-                                    {searchLoading ? <Loader className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
-                                </button>
-                            </div>
-
-                            {locations.length > 0 && (
-                                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-lg shadow-xl z-10 overflow-hidden">
-                                    {locations.map((loc, i) => (
-                                        <button
-                                            key={i}
-                                            type="button"
-                                            onClick={() => handleSaveLocation(loc)}
-                                            className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 text-sm"
-                                        >
-                                            <p className="font-semibold text-gray-800">{loc.display_name.split(',')[0]}</p>
-                                            <p className="text-gray-500 truncate">{loc.display_name}</p>
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Geofence Radius (meters)</label>
-                                <select
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-[#005F02]"
-                                    value={formData.radius}
-                                    onChange={e => setFormData({ ...formData, radius: parseInt(e.target.value) })}
-                                >
-                                    <option value={100}>100m</option>
-                                    <option value={200}>200m</option>
-                                    <option value={500}>500m</option>
-                                    <option value={1000}>1km</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="space-y-6">
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-                        <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                            <Calendar className="w-5 h-5 text-[#005F02]" /> Schedule
-                        </h3>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                            <input
-                                type="datetime-local"
-                                required
-                                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-[#005F02]"
-                                value={formData.start_time}
-                                onChange={e => setFormData({ ...formData, start_time: e.target.value })}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
-                            <input
-                                type="datetime-local"
-                                required
-                                className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-[#005F02]"
-                                value={formData.end_time}
-                                onChange={e => setFormData({ ...formData, end_time: e.target.value })}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
-                        <h3 className="font-bold text-gray-800 flex items-center gap-2">
-                            <Users className="w-5 h-5 text-[#005F02]" /> Assign Workers
-                        </h3>
-                        <div className="max-h-48 overflow-y-auto space-y-2">
-                            {workers.map(worker => (
-                                <label key={worker.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        className="w-4 h-4 text-[#005F02] rounded"
-                                        checked={formData.worker_ids.includes(worker.id)}
-                                        onChange={e => {
-                                            const ids = e.target.checked
-                                                ? [...formData.worker_ids, worker.id]
-                                                : formData.worker_ids.filter(id => id !== worker.id);
-                                            setFormData({ ...formData, worker_ids: ids });
-                                        }}
-                                    />
-                                    <span className="text-sm font-medium text-gray-700">{worker.name}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading || !formData.location_id}
-                        className="w-full bg-[#005F02] text-white py-3 rounded-xl font-bold hover:bg-[#427A43] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                        {loading ? <Loader className="w-5 h-5 animate-spin" /> : <><Plus className="w-5 h-5" /> Create Task</>}
-                    </button>
-                </div>
-            </form>
+      <div className="bg-white rounded-xl border border-[#e8e0d0] p-6 space-y-6">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            {[1, 2, 3].map((s, idx) => (
+              <React.Fragment key={s}>
+                <StepCircle step={s} currentStep={currentStep} />
+                {idx < 2 ? (
+                  <div
+                    className={`h-px flex-1 min-w-[1rem] transition-all duration-300 ${
+                      currentStep > s ? 'bg-[#2d6b2d]' : 'bg-gray-200'
+                    }`}
+                  />
+                ) : null}
+              </React.Fragment>
+            ))}
+          </div>
+          <div className="flex justify-between gap-2 mt-2">
+            {stepLabels.map((lbl, i) => (
+              <span
+                key={lbl}
+                className={`text-xs font-normal flex-1 text-center ${
+                  currentStep === i + 1
+                    ? 'text-[#1a4a1a] font-medium'
+                    : currentStep > i + 1
+                      ? 'text-[#2d6b2d]'
+                      : 'text-gray-400'
+                }`}
+              >
+                {lbl}
+              </span>
+            ))}
+          </div>
         </div>
-    );
+
+        {currentStep === 1 ? (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Task title</label>
+              <input
+                className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors placeholder:text-gray-300"
+                placeholder="Task title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Work type</label>
+              <select
+                className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors"
+                value={formData.workType}
+                onChange={(e) => setFormData({ ...formData, workType: e.target.value })}
+              >
+                <option value="">Select work type</option>
+                {WORK_TYPE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Field location</label>
+              <input
+                className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors placeholder:text-gray-300"
+                placeholder="Field location"
+                value={locationQuery}
+                onChange={(e) => setLocationQuery(e.target.value)}
+              />
+              {isLocFetching ? <div className="h-8 w-full bg-gray-200 rounded-lg animate-pulse mt-1.5" /> : null}
+              {locationSuggestions.map((loc, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className="w-full text-left bg-white border border-[#e8e0d0] rounded-lg p-2 mt-1 text-sm flex gap-2 items-center text-gray-800 font-normal hover:bg-gray-50 transition-colors"
+                  onClick={() => {
+                    setFormData({
+                      ...formData,
+                      locationName: loc.displayName,
+                      latitude: loc.latitude,
+                      longitude: loc.longitude,
+                    });
+                    setLocationQuery(loc.displayName);
+                    setLocationSuggestions([]);
+                  }}
+                >
+                  <MapPin className="w-4 h-4 text-gray-400 shrink-0" />
+                  {loc.displayName}
+                </button>
+              ))}
+            </div>
+            {formData.locationName && formData.latitude !== '' && formData.longitude !== '' ? (
+              <div className="bg-[#eaf3de] border border-[#c5deb0] rounded-lg px-3 py-2 text-xs text-[#27500A] flex items-center gap-2 mt-1.5">
+                <span>Confirmed: {formData.locationName}</span>
+              </div>
+            ) : null}
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Allowed radius (m)</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {RADIUS_PRESETS.map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, allowedRadius: r })}
+                    className={
+                      formData.allowedRadius === r
+                        ? 'bg-[#1a4a1a] text-white text-sm font-medium px-4 py-1.5 rounded-lg'
+                        : 'bg-white border border-[#e8e0d0] text-gray-500 text-sm font-normal px-4 py-1.5 rounded-lg hover:bg-gray-50 transition-colors'
+                    }
+                  >
+                    {r}m
+                  </button>
+                ))}
+              </div>
+              <input
+                type="number"
+                min={50}
+                max={2000}
+                className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors"
+                value={formData.allowedRadius}
+                onChange={(e) => setFormData({ ...formData, allowedRadius: Number(e.target.value) })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Task date</label>
+                <input
+                  type="date"
+                  className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                />
+              </div>
+              <div />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Start time</label>
+                <input
+                  type="time"
+                  className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors"
+                  value={formData.startTime}
+                  onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">End time</label>
+                <input
+                  type="time"
+                  className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors"
+                  value={formData.endTime}
+                  onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Check-in buffer (mins)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={60}
+                  className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors"
+                  value={formData.checkInBuffer}
+                  onChange={(e) => setFormData({ ...formData, checkInBuffer: Number(e.target.value) })}
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">Check-out buffer (mins)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={60}
+                  className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors"
+                  value={formData.checkOutBuffer}
+                  onChange={(e) => setFormData({ ...formData, checkOutBuffer: Number(e.target.value) })}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1.5 block">Description (optional)</label>
+              <textarea
+                className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors placeholder:text-gray-300"
+                rows={3}
+                placeholder="Description (optional)"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+            <button
+              type="button"
+              className="bg-[#1a4a1a] hover:bg-[#2d6b2d] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              onClick={() => setCurrentStep(2)}
+            >
+              Next: Assign workers →
+            </button>
+          </div>
+        ) : null}
+
+        {currentStep === 2 ? (
+          <div className="space-y-4">
+            {isWorkerFetching ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-14 w-full bg-gray-200 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : (
+              <div className="border border-[#e8e0d0] rounded-xl overflow-hidden">
+                {availableWorkers.map((w) => (
+                  <button
+                    key={w._id}
+                    type="button"
+                    onClick={() =>
+                      setSelectedWorkers((prev) =>
+                        prev.includes(w._id) ? prev.filter((id) => id !== w._id) : [...prev, w._id]
+                      )
+                    }
+                    className={`w-full flex items-center gap-3 px-4 py-3 border-b border-[#e8e0d0] last:border-0 text-left transition-colors ${
+                      selectedWorkers.includes(w._id) ? 'bg-[#f5f0e8]' : 'bg-white hover:bg-gray-50'
+                    }`}
+                  >
+                    <div
+                      className={`w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
+                        selectedWorkers.includes(w._id)
+                          ? 'bg-[#1a4a1a] border-[#1a4a1a]'
+                          : 'border-gray-300 bg-white'
+                      }`}
+                    >
+                      {selectedWorkers.includes(w._id) ? (
+                        <svg
+                          className="w-3 h-3 text-white"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M2 6l3 3 5-5" />
+                        </svg>
+                      ) : null}
+                    </div>
+
+                    <div className="w-7 h-7 rounded-full bg-[#eaf3de] text-[#27500A] text-xs font-medium flex items-center justify-center shrink-0">
+                      {String(w.name || '')
+                        .trim()
+                        .split(/\s+/)
+                        .filter(Boolean)
+                        .reduce((acc, part, i, arr) => (i === 0 || i === arr.length - 1 ? acc + part[0].toUpperCase() : acc), '')
+                        .slice(0, 2) || '?'}
+                    </div>
+
+                    <span className="text-sm font-normal text-gray-800 flex-1">{w.name}</span>
+
+                    {w.topWorkType ? (
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-normal shrink-0">
+                        {w.topWorkType}
+                      </span>
+                    ) : null}
+
+                    <span
+                      className={`text-xs font-normal shrink-0 ${
+                        (w.weeklyHours || 0) > 35 ? 'text-amber-600 font-medium' : 'text-gray-400'
+                      }`}
+                    >
+                      {(w.weeklyHours || 0) > 35 ? '⚠ ' : ''}
+                      {w.weeklyHours || 0}h/wk
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="bg-white border border-[#e8e0d0] text-gray-600 text-sm font-normal px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                onClick={() => setCurrentStep(1)}
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                className="bg-[#1a4a1a] hover:bg-[#2d6b2d] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                onClick={() => setCurrentStep(3)}
+              >
+                Next: Report fields →
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {currentStep === 3 ? (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+            <div className="space-y-3">
+              <div className="bg-[#f5f0e8] rounded-t-lg px-4 py-2 grid grid-cols-[1fr_120px_40px] gap-2 text-[10px] uppercase tracking-widest text-gray-400 font-normal">
+                <span>Field name</span>
+                <span>Type</span>
+                <span />
+              </div>
+              <div id="report-fields-list" className="border border-[#e8e0d0] rounded-b-lg overflow-hidden">
+                {reportFields.map((f, i) => (
+                  <div
+                    key={i}
+                    className="grid grid-cols-[1fr_120px_40px] items-center gap-2 px-4 py-2 border-b border-[#e8e0d0] last:border-0 bg-white"
+                  >
+                    <input
+                      className="w-full border border-[#e8e0d0] rounded-lg px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:border-[#1a4a1a] transition-colors placeholder:text-gray-300"
+                      placeholder="Field name"
+                      value={f.fieldName}
+                      onChange={(e) =>
+                        setReportFields((prev) => prev.map((x, idx) => (idx === i ? { ...x, fieldName: e.target.value } : x)))
+                      }
+                    />
+                    <select
+                      className="border border-[#e8e0d0] rounded-lg px-2 py-1.5 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a]"
+                      value={f.fieldType}
+                      onChange={(e) =>
+                        setReportFields((prev) => prev.map((x, idx) => (idx === i ? { ...x, fieldType: e.target.value } : x)))
+                      }
+                    >
+                      <option>Number</option>
+                      <option>Text</option>
+                      <option>Image</option>
+                      <option>Yes/No</option>
+                      <option>Date</option>
+                    </select>
+                    <button
+                      type="button"
+                      className="w-6 h-6 border border-red-200 text-red-400 rounded-full text-sm leading-none hover:bg-red-50 font-normal"
+                      onClick={() => setReportFields((prev) => (prev.length > 1 ? prev.filter((_, idx) => idx !== i) : prev))}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="border border-dashed border-[#c5deb0] text-[#2d6b2d] text-sm rounded-lg py-2 w-full hover:bg-[#eaf3de] transition-colors font-normal flex items-center justify-center gap-2"
+                onClick={() => setReportFields((prev) => [...prev, { fieldName: '', fieldType: 'Text' }])}
+              >
+                <Plus className="w-3 h-3" />
+                Add custom field
+              </button>
+              <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mt-4 mb-2">Suggested fields</p>
+              <div className="flex flex-wrap gap-2">
+                {FIELD_SUGGESTIONS.map((s) => {
+                  const exists = reportFields.some((rf) => rf.fieldName === s.label);
+                  return (
+                    <button
+                      key={s.label}
+                      type="button"
+                      disabled={exists}
+                      onClick={() => {
+                        if (!exists) setReportFields((prev) => [...prev, { fieldName: s.label, fieldType: s.type }]);
+                      }}
+                      className={
+                        exists
+                          ? 'bg-gray-100 text-gray-300 text-xs px-3 py-1.5 rounded-full cursor-not-allowed font-normal'
+                          : 'border border-dashed border-[#c5deb0] text-[#2d6b2d] bg-[#f9fbf6] text-xs px-3 py-1.5 rounded-full hover:bg-[#eaf3de] cursor-pointer transition-colors font-normal'
+                      }
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button
+                type="button"
+                className="bg-white border border-[#e8e0d0] text-gray-600 text-sm font-normal px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                onClick={() => setCurrentStep(2)}
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={submit}
+                className="bg-[#1a4a1a] hover:bg-[#2d6b2d] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                Create task
+              </button>
+            </div>
+          </motion.div>
+        ) : null}
+      </div>
+    </div>
+  );
 };
 
-// Add this to make it compatible with the previous code's import
-const FileText = ({ className }) => <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>;
+function StepCircle({ step, currentStep }) {
+  const done = currentStep > step;
+  const active = currentStep === step;
+  return (
+    <div
+      className={`w-7 h-7 rounded-full text-xs flex items-center justify-center shrink-0 ${
+        done
+          ? 'bg-[#2d6b2d] text-white'
+          : active
+            ? 'bg-[#1a4a1a] text-[#C0B87A]'
+            : 'bg-white border border-gray-300 text-gray-400'
+      }`}
+    >
+      {done ? '✓' : step}
+    </div>
+  );
+}
 
 export default CreateTask;
