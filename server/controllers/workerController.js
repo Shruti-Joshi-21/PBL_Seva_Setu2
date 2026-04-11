@@ -10,6 +10,29 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { getDistanceInMeters } = require('../utils/haversine');
 const { sendSuccess, sendError } = require('../utils/response');
+const { ROLES } = require('../utils/constants');
+
+const TOTAL_LEAVES_PER_YEAR = 12;
+const WORKER_LEAVE_TYPES = ['SICK', 'CASUAL', 'EMERGENCY'];
+
+function parseBodyDate(str) {
+  if (!str) return null;
+  const ymd = String(str).split('T')[0];
+  const parts = ymd.split('-').map((n) => parseInt(n, 10));
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return new Date(str);
+  const [y, m, d] = parts;
+  return new Date(y, m - 1, d, 0, 0, 0, 0);
+}
+
+function leaveSpanDays(fromDate, toDate) {
+  return Math.ceil((new Date(toDate) - new Date(fromDate)) / (1000 * 60 * 60 * 24)) + 1;
+}
+
+function sumApprovedLeaveDays(leaves) {
+  return leaves
+    .filter((l) => l.status === 'APPROVED')
+    .reduce((sum, l) => sum + leaveSpanDays(l.fromDate, l.toDate), 0);
+}
 
 function startEndOfToday() {
   const now = new Date();
@@ -512,6 +535,169 @@ async function getAttendanceDetail(req, res, next) {
   }
 }
 
+async function getLeaveData(req, res, next) {
+  try {
+    const workerId = req.user.userId;
+    const oid = new mongoose.Types.ObjectId(workerId);
+
+    const allLeaves = await LeaveRequest.find({ worker: oid })
+      .sort({ createdAt: -1 })
+      .populate('reviewedBy', 'fullName')
+      .lean();
+
+    const usedLeaves = sumApprovedLeaveDays(allLeaves);
+    const pendingLeaves = allLeaves.filter((l) => l.status === 'PENDING').length;
+    const remaining = TOTAL_LEAVES_PER_YEAR - usedLeaves;
+
+    return sendSuccess(
+      res,
+      {
+        leaves: allLeaves,
+        balance: {
+          total: TOTAL_LEAVES_PER_YEAR,
+          used: usedLeaves,
+          remaining,
+          pending: pendingLeaves,
+        },
+      },
+      'Leave data'
+    );
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function submitLeave(req, res, next) {
+  try {
+    const workerId = req.user.userId;
+    const oid = new mongoose.Types.ObjectId(workerId);
+    const { fromDate, toDate, reason, leaveType } = req.body;
+
+    if (!fromDate || !toDate || reason == null || reason === '' || !leaveType) {
+      return sendError(res, 'fromDate, toDate, reason, and leaveType are required', 400);
+    }
+
+    const reasonStr = String(reason).trim();
+    if (reasonStr.length < 10) {
+      return sendError(res, 'Reason must be at least 10 characters', 400);
+    }
+
+    if (!WORKER_LEAVE_TYPES.includes(leaveType)) {
+      return sendError(res, 'Invalid leave type', 400);
+    }
+
+    const fromD = parseBodyDate(fromDate);
+    const toD = parseBodyDate(toDate);
+    if (!fromD || !toD || Number.isNaN(fromD.getTime()) || Number.isNaN(toD.getTime())) {
+      return sendError(res, 'Invalid date values', 400);
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const fromStart = new Date(fromD);
+    fromStart.setHours(0, 0, 0, 0);
+    if (fromStart < today) {
+      return sendError(res, 'Leave start date cannot be in the past', 400);
+    }
+
+    const toStart = new Date(toD);
+    toStart.setHours(0, 0, 0, 0);
+    if (toStart < fromStart) {
+      return sendError(res, 'End date must be after start date', 400);
+    }
+
+    const overlap = await LeaveRequest.findOne({
+      worker: oid,
+      status: { $ne: 'REJECTED' },
+      fromDate: { $lte: toD },
+      toDate: { $gte: fromD },
+    }).lean();
+
+    if (overlap) {
+      return sendError(res, 'You already have a leave request for these dates', 400);
+    }
+
+    const daysRequested = leaveSpanDays(fromD, toD);
+
+    const approvedLeaves = await LeaveRequest.find({ worker: oid, status: 'APPROVED' }).lean();
+    const usedLeaves = sumApprovedLeaveDays(approvedLeaves);
+    const remainingEntitlement = Math.max(0, TOTAL_LEAVES_PER_YEAR - usedLeaves);
+    const paidDaysInRequest = Math.min(daysRequested, remainingEntitlement);
+    const excessUnpaidDays = Math.max(0, daysRequested - remainingEntitlement);
+    const exceedsEntitlement = excessUnpaidDays > 0;
+
+    const leaveRequest = await LeaveRequest.create({
+      worker: oid,
+      fromDate: fromD,
+      toDate: toD,
+      reason: reasonStr,
+      leaveType,
+      status: 'PENDING',
+      exceedsEntitlement,
+      paidDaysInRequest,
+      excessUnpaidDays,
+    });
+
+    const workerName = req.user.name || 'A worker';
+    const fromLabel = fromStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const toLabel = toStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+    const dayWord = (n) => `${n} day${n === 1 ? '' : 's'}`;
+    const balanceLine = exceedsEntitlement
+      ? `${dayWord(daysRequested)} total. ${dayWord(paidDaysInRequest)} within paid annual leave; ${dayWord(
+          excessUnpaidDays
+        )} exceed balance (unpaid/extra — pending your approval).`
+      : `${dayWord(daysRequested)} total — all within paid annual leave.`;
+
+    const teamLeadMessage = `${workerName} requested ${leaveType} leave (${fromLabel} – ${toLabel}). ${balanceLine}`;
+
+    const teamLeads = await User.find({ role: ROLES.TEAM_LEAD, isDeleted: false }).select('_id').lean();
+    if (teamLeads.length > 0) {
+      await Notification.insertMany(
+        teamLeads.map((tl) => ({
+          recipient: tl._id,
+          message: teamLeadMessage,
+          type: 'LEAVE',
+          relatedId: leaveRequest._id,
+        }))
+      );
+    }
+
+    const populated = await LeaveRequest.findById(leaveRequest._id)
+      .populate('reviewedBy', 'fullName')
+      .lean();
+
+    return sendSuccess(res, { leave: populated }, 'Leave request submitted successfully');
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function cancelLeave(req, res, next) {
+  try {
+    const workerId = req.user.userId;
+    const oid = new mongoose.Types.ObjectId(workerId);
+    const { id: leaveId } = req.params;
+
+    if (!mongoose.isValidObjectId(leaveId)) {
+      return sendError(res, 'Leave request not found', 404);
+    }
+
+    const leave = await LeaveRequest.findOne({ _id: leaveId, worker: oid });
+    if (!leave) {
+      return sendError(res, 'Leave request not found', 404);
+    }
+    if (leave.status !== 'PENDING') {
+      return sendError(res, 'Only pending leave requests can be cancelled', 400);
+    }
+
+    await LeaveRequest.deleteOne({ _id: leave._id });
+    return sendSuccess(res, {}, 'Leave request cancelled');
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getDashboardData,
   getTodayAttendance,
@@ -519,4 +705,7 @@ module.exports = {
   checkOut,
   getAttendanceHistory,
   getAttendanceDetail,
+  getLeaveData,
+  submitLeave,
+  cancelLeave,
 };

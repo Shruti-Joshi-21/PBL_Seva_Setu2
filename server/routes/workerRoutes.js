@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const router = express.Router();
 const workerController = require('../controllers/workerController');
-const { verifyToken, authorizeRoles } = require('../middleware/authMiddleware');
+const { verifyToken, authorizeRoles } = require('../middlewares/authMiddleware');
 const { ROLES } = require('../utils/constants');
 
 const attendanceDir = path.join(__dirname, '..', 'uploads', 'attendance');
@@ -44,5 +44,9 @@ router.get(
 );
 router.post('/checkin', verifyToken, authorizeRoles(ROLES.FIELD_WORKER), attendanceUpload, workerController.checkIn);
 router.post('/checkout', verifyToken, authorizeRoles(ROLES.FIELD_WORKER), attendanceUpload, workerController.checkOut);
+
+router.get('/leave', verifyToken, authorizeRoles(ROLES.FIELD_WORKER), workerController.getLeaveData);
+router.post('/leave', verifyToken, authorizeRoles(ROLES.FIELD_WORKER), workerController.submitLeave);
+router.delete('/leave/:id', verifyToken, authorizeRoles(ROLES.FIELD_WORKER), workerController.cancelLeave);
 
 module.exports = router;

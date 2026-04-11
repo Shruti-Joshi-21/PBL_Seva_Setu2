@@ -1009,7 +1009,7 @@ const getLeaveCalendar = async (req, res) => {
         if (d >= monthStart && d <= monthEnd) {
           addDay(d, {
             workerName: lv.worker?.fullName || 'Worker',
-            leaveType: lv.leaveType || 'OTHER',
+            leaveType: lv.leaveType || 'CASUAL',
           });
         }
       }

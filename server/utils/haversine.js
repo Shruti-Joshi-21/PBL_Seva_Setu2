@@ -1,7 +1,4 @@
-/**
- * Haversine distance between two WGS84 points in meters.
- */
-function getDistanceInMeters(lat1, lon1, lat2, lon2) {
+function getDistance(lat1, lon1, lat2, lon2) {
   const R = 6371e3;
   const φ1 = (lat1 * Math.PI) / 180;
   const φ2 = (lat2 * Math.PI) / 180;
@@ -10,13 +7,15 @@ function getDistanceInMeters(lat1, lon1, lat2, lon2) {
 
   const a =
     Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return R * c;
 }
 
-/** Alias for clarity in attendance flows (distance in meters). */
+// alias
 const getDistanceInMeters = getDistance;
 
 module.exports = { getDistance, getDistanceInMeters };

@@ -1129,7 +1129,7 @@ const TAB_ANALYTICS = 'analytics';
 const TAB_LEAVE = 'leave';
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const currentUser = user;
   const navigate = useNavigate();
 
@@ -1642,11 +1642,7 @@ const AdminDashboard = () => {
           </div>
           <button
             type="button"
-            onClick={() => {
-              localStorage.removeItem('sevasetu_token');
-              localStorage.removeItem('sevasetu_role');
-              navigate('/login');
-            }}
+            onClick={logout}
             className="flex items-center gap-2 w-full px-3 py-2 mt-1 text-white/50 hover:text-white/80 hover:bg-white/8 rounded-lg cursor-pointer transition-colors text-xs"
           >
             <LogOut size={14} />
