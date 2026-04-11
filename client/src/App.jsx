@@ -5,6 +5,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import LandingPage from './pages/LandingPage';
 import WorkerDashboard from './pages/WorkerDashboard';
+import AttendancePage from './pages/AttendancePage';
+import LeavePage from './pages/LeavePage';
 import MarkAttendance from './pages/MarkAttendance';
 import CreateTask from './pages/CreateTask';
 import TeamLeadDashboard from './pages/TeamLeadDashboard';
@@ -39,13 +41,12 @@ function App() {
                         path="/admin/*"
                         element={
                             <ProtectedRoute allowedRoles={['ADMIN']}>
-                                <Layout>
-                                    <Routes>
-                                        <Route index element={<AdminDashboard />} />
-                                        <Route path="users" element={<UserManagement />} />
-                                        <Route path="reports" element={<DashboardPlaceholder title="System Reports" />} />
-                                    </Routes>
-                                </Layout>
+                                <Routes>
+                                    <Route index element={<AdminDashboard />} />
+                                    {/* Sub-pages wrap in Layout for outer sidebar consistency if accessed directly */}
+                                    <Route path="users" element={<Layout><UserManagement /></Layout>} />
+                                    <Route path="reports" element={<Layout><DashboardPlaceholder title="System Reports" /></Layout>} />
+                                </Routes>
                             </ProtectedRoute>
                         }
                     />
@@ -75,9 +76,10 @@ function App() {
                                 <Layout>
                                     <Routes>
                                         <Route index element={<WorkerDashboard />} />
+                                        <Route path="attendance" element={<AttendancePage />} />
                                         <Route path="attendance/:taskId" element={<MarkAttendance />} />
                                         <Route path="report/:taskId" element={<SubmitReport />} />
-                                        <Route path="leave" element={<DashboardPlaceholder title="Request Leave" />} />
+                                        <Route path="leave" element={<LeavePage />} />
                                     </Routes>
                                 </Layout>
                             </ProtectedRoute>
