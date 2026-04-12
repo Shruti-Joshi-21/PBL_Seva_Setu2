@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { CheckCircle2, X } from 'lucide-react';
-import api from '../utils/api.js';
-import { useAuth } from '../context/AuthContext';
+import api from '../../utils/api.js';
+import { useAuth } from '../../context/AuthContext';
 
 const TeamLeadDashboard = () => {
   const navigate = useNavigate();

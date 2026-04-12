@@ -5,19 +5,22 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import LandingPage from './pages/LandingPage';
 import MarkAttendance from './pages/MarkAttendance';
-import CreateTask from './pages/CreateTask';
-import TeamLeadDashboard from './pages/TeamLeadDashboard';
-import Tasks from './pages/Tasks';
-import LeaveManagement from './pages/LeaveManagement';
-import FlaggedRecords from './pages/FlaggedRecords';
-import FieldReports from './pages/FieldReports';
 import AdminDashboard from './pages/AdminDashboard';
 import UserManagement from './pages/UserManagement';
 import SubmitReport from './pages/SubmitReport';
-import AttendanceReview from './pages/AttendanceReview';
+
+import TeamLeadDashboard from './pages/teamlead/TeamLeadDashboard';
+import Tasks from './pages/teamlead/Tasks';
+import CreateTask from './pages/teamlead/CreateTask';
+import AttendanceReview from './pages/teamlead/AttendanceReview';
+import FlaggedRecords from './pages/teamlead/FlaggedRecords';
+import LeaveManagement from './pages/teamlead/LeaveManagement';
+import FieldReports from './pages/teamlead/FieldReports';
+
 import WorkerDashboard from './pages/worker/WorkerDashboard';
 import WorkerAttendancePage from './pages/worker/AttendancePage';
-import LeavePage from './pages/LeavePage';
+import LeavePage from './pages/worker/LeavePage';
+
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 

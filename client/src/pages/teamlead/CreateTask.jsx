@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import api from '../utils/api.js';
-import { useAuth } from '../context/AuthContext';
+import api from '../../utils/api.js';
+import { useAuth } from '../../context/AuthContext';
 import { MapPin, Plus, Loader2 } from 'lucide-react';
 
 const WORK_TYPE_OPTIONS = [

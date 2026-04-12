@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import api from '../utils/api.js';
-import { useAuth } from '../context/AuthContext';
+import api from '../../utils/api.js';
+import { useAuth } from '../../context/AuthContext';
 
 const AttendanceReview = () => {
   useAuth();

@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Calendar } from 'lucide-react';
 import { toast } from 'react-toastify';
-import api from '../utils/api.js';
-import { useAuth } from '../context/AuthContext';
+import api from '../../utils/api.js';
+import { useAuth } from '../../context/AuthContext';
 
 const LeaveManagement = () => {
   useAuth();

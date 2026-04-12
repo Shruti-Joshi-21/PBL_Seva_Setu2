@@ -23,8 +23,8 @@ import {
 } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
-import CheckInModal from './components/CheckInModal';
-import CheckOutModal from './components/CheckOutModal';
+import CheckInModal from "../../components/worker/CheckInModal";
+import CheckOutModal from "../../components/worker/CheckOutModal";
 
 function formatLongDate(d) {
   return new Intl.DateTimeFormat('en-GB', {

@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ClipboardList } from 'lucide-react';
 import { toast } from 'react-toastify';
-import api from '../utils/api.js';
-import { useAuth } from '../context/AuthContext';
+import api from '../../utils/api.js';
+import { useAuth } from '../../context/AuthContext';
 
 const Tasks = () => {
   useAuth();
