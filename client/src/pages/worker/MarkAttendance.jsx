@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Webcam from 'react-webcam';
-import api from '../utils/api';
+import api from '../../utils/api';
 import { Camera, MapPin, Loader, CheckCircle2, AlertTriangle, ArrowLeft, LogOut, LogIn, FileText } from 'lucide-react';
 import { toast } from 'react-toastify';
 
