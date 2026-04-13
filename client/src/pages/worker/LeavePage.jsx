@@ -13,8 +13,8 @@ import {
   User,
   Loader2,
 } from 'lucide-react';
-import api from '../utils/api';
-import LeaveRequestModal from '../components/worker/LeaveRequestModal';
+import api from '../../utils/api';
+import LeaveRequestModal from '../../components/worker/LeaveRequestModal';
 
 function formatRelativeTime(iso) {
   if (!iso) return '';

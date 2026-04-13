@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../utils/api';
+import api from '../../utils/api';
 import { FileText, Camera, Send, Loader, ArrowLeft, Image as ImageIcon, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 

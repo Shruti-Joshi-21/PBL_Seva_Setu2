@@ -40,10 +40,13 @@ const Layout = ({ children }) => {
     ];
 
     const teamLeadLinks = [
-        { to: '/team-lead', icon: LayoutDashboard, label: 'Overview' },
-        { to: '/team-lead/tasks/create', icon: CheckSquare, label: 'Create Task' },
-        { to: '/team-lead/locations', icon: MapPin, label: 'Locations' },
-        { to: '/team-lead/attendance', icon: Bell, label: 'Attendance' },
+        { to: '/teamlead', icon: LayoutDashboard, label: 'Overview' },
+        { to: '/teamlead/tasks', icon: CheckSquare, label: 'Tasks' },
+        { to: '/teamlead/tasks/create', icon: CheckSquare, label: 'Create Task' },
+        { to: '/teamlead/attendance', icon: Bell, label: 'Attendance' },
+        { to: '/teamlead/flags', icon: MapPin, label: 'Flagged Records' },
+        { to: '/teamlead/leave', icon: FileText, label: 'Leave Requests' },
+        { to: '/teamlead/reports', icon: FileText, label: 'Field Reports' },
     ];
 
     const workerLinks = [

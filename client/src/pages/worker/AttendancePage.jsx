@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { ClipboardList, CheckCircle2, AlertTriangle, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
-import api from '../utils/api';
-import AttendanceDetailDrawer from '../components/worker/AttendanceDetailDrawer';
+import api from '../../utils/api';
+import AttendanceDetailDrawer from '../../components/worker/AttendanceDetailDrawer';
 
 const MONTH_NAMES = [
   'January',
