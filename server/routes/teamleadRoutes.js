@@ -1,25 +1,25 @@
 const express = require('express');
-const router = express.Router();
-const User = require('../models/User');
+const teamleadController = require('../controllers/teamleadController');
 const { verifyToken, authorizeRoles } = require('../middlewares/authMiddleware');
 const { ROLES } = require('../utils/constants');
-const { sendSuccess } = require('../utils/response');
 
-router.get(
-  '/workers',
-  verifyToken,
-  authorizeRoles(ROLES.TEAM_LEAD, ROLES.ADMIN),
-  async (req, res, next) => {
-    try {
-      const workers = await User.find({ role: ROLES.FIELD_WORKER, isDeleted: false })
-        .select('_id fullName')
-        .lean();
-      const list = workers.map((w) => ({ id: w._id.toString(), name: w.fullName }));
-      return sendSuccess(res, list);
-    } catch (e) {
-      return next(e);
-    }
-  }
-);
+const router = express.Router();
+const guard = [verifyToken, authorizeRoles(ROLES.TEAM_LEAD)];
+
+router.get('/dashboard-summary', ...guard, teamleadController.getDashboardSummary);
+router.get('/tasks', ...guard, teamleadController.getTasks);
+router.post('/tasks', ...guard, teamleadController.createTask);
+router.get('/tasks/:taskId', ...guard, teamleadController.getTaskById);
+router.patch('/tasks/:taskId/status', ...guard, teamleadController.updateTaskStatus);
+router.get('/available-workers', ...guard, teamleadController.getAvailableWorkers);
+router.get('/location-search', ...guard, teamleadController.searchLocation);
+router.get('/leave-requests', ...guard, teamleadController.getLeaveRequests);
+router.patch('/leave-requests/:leaveId', ...guard, teamleadController.updateLeaveStatus);
+router.get('/attendance', ...guard, teamleadController.getAttendance);
+router.get('/attendance/flagged', ...guard, teamleadController.getFlaggedRecords);
+router.patch('/attendance/flagged/:recordId/resolve', ...guard, teamleadController.resolveFlaggedRecord);
+router.get('/field-reports', ...guard, teamleadController.getFieldReports);
+router.get('/field-reports/:reportId', ...guard, teamleadController.getFieldReportById);
+router.post('/field-reports/:reportId/forward', ...guard, teamleadController.forwardReportToAdmin);
 
 module.exports = router;

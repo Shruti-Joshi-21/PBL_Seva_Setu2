@@ -39,8 +39,8 @@ import {
   ChevronRight,
   FileText,
 } from 'lucide-react';
-import api from '../utils/api';
-import { useAuth } from '../context/AuthContext';
+import api from '../../utils/api';
+import { useAuth } from '../../context/AuthContext';
 
 ChartJS.register(
   CategoryScale,

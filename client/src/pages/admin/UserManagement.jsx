@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../utils/api';
+import api from '../../utils/api';
 import { Users, UserPlus, Search, MoreVertical, Shield, UserX, UserCheck, Trash2, Loader } from 'lucide-react';
 import { toast } from 'react-toastify';
 
