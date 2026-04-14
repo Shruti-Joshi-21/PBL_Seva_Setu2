@@ -6,6 +6,7 @@ const { ROLES } = require('../utils/constants');
 
 const adminOnly = [verifyToken, authorizeRoles(ROLES.ADMIN)];
 
+router.get('/team-leads', ...adminOnly, adminController.getTeamLeads);
 router.get('/users', ...adminOnly, adminController.getAllUsers);
 router.patch('/users/:id/toggle', ...adminOnly, adminController.toggleUserActive);
 router.patch('/users/:id', ...adminOnly, adminController.updateUser);

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { format, formatDistanceToNow } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -1134,6 +1134,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState(TAB_OVERVIEW);
+  const location = useLocation();
 
   const [overviewStats, setOverviewStats] = useState(null);
   const [impactMetrics, setImpactMetrics] = useState(null);
@@ -1420,6 +1421,10 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (activeTab === TAB_USERS) fetchUsersData();
   }, [activeTab, fetchUsersData]);
+
+  useEffect(() => {
+    if (location.pathname.endsWith('/admin/users')) setActiveTab(TAB_USERS);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (activeTab === TAB_REPORTS) fetchReportsData();
@@ -2189,7 +2194,7 @@ const AdminDashboard = () => {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      {['User', 'Username', 'Role', 'Status'].map((h) => (
+                      {['User', 'Username', 'Role', 'Status', 'Team Lead'].map((h) => (
                         <th
                           key={h}
                           className="px-4 py-3 text-left text-[10px] uppercase tracking-wide text-gray-500"
@@ -2203,7 +2208,7 @@ const AdminDashboard = () => {
                     {usersLoading
                       ? [1, 2, 3, 4, 5].map((i) => (
                           <tr key={i} className="border-b border-gray-100">
-                            <td colSpan={4} className="px-4 py-3">
+                            <td colSpan={5} className="px-4 py-3">
                               <div className="h-8 animate-pulse bg-gray-200 rounded" />
                             </td>
                           </tr>
@@ -2211,7 +2216,7 @@ const AdminDashboard = () => {
                       : filteredUsersTable.length === 0
                         ? (
                             <tr>
-                              <td colSpan={4} className="px-4 py-12 text-center">
+                              <td colSpan={5} className="px-4 py-12 text-center">
                                 <Users className="w-8 h-8 mx-auto text-gray-300 mb-2" />
                                 <p className="text-sm text-gray-400">No users found</p>
                                 <p className="text-xs text-gray-300 mt-1">Try adjusting filters</p>
@@ -2229,6 +2234,18 @@ const AdminDashboard = () => {
                               <tr
                                 key={u._id}
                                 className="border-b border-gray-100 last:border-0 hover:bg-gray-50"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => {
+                                  setSelectedUser(u);
+                                  setEditDrawerOpen(true);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    setSelectedUser(u);
+                                    setEditDrawerOpen(true);
+                                  }
+                                }}
                               >
                                 <td className="px-4 py-3">
                                   <div className="flex items-center">
@@ -2260,6 +2277,19 @@ const AdminDashboard = () => {
                                   >
                                     {u.isActive ? 'Active' : 'Inactive'}
                                   </span>
+                                </td>
+                                <td className="px-4 py-3">
+                                  {u.role === 'FIELD_WORKER' ? (
+                                    u.assignedTeamLead ? (
+                                      <span className="text-[10px] font-medium text-[#005F02] bg-[#F2E3BB] px-2 py-1 rounded-full">
+                                        {u.assignedTeamLead?.fullName || u.assignedTeamLead}
+                                      </span>
+                                    ) : (
+                                      <span className="text-[10px] text-gray-400">—</span>
+                                    )
+                                  ) : (
+                                    <span className="text-[10px] text-gray-400">—</span>
+                                  )}
                                 </td>
                               </tr>
                             );

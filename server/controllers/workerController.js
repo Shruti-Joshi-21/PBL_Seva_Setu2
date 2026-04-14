@@ -13,7 +13,7 @@ const { sendSuccess, sendError } = require('../utils/response');
 const { ROLES } = require('../utils/constants');
 
 const TOTAL_LEAVES_PER_YEAR = 12;
-const WORKER_LEAVE_TYPES = ['SICK', 'CASUAL', 'EMERGENCY'];
+const WORKER_LEAVE_TYPES = ['SICK', 'CASUAL', 'EMERGENCY', 'OTHER'];
 
 function parseBodyDate(str) {
   if (!str) return null;
@@ -698,6 +698,209 @@ async function cancelLeave(req, res, next) {
   }
 }
 
+async function getLeaveRequests(req, res, next) {
+  return getLeaveData(req, res, next);
+}
+
+async function submitLeaveRequest(req, res, next) {
+  const b = req.body;
+  if (b.startDate != null && b.fromDate == null) b.fromDate = b.startDate;
+  if (b.endDate != null && b.toDate == null) b.toDate = b.endDate;
+  return submitLeave(req, res, next);
+}
+
+async function cancelLeaveRequest(req, res, next) {
+  return cancelLeave(req, res, next);
+}
+
+const REPORT_STATUS_FILTER = ['SUBMITTED', 'APPROVED', 'REJECTED'];
+
+async function getWorkerTasks(req, res, next) {
+  try {
+    const workerId = req.user.userId;
+    const oid = new mongoose.Types.ObjectId(workerId);
+    const from = new Date();
+    from.setDate(from.getDate() - 30);
+    from.setHours(0, 0, 0, 0);
+
+    const tasks = await Task.find({
+      assignedWorkers: oid,
+      status: { $in: ['ACTIVE', 'COMPLETED'] },
+      isDeleted: false,
+      date: { $gte: from },
+    })
+      .sort({ date: -1 })
+      .select('title locationName date workType startTime endTime status')
+      .lean();
+
+    return sendSuccess(res, { tasks }, 'Worker tasks');
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getReports(req, res, next) {
+  try {
+    const workerId = req.user.userId;
+    const oid = new mongoose.Types.ObjectId(workerId);
+    const { status: statusParam } = req.query;
+    let page = parseInt(req.query.page, 10);
+    let limit = parseInt(req.query.limit, 10);
+    if (Number.isNaN(page) || page < 1) page = 1;
+    if (Number.isNaN(limit) || limit < 1) limit = 10;
+
+    const filter = { worker: oid };
+    if (statusParam && REPORT_STATUS_FILTER.includes(String(statusParam).toUpperCase())) {
+      filter.status = String(statusParam).toUpperCase();
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [
+      reports,
+      total,
+      statsTotal,
+      statsSubmitted,
+      statsApproved,
+      statsRejected,
+    ] = await Promise.all([
+      FieldReport.find(filter)
+        .populate('task', 'title locationName date workType')
+        .populate('reviewedBy', 'fullName')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      FieldReport.countDocuments(filter),
+      FieldReport.countDocuments({ worker: oid }),
+      FieldReport.countDocuments({ worker: oid, status: 'SUBMITTED' }),
+      FieldReport.countDocuments({ worker: oid, status: 'APPROVED' }),
+      FieldReport.countDocuments({ worker: oid, status: 'REJECTED' }),
+    ]);
+
+    return sendSuccess(
+      res,
+      {
+        reports,
+        pagination: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit) || 0,
+        },
+        stats: {
+          total: statsTotal,
+          submitted: statsSubmitted,
+          approved: statsApproved,
+          rejected: statsRejected,
+        },
+      },
+      'Reports'
+    );
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function submitReport(req, res, next) {
+  try {
+    const workerId = req.user.userId;
+    const oid = new mongoose.Types.ObjectId(workerId);
+    const { taskId, attendanceId, description, summary } = req.body;
+
+    if (!taskId) {
+      return sendError(res, 'taskId is required', 400);
+    }
+    if (description == null || String(description).trim().length < 20) {
+      return sendError(res, 'Description must be at least 20 characters', 400);
+    }
+
+    if (!mongoose.isValidObjectId(taskId)) {
+      return sendError(res, 'Task not found', 404);
+    }
+
+    const task = await Task.findOne({
+      _id: taskId,
+      assignedWorkers: oid,
+      isDeleted: false,
+    });
+
+    if (!task) {
+      return sendError(res, 'Task not found', 404);
+    }
+
+    let attendanceRef = null;
+    if (attendanceId != null && String(attendanceId).trim() !== '') {
+      if (!mongoose.isValidObjectId(attendanceId)) {
+        return sendError(res, 'Attendance record not found', 404);
+      }
+      const att = await AttendanceRecord.findOne({
+        _id: attendanceId,
+        worker: oid,
+        isDeleted: false,
+      }).lean();
+      if (!att) {
+        return sendError(res, 'Attendance record not found', 404);
+      }
+      attendanceRef = new mongoose.Types.ObjectId(attendanceId);
+    }
+
+    const existing = await FieldReport.findOne({ worker: oid, task: taskId }).lean();
+    if (existing) {
+      return sendError(res, 'Report already submitted for this task', 400);
+    }
+
+    const imagePaths = (req.files || []).map((f) => `reports/${f.filename}`);
+
+    const created = await FieldReport.create({
+      worker: oid,
+      task: taskId,
+      attendance: attendanceRef,
+      description: String(description).trim(),
+      summary: summary != null ? String(summary).trim() : '',
+      images: imagePaths,
+      status: 'SUBMITTED',
+    });
+
+    const report = await FieldReport.findById(created._id)
+      .populate('task', 'title locationName date workType')
+      .populate('reviewedBy', 'fullName')
+      .lean();
+
+    return sendSuccess(res, { report }, 'Report submitted successfully', 201);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getReportDetail(req, res, next) {
+  try {
+    const workerId = req.user.userId;
+    const oid = new mongoose.Types.ObjectId(workerId);
+    const { id: reportId } = req.params;
+
+    if (!mongoose.isValidObjectId(reportId)) {
+      return sendError(res, 'Record not found', 404);
+    }
+
+    const report = await FieldReport.findOne({
+      _id: reportId,
+      worker: oid,
+    })
+      .populate('task')
+      .populate('reviewedBy', 'fullName')
+      .lean();
+
+    if (!report) {
+      return sendError(res, 'Record not found', 404);
+    }
+
+    return sendSuccess(res, { report }, 'Report detail');
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   getDashboardData,
   getTodayAttendance,
@@ -708,4 +911,11 @@ module.exports = {
   getLeaveData,
   submitLeave,
   cancelLeave,
+  getLeaveRequests,
+  submitLeaveRequest,
+  cancelLeaveRequest,
+  getWorkerTasks,
+  getReports,
+  submitReport,
+  getReportDetail,
 };

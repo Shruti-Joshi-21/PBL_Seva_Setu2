@@ -31,7 +31,7 @@ const LoginModal = ({ isOpen, onClose, role }) => {
       toast.success(`Welcome back, ${name || userRole}!`);
 
       if (userRole === 'ADMIN') navigate('/admin');
-      else if (userRole === 'TEAM_LEAD') navigate('/team-lead');
+      else if (userRole === 'TEAM_LEAD') navigate('/teamlead');
       else if (userRole === 'FIELD_WORKER') navigate('/worker');
       else navigate('/');
 

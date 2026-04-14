@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import { X, Camera, User, Lock, Mail, Shield, Users, CheckCircle2, Loader } from 'lucide-react';
 import { toast } from 'react-toastify';
+import api from '../utils/api';
 
 const RegisterModal = ({ isOpen, onClose, role }) => {
     const [name, setName] = useState('');
@@ -21,42 +22,53 @@ const RegisterModal = ({ isOpen, onClose, role }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!name || !username || !password) {
-            toast.error("Please fill in all fields.");
+            toast.error('Please fill in all fields.');
             return;
         }
 
-        if ((role === 'Volunteer') && !faceImage) {
-            toast.error("Please capture your face for verification.");
+        if (role === 'Volunteer' && !faceImage) {
+            toast.error('Please capture your face for verification.');
             return;
         }
 
         setLoading(true);
 
         try {
-            // Simulated API call - since database is not yet ready
-            console.log("Registration Submission:", {
-                role,
-                name,
-                username,
-                password,
-                faceImage: faceImage ? "base64_string_present" : "no_image"
-            });
+            if (role === 'Volunteer') {
+                const res = await fetch(faceImage);
+                const blob = await res.blob();
+                const formData = new FormData();
+                formData.append('fullName', name);
+                formData.append('username', username);
+                formData.append('password', password);
+                formData.append('faceImage',
+                    new File([blob], 'face.jpg', { type: 'image/jpeg' }));
+                await api.post('/auth/signup/field-worker', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+            } else if (role === 'Team Lead') {
+                await api.post('/auth/signup/team-lead',
+                    { fullName: name, username, password });
+            } else if (role === 'Administrator') {
+                await api.post('/auth/signup/admin',
+                    { fullName: name, username, password });
+            }
 
-            // Simulate delay
-            await new Promise(resolve => setTimeout(resolve, 1500));
-
-            toast.success("Registration successful! (Database integration pending)");
-            
-            // Success reset
+            toast.success(`${role} registered successfully!`);
             setName('');
             setUsername('');
             setPassword('');
             setFaceImage(null);
             onClose();
+
         } catch (error) {
-            toast.error("Registration failed. Please try again later.");
+            toast.error(
+                error.response?.data?.message ||
+                error.message ||
+                'Registration failed. Please try again.'
+            );
         } finally {
             setLoading(false);
         }

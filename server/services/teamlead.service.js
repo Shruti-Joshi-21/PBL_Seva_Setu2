@@ -184,6 +184,7 @@ const getAvailableWorkers = async (teamLeadId, date, startTime, endTime) => {
   const windowStart = parseTimeToMinutes(startTime);
   const windowEnd = parseTimeToMinutes(endTime);
 
+  // Excludes workers assigned by ANY team lead, not just current one
   const tasksSameDay = await Task.find({ date: { $gte: dayStart, $lte: dayEnd }, isDeleted: false }).select('_id startTime endTime').lean();
   const busyTaskIds = tasksSameDay
     .filter((task) => {
@@ -197,7 +198,23 @@ const getAvailableWorkers = async (teamLeadId, date, startTime, endTime) => {
   const busySet = new Set(busyAssignments.map((a) => String(a.workerId)));
   const available = workers.filter((w) => !busySet.has(String(w._id)));
 
-  const topWorkTypeMap = await getTopWorkTypeByWorkerMap(available.map((w) => w._id));
+  const completedTasks = await Task.find({
+    assignedWorkers: { $in: available.map((w) => w._id) },
+    status: 'COMPLETED',
+    isDeleted: false,
+  })
+    .select('workType assignedWorkers')
+    .lean();
+
+  const workHistoryMap = {};
+  available.forEach((w) => (workHistoryMap[String(w._id)] = new Set()));
+  completedTasks.forEach((task) => {
+    task.assignedWorkers.forEach((wid) => {
+      const key = String(wid);
+      if (workHistoryMap[key]) workHistoryMap[key].add(task.workType);
+    });
+  });
+
   const weekStart = startOfDay(new Date());
   weekStart.setDate(weekStart.getDate() - weekStart.getDay());
   const weekEnd = endOfDay(new Date(weekStart));
@@ -225,7 +242,7 @@ const getAvailableWorkers = async (teamLeadId, date, startTime, endTime) => {
     _id: worker._id,
     name: toName(worker),
     initials: initialsFromName(toName(worker)),
-    topWorkType: topWorkTypeMap[String(worker._id)] || 'General',
+    workHistory: Array.from(workHistoryMap[String(worker._id)] || []),
     weeklyHours: Number((weeklyHours[String(worker._id)] || 0).toFixed(1)),
   }));
 };
