@@ -12,13 +12,26 @@ const reportsDir = path.join(__dirname, '..', 'uploads', 'reports');
 if (!fs.existsSync(attendanceDir)) fs.mkdirSync(attendanceDir, { recursive: true });
 if (!fs.existsSync(reportsDir)) fs.mkdirSync(reportsDir, { recursive: true });
 
+function badRequest(msg) {
+  const e = new Error(msg);
+  e.statusCode = 400;
+  return e;
+}
+
+const attendanceImageMimes = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/pjpeg',
+  'image/webp',
+];
+
 const attendanceUpload = multer({
   dest: attendanceDir,
   limits: { fileSize: 12 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
-    if (allowed.includes(file.mimetype)) return cb(null, true);
-    cb(new Error('Only jpeg/jpg/png images are allowed'));
+    if (attendanceImageMimes.includes(file.mimetype)) return cb(null, true);
+    cb(badRequest(`Unsupported image type (${file.mimetype || 'unknown'}). Use JPEG, PNG, or WebP.`));
   },
 }).fields([
   { name: 'faceImage', maxCount: 1 },
@@ -29,13 +42,18 @@ const reportUpload = multer({
   dest: reportsDir,
   limits: { fileSize: 12 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/jpg', 'image/png'];
-    if (allowed.includes(file.mimetype)) return cb(null, true);
-    cb(new Error('Images only'));
+    if (attendanceImageMimes.includes(file.mimetype)) return cb(null, true);
+    cb(badRequest(`Unsupported image type (${file.mimetype || 'unknown'}). Use JPEG, PNG, or WebP.`));
   },
 }).array('images', 5);
 
 router.get('/dashboard', verifyToken, authorizeRoles(ROLES.FIELD_WORKER), workerController.getDashboardData);
+router.get(
+  '/tasks/all',
+  verifyToken,
+  authorizeRoles(ROLES.FIELD_WORKER),
+  workerController.getAllWorkerTasks
+);
 router.get(
   '/attendance/today',
   verifyToken,

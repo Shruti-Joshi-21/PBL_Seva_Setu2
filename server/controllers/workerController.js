@@ -15,6 +15,22 @@ const { ROLES } = require('../utils/constants');
 const TOTAL_LEAVES_PER_YEAR = 12;
 const WORKER_LEAVE_TYPES = ['SICK', 'CASUAL', 'EMERGENCY', 'OTHER'];
 
+/** Multipart parsers may expose repeated fields as arrays — normalize to one value. */
+function firstFormScalar(val) {
+  if (val == null) return val;
+  if (Array.isArray(val)) {
+    const last = val[val.length - 1];
+    return last != null ? last : val[0];
+  }
+  return val;
+}
+
+function notificationRecipientId(createdByRef) {
+  if (createdByRef == null) return null;
+  if (typeof createdByRef === 'object' && createdByRef._id != null) return createdByRef._id;
+  return createdByRef;
+}
+
 function parseBodyDate(str) {
   if (!str) return null;
   const ymd = String(str).split('T')[0];
@@ -41,6 +57,11 @@ function startEndOfToday() {
   return { start, end };
 }
 
+function startOfCalendarDay(d) {
+  const x = new Date(d);
+  return new Date(x.getFullYear(), x.getMonth(), x.getDate(), 0, 0, 0, 0);
+}
+
 function startOfLast7Days() {
   const d = new Date();
   d.setDate(d.getDate() - 7);
@@ -55,8 +76,102 @@ async function getDashboardData(req, res, next) {
     const { start, end } = startEndOfToday();
     const weekFrom = startOfLast7Days();
 
+    const workerTaskFilter = {
+      assignedWorkers: { $in: [oid] },
+      status: 'ACTIVE',
+      isDeleted: false,
+    };
+
+    let todayTask = await Task.findOne({
+      ...workerTaskFilter,
+      date: { $gte: start, $lte: end },
+    })
+      .sort({ date: 1 })
+      .populate('createdBy', 'fullName')
+      .lean();
+
+    let isUpcoming = false;
+
+    if (!todayTask) {
+      const now = new Date();
+      const laterToday = await Task.findOne({
+        ...workerTaskFilter,
+        date: { $gt: now, $lte: end },
+      })
+        .sort({ date: 1 })
+        .limit(1)
+        .populate('createdBy', 'fullName')
+        .lean();
+      if (laterToday) todayTask = laterToday;
+    }
+
+    if (!todayTask) {
+      const tomorrowStart = new Date(start);
+      tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+      const upcoming = await Task.findOne({
+        ...workerTaskFilter,
+        date: { $gte: tomorrowStart },
+      })
+        .sort({ date: 1 })
+        .limit(1)
+        .populate('createdBy', 'fullName')
+        .lean();
+      if (upcoming) {
+        todayTask = upcoming;
+        isUpcoming = true;
+      }
+    }
+
+    if (!todayTask) {
+      const upcomingAfterEnd = await Task.findOne({
+        ...workerTaskFilter,
+        date: { $gt: end },
+      })
+        .sort({ date: 1 })
+        .limit(1)
+        .populate('createdBy', 'fullName')
+        .lean();
+      if (upcomingAfterEnd) {
+        todayTask = upcomingAfterEnd;
+        isUpcoming = true;
+      }
+    }
+
+    if (!todayTask) {
+      const nextByClock = await Task.findOne({
+        ...workerTaskFilter,
+        date: { $gt: new Date() },
+      })
+        .sort({ date: 1 })
+        .limit(1)
+        .populate('createdBy', 'fullName')
+        .lean();
+      if (nextByClock) {
+        todayTask = nextByClock;
+        isUpcoming = startOfCalendarDay(nextByClock.date).getTime() > start.getTime();
+      }
+    }
+
+    if (!todayTask) {
+      const earliestActive = await Task.findOne(workerTaskFilter)
+        .sort({ date: 1 })
+        .limit(1)
+        .populate('createdBy', 'fullName')
+        .lean();
+      if (earliestActive) {
+        todayTask = earliestActive;
+        isUpcoming = startOfCalendarDay(earliestActive.date).getTime() > start.getTime();
+      }
+    }
+
+    if (todayTask) {
+      if (!isUpcoming) {
+        isUpcoming = startOfCalendarDay(todayTask.date).getTime() > start.getTime();
+      }
+      todayTask = { ...todayTask, isUpcoming };
+    }
+
     const [
-      todayTask,
       todayAttendance,
       weeklyAttendanceCount,
       totalTasksThisWeek,
@@ -64,16 +179,8 @@ async function getDashboardData(req, res, next) {
       attRecords,
       leaves,
       reports,
+      recentTaskRows,
     ] = await Promise.all([
-      Task.findOne({
-        assignedWorkers: oid,
-        date: { $gte: start, $lte: end },
-        status: 'ACTIVE',
-        isDeleted: false,
-      })
-        .populate('createdBy', 'fullName')
-        .lean(),
-
       AttendanceRecord.findOne({
         worker: oid,
         checkInTime: { $exists: true, $ne: null, $gte: start, $lte: end },
@@ -90,7 +197,8 @@ async function getDashboardData(req, res, next) {
       }),
 
       Task.countDocuments({
-        assignedWorkers: oid,
+        assignedWorkers: { $in: [oid] },
+        status: 'ACTIVE',
         date: { $gte: weekFrom },
         isDeleted: false,
       }),
@@ -109,6 +217,16 @@ async function getDashboardData(req, res, next) {
       LeaveRequest.find({ worker: oid }).sort({ createdAt: -1 }).limit(3).lean(),
 
       FieldReport.find({ worker: oid }).sort({ createdAt: -1 }).limit(3).populate('task', 'title').lean(),
+
+      Task.find({
+        assignedWorkers: { $in: [oid] },
+        status: 'ACTIVE',
+        isDeleted: false,
+      })
+        .sort({ updatedAt: -1 })
+        .limit(5)
+        .select('title updatedAt date')
+        .lean(),
     ]);
 
     const attendanceItems = attRecords.map((r) => ({
@@ -133,7 +251,14 @@ async function getDashboardData(req, res, next) {
       label: r.task?.title || 'Report',
     }));
 
-    const merged = [...attendanceItems, ...leaveItems, ...reportItems].sort(
+    const taskItems = (recentTaskRows || []).map((t) => ({
+      type: 'TASK',
+      status: 'ACTIVE',
+      time: t.updatedAt || t.date || new Date(0),
+      label: t.title || 'Task',
+    }));
+
+    const merged = [...attendanceItems, ...leaveItems, ...reportItems, ...taskItems].sort(
       (a, b) => new Date(b.time) - new Date(a.time)
     );
     const recentActivity = merged.slice(0, 5);
@@ -226,13 +351,19 @@ async function checkIn(req, res, next) {
       return sendError(res, 'faceImage and fieldImage are required', 400);
     }
 
-    const { taskId, latitude, longitude } = req.body;
-    if (!taskId || latitude === undefined || longitude === undefined) {
+    const taskIdRaw = firstFormScalar(req.body.taskId);
+    const latitudeRaw = firstFormScalar(req.body.latitude);
+    const longitudeRaw = firstFormScalar(req.body.longitude);
+    if (!taskIdRaw || latitudeRaw === undefined || longitudeRaw === undefined) {
       return sendError(res, 'taskId, latitude, and longitude are required', 400);
     }
+    const taskId = String(taskIdRaw).trim();
+    if (!mongoose.isValidObjectId(taskId)) {
+      return sendError(res, 'Invalid task id', 400);
+    }
 
-    const lat = parseFloat(latitude);
-    const lon = parseFloat(longitude);
+    const lat = parseFloat(latitudeRaw);
+    const lon = parseFloat(longitudeRaw);
     if (Number.isNaN(lat) || Number.isNaN(lon)) {
       return sendError(res, 'Invalid latitude or longitude', 400);
     }
@@ -302,14 +433,22 @@ async function checkIn(req, res, next) {
     });
 
     if (status === 'FLAGGED') {
-      const workerDoc = await User.findById(workerId).select('fullName').lean();
-      const fullName = workerDoc?.fullName || 'Worker';
-      await Notification.create({
-        recipient: task.createdBy,
-        message: `Check-in flagged for worker ${fullName} on task ${task.title}: ${flagReasons.join(', ')}`,
-        type: 'FLAG',
-        relatedId: record._id,
-      });
+      try {
+        const recipient = notificationRecipientId(task.createdBy);
+        if (recipient && mongoose.isValidObjectId(recipient)) {
+          const workerDoc = await User.findById(workerId).select('fullName').lean();
+          const fullName = workerDoc?.fullName || 'Worker';
+          const msg = `Check-in flagged for worker ${fullName} on task ${task.title}: ${flagReasons.join(', ')}`;
+          await Notification.create({
+            recipient,
+            message: msg.slice(0, 4000),
+            type: 'FLAG',
+            relatedId: record._id,
+          });
+        }
+      } catch (notifyErr) {
+        console.error('Check-in notification failed:', notifyErr);
+      }
     }
 
     const message =
@@ -343,13 +482,19 @@ async function checkOut(req, res, next) {
       return sendError(res, 'faceImage and fieldImage are required', 400);
     }
 
-    const { attendanceId, latitude, longitude } = req.body;
-    if (!attendanceId || latitude === undefined || longitude === undefined) {
+    const attendanceIdRaw = firstFormScalar(req.body.attendanceId);
+    const latitudeRaw = firstFormScalar(req.body.latitude);
+    const longitudeRaw = firstFormScalar(req.body.longitude);
+    if (!attendanceIdRaw || latitudeRaw === undefined || longitudeRaw === undefined) {
       return sendError(res, 'attendanceId, latitude, and longitude are required', 400);
     }
+    const attendanceId = String(attendanceIdRaw).trim();
+    if (!mongoose.isValidObjectId(attendanceId)) {
+      return sendError(res, 'Invalid attendance id', 400);
+    }
 
-    const lat = parseFloat(latitude);
-    const lon = parseFloat(longitude);
+    const lat = parseFloat(latitudeRaw);
+    const lon = parseFloat(longitudeRaw);
     if (Number.isNaN(lat) || Number.isNaN(lon)) {
       return sendError(res, 'Invalid latitude or longitude', 400);
     }
@@ -403,27 +548,62 @@ async function checkOut(req, res, next) {
     if (!locationValid) newFlagReasons.push(locationReason);
     if (!faceValid) newFlagReasons.push(faceReason);
 
-    const existingFlags = Array.isArray(record.flagReasons) ? [...record.flagReasons] : [];
+    const existingFlags = Array.isArray(record.flagReasons)
+      ? record.flagReasons.map((r) => String(r).trim()).filter(Boolean)
+      : [];
     const allFlags = [...existingFlags, ...newFlagReasons];
     const finalStatus = allFlags.length === 0 ? 'VERIFIED' : 'FLAGGED';
 
-    record.checkOutTime = now;
-    record.checkOutLocation = { latitude: lat, longitude: lon };
-    record.checkOutFaceMatch = faceValid;
-    record.afterImage = fieldImageRelativePath(fieldFile);
-    record.status = finalStatus;
-    record.flagReasons = allFlags;
-    await record.save();
+    const afterImageRel = fieldImageRelativePath(fieldFile);
+    const updated = await AttendanceRecord.findOneAndUpdate(
+      {
+        _id: attendanceId,
+        worker: oid,
+        isDeleted: false,
+        checkOutTime: null,
+      },
+      {
+        $set: {
+          checkOutTime: now,
+          checkOutLocation: { latitude: lat, longitude: lon },
+          checkOutFaceMatch: faceValid,
+          afterImage: afterImageRel,
+          status: finalStatus,
+          flagReasons: allFlags,
+        },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      const cur = await AttendanceRecord.findOne({
+        _id: attendanceId,
+        worker: oid,
+        isDeleted: false,
+      });
+      if (!cur) return sendError(res, 'Attendance record not found', 404);
+      if (cur.checkOutTime) return sendError(res, 'Already checked out', 400);
+      return sendError(res, 'Could not complete check-out. Please try again.', 409);
+    }
 
     if (finalStatus === 'FLAGGED') {
-      const workerDoc = await User.findById(workerId).select('fullName').lean();
-      const fullName = workerDoc?.fullName || 'Worker';
-      await Notification.create({
-        recipient: task.createdBy,
-        message: `Check-out flagged for worker ${fullName} on task ${task.title}: ${allFlags.join(', ')}`,
-        type: 'FLAG',
-        relatedId: record._id,
-      });
+      try {
+        const recipient = notificationRecipientId(task.createdBy);
+        if (recipient && mongoose.isValidObjectId(recipient)) {
+          const workerDoc = await User.findById(workerId).select('fullName').lean();
+          const fullName = workerDoc?.fullName || 'Worker';
+          const taskTitle = task.title != null ? String(task.title) : 'Task';
+          const msg = `Check-out flagged for worker ${fullName} on task ${taskTitle}: ${allFlags.join(', ')}`;
+          await Notification.create({
+            recipient,
+            message: msg.slice(0, 4000),
+            type: 'FLAG',
+            relatedId: updated._id,
+          });
+        }
+      } catch (notifyErr) {
+        console.error('Check-out notification failed:', notifyErr);
+      }
     }
 
     const message =
@@ -434,11 +614,11 @@ async function checkOut(req, res, next) {
     return sendSuccess(
       res,
       {
-        attendanceId: record._id,
+        attendanceId: updated._id,
         finalStatus,
         flagReasons: allFlags,
-        checkInTime: record.checkInTime,
-        checkOutTime: record.checkOutTime,
+        checkInTime: updated.checkInTime,
+        checkOutTime: updated.checkOutTime,
         message,
       },
       message
@@ -739,6 +919,57 @@ async function getWorkerTasks(req, res, next) {
   }
 }
 
+function categorizeWorkerTask(task, dayStart, dayEnd) {
+  const d = new Date(task.date);
+  if (d < dayStart) return 'PAST';
+  if (task.status === 'COMPLETED') return 'PAST';
+  if (d > dayEnd) return 'UPCOMING';
+  return 'TODAY';
+}
+
+async function getAllWorkerTasks(req, res, next) {
+  try {
+    const workerId = req.user.userId;
+    const oid = new mongoose.Types.ObjectId(workerId);
+    const { start: dayStart, end: dayEnd } = startEndOfToday();
+
+    const tasksRaw = await Task.find({
+      assignedWorkers: { $in: [oid] },
+      isDeleted: false,
+    })
+      .sort({ date: -1 })
+      .select(
+        'title description workType locationName latitude longitude allowedRadius date startTime endTime checkInBuffer checkOutBuffer status reportFields createdBy assignedWorkers'
+      )
+      .populate('createdBy', 'fullName')
+      .lean();
+
+    const taskIds = tasksRaw.map((t) => t._id);
+    const reports =
+      taskIds.length === 0
+        ? []
+        : await FieldReport.find({ worker: oid, task: { $in: taskIds } })
+            .select('_id status task')
+            .lean();
+    const reportByTaskId = new Map(reports.map((r) => [String(r.task), r]));
+
+    const tasks = tasksRaw.map((task) => {
+      const report = reportByTaskId.get(String(task._id));
+      const category = categorizeWorkerTask(task, dayStart, dayEnd);
+      return {
+        ...task,
+        category,
+        reportStatus: report?.status || null,
+        reportId: report?._id || null,
+      };
+    });
+
+    return sendSuccess(res, { tasks }, 'All worker tasks');
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function getReports(req, res, next) {
   try {
     const workerId = req.user.userId;
@@ -915,6 +1146,7 @@ module.exports = {
   submitLeaveRequest,
   cancelLeaveRequest,
   getWorkerTasks,
+  getAllWorkerTasks,
   getReports,
   submitReport,
   getReportDetail,

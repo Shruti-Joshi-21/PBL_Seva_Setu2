@@ -14,6 +14,7 @@ import LeavePage from './pages/worker/LeavePage';
 import MarkAttendance from './pages/worker/MarkAttendance';
 import SubmitReport from './pages/worker/SubmitReport';
 import ReportsPage from './pages/worker/ReportsPage';
+import TasksPage from './pages/worker/TasksPage';
 
 // Team Lead pages — pulled from aarya-final into pages/teamlead/
 import TeamLeadDashboard from './pages/teamlead/TeamLeadDashboard';
@@ -98,6 +99,7 @@ function App() {
                 <Layout>
                   <Routes>
                     <Route index element={<WorkerDashboard />} />
+                    <Route path="tasks" element={<TasksPage />} />
                     <Route path="attendance" element={<WorkerAttendancePage />} />
                     <Route path="attendance/history" element={<WorkerAttendancePage />} />
                     <Route path="attendance/:taskId" element={<MarkAttendance />} />
