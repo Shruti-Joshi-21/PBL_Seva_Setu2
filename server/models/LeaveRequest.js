@@ -6,7 +6,7 @@ const LeaveRequestSchema = new mongoose.Schema(
     teamLead: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     leaveType: {
       type: String,
-      enum: ['SICK', 'CASUAL', 'EMERGENCY'],
+      enum: ['SICK', 'CASUAL', 'EMERGENCY', 'OTHER'],
       default: 'CASUAL',
     },
     fromDate: { type: Date, required: true },

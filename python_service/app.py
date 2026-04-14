@@ -1,102 +1,256 @@
 import os
+import tempfile
+
+import numpy as np
+from bson import ObjectId
+from bson.errors import InvalidId
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import numpy as np
-import base64
+from pymongo import MongoClient
 
-# Fallback in case face_recognition or dlib is not available
-HAS_FACE_REC = True
+# Load .env from this file's directory (works even if cwd is project root)
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(_BASE_DIR, ".env"))
+
 try:
     import face_recognition
+
+    FACE_RECOGNITION_AVAILABLE = True
 except ImportError:
-    HAS_FACE_REC = False
-    print("WARNING: face_recognition or dlib not found. Using MOCK mode.")
+    face_recognition = None  # noqa: F841
+    FACE_RECOGNITION_AVAILABLE = False
+    print("WARNING: face_recognition not installed.")
+    print("Using mock verification (always match=True)")
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/register', methods=['POST'])
-def register_face():
-    """
-    Receives an image and returns the face encoding as a list.
-    """
-    try:
-        if 'image' not in request.files:
-            return jsonify({"success": False, "message": "No image uploaded"}), 400
-        
-        if not HAS_FACE_REC:
-            return jsonify({
-                "success": True, 
-                "message": "Face encoded successfully (MOCK MODE)", 
-                "encoding": [0.1] * 128
-            })
+_mongo_client = None
 
-        file = request.files['image']
-        image = face_recognition.load_image_file(file)
+
+def get_mongo_db():
+    """Shared MongoDB handle (same URI/DB as Node mongoose: dbName sevasetu, collection users)."""
+    global _mongo_client
+    uri = os.environ.get("MONGODB_URI")
+    if not uri:
+        raise ValueError("MONGODB_URI is not set")
+    if _mongo_client is None:
+        _mongo_client = MongoClient(uri)
+    db_name = os.environ.get("MONGODB_DB_NAME", "sevasetu")
+    return _mongo_client[db_name]
+
+
+def _safe_unlink(path):
+    if not path:
+        return
+    try:
+        os.unlink(path)
+    except OSError:
+        pass
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    try:
+        mode = "real" if FACE_RECOGNITION_AVAILABLE else "mock"
+        return jsonify({"status": "ok", "mode": mode}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/register-face", methods=["POST"])
+def register_face():
+    """Compute face encoding from image path on disk (Node passes absolute path). Shares process with /verify-face (dotenv + optional Mongo client init pattern)."""
+    try:
+        if not request.is_json:
+            return jsonify({"success": False, "message": "JSON body required"}), 400
+
+        data = request.get_json(silent=True) or {}
+        image_path = data.get("imagePath")
+        if not image_path or not isinstance(image_path, str):
+            return jsonify({"success": False, "message": "imagePath is required"}), 400
+
+        if not os.path.isfile(image_path):
+            return jsonify({"success": False, "message": "Image file not found"}), 404
+
+        if not FACE_RECOGNITION_AVAILABLE:
+            return jsonify({"success": True, "encoding": [0.1] * 128}), 200
+
+        image = face_recognition.load_image_file(image_path)
         encodings = face_recognition.face_encodings(image)
-        
         if len(encodings) == 0:
             return jsonify({"success": False, "message": "No face detected"}), 400
-        
-        # We take the first face detected
+
         encoding = encodings[0].tolist()
-        
-        return jsonify({
-            "success": True, 
-            "message": "Face encoded successfully", 
-            "encoding": encoding
-        })
+        return jsonify({"success": True, "encoding": encoding}), 200
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route('/verify', methods=['POST'])
+
+@app.route("/verify-face", methods=["POST"])
 def verify_face():
-    """
-    Compares a captured image with a stored encoding.
-    """
+    temp_path = None
     try:
-        data = request.json
-        image_path = data.get('image_path')
-        stored_encoding_b64 = data.get('stored_encoding')
-        
-        if not image_path or not stored_encoding_b64:
-            return jsonify({"success": False, "message": "Missing image path or encoding"}), 400
-            
-        if not HAS_FACE_REC:
-             return jsonify({
-                "matched": True,
-                "score": 0.95,
-                "note": "Mocked match because face_recognition is unavailable"
-            })
+        if not FACE_RECOGNITION_AVAILABLE:
+            return (
+                jsonify(
+                    {
+                        "match": True,
+                        "confidence": 1.0,
+                        "mock": True,
+                        "distance": 0.0,
+                        "reason": "face_recognition library not available",
+                    }
+                ),
+                200,
+            )
 
-        # Decode stored encoding
-        stored_encoding = np.frombuffer(base64.b64decode(stored_encoding_b64), dtype=np.float64)
-        
-        # Load captured image
-        if not os.path.exists(image_path):
-             return jsonify({"success": False, "message": "Captured image not found"}), 404
-             
-        captured_image = face_recognition.load_image_file(image_path)
-        captured_encodings = face_recognition.face_encodings(captured_image)
-        
-        if len(captured_encodings) == 0:
-            return jsonify({"matched": False, "score": 0, "reason": "No face detected in captured image"})
-            
-        captured_encoding = captured_encodings[0]
-        
-        # Compare faces
-        results = face_recognition.compare_faces([stored_encoding], captured_encoding, tolerance=0.6)
-        face_distances = face_recognition.face_distance([stored_encoding], captured_encoding)
-        
-        matched = bool(results[0])
-        score = 1 - float(face_distances[0]) # Normalized score
-        
-        return jsonify({
-            "matched": matched,
-            "score": score
-        })
+        if "image" not in request.files or not request.files["image"]:
+            return (
+                jsonify(
+                    {
+                        "match": False,
+                        "confidence": 0.0,
+                        "distance": 0.0,
+                        "reason": "No image file",
+                    }
+                ),
+                200,
+            )
+
+        user_id = request.form.get("userId")
+        if not user_id:
+            return (
+                jsonify(
+                    {
+                        "match": False,
+                        "confidence": 0.0,
+                        "distance": 0.0,
+                        "reason": "userId required",
+                    }
+                ),
+                200,
+            )
+
+        image_file = request.files["image"]
+        tmp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
+        temp_path = tmp.name
+        tmp.close()
+        image_file.save(temp_path)
+
+        try:
+            oid = ObjectId(str(user_id))
+        except InvalidId:
+            _safe_unlink(temp_path)
+            temp_path = None
+            return (
+                jsonify(
+                    {
+                        "match": False,
+                        "confidence": 0.0,
+                        "distance": 0.0,
+                        "reason": "Invalid userId",
+                    }
+                ),
+                200,
+            )
+
+        db = get_mongo_db()
+        user = db.users.find_one({"_id": oid}, {"faceEncoding": 1})
+
+        if not user or user.get("faceEncoding") is None:
+            _safe_unlink(temp_path)
+            temp_path = None
+            return (
+                jsonify(
+                    {
+                        "match": False,
+                        "confidence": 0.0,
+                        "distance": 0.0,
+                        "reason": "No face registered for this user",
+                    }
+                ),
+                200,
+            )
+
+        raw_enc = user["faceEncoding"]
+        stored_bytes = bytes(raw_enc)
+        stored_encoding = np.frombuffer(stored_bytes, dtype=np.float32)
+
+        if stored_encoding.size != 128:
+            _safe_unlink(temp_path)
+            temp_path = None
+            return (
+                jsonify(
+                    {
+                        "match": False,
+                        "confidence": 0.0,
+                        "distance": 0.0,
+                        "reason": "Invalid stored encoding",
+                    }
+                ),
+                200,
+            )
+
+        uploaded_image = face_recognition.load_image_file(temp_path)
+        face_locations = face_recognition.face_locations(uploaded_image)
+
+        if not face_locations:
+            _safe_unlink(temp_path)
+            temp_path = None
+            return (
+                jsonify(
+                    {
+                        "match": False,
+                        "confidence": 0.0,
+                        "distance": 0.0,
+                        "reason": "No face detected in image",
+                    }
+                ),
+                200,
+            )
+
+        live_encoding = face_recognition.face_encodings(uploaded_image, face_locations)[0]
+        tolerance = float(os.environ.get("FACE_TOLERANCE", "0.5"))
+        stored_64 = stored_encoding.astype(np.float64)
+        results = face_recognition.compare_faces(
+            [stored_64], live_encoding, tolerance=tolerance
+        )
+        distance = float(face_recognition.face_distance([stored_64], live_encoding)[0])
+        match = bool(results[0])
+        confidence = round(max(0.0, min(1.0, 1.0 - distance)), 3)
+
+        _safe_unlink(temp_path)
+        temp_path = None
+
+        return (
+            jsonify(
+                {
+                    "match": match,
+                    "confidence": confidence,
+                    "distance": round(distance, 3),
+                    "reason": "",
+                }
+            ),
+            200,
+        )
     except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        _safe_unlink(temp_path)
+        return (
+            jsonify(
+                {
+                    "match": False,
+                    "confidence": 0.0,
+                    "distance": 0.0,
+                    "reason": str(e),
+                }
+            ),
+            200,
+        )
+    finally:
+        _safe_unlink(temp_path)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     app.run(port=5001, debug=True)

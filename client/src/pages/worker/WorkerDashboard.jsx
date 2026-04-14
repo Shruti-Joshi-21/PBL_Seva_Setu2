@@ -23,8 +23,8 @@ import {
 } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
-import CheckInModal from '../../components/worker/CheckInModal';
-import CheckOutModal from '../../components/worker/CheckOutModal';
+import CheckInModal from "../../components/worker/CheckInModal";
+import CheckOutModal from "../../components/worker/CheckOutModal";
 
 function formatLongDate(d) {
   return new Intl.DateTimeFormat('en-GB', {
@@ -566,7 +566,7 @@ export default function WorkerDashboard() {
             Icon: FileText,
             circle: 'bg-[#005F02]/10',
             iconColor: '#005F02',
-            onClick: () => navigate('/worker/reports'),
+            onClick: () => navigate('/worker/reports', { state: { openModal: true } }),
           },
           {
             title: 'Request Leave',

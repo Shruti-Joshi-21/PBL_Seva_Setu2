@@ -17,12 +17,11 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-userSchema.pre('validate', function enforceRoleFields(next) {
+userSchema.pre('validate', function enforceRoleFields() {
   if (this.role !== 'FIELD_WORKER') {
     this.faceImagePath = null;
     this.faceEncoding = null;
   }
-  next();
 });
 
 module.exports = mongoose.model('User', userSchema);

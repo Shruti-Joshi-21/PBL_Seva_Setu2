@@ -141,6 +141,17 @@ async function sumTaskHoursToday(taskId) {
   return Math.round((ms / 3600000) * 10) / 10;
 }
 
+const getTeamLeads = async (req, res) => {
+  try {
+    const teamLeads = await User.find({ role: 'TEAM_LEAD', isDeleted: false, isActive: true })
+      .select('_id fullName')
+      .lean();
+    return sendSuccess(res, { teamLeads }, 'Success');
+  } catch (error) {
+    return sendError(res, error.message || 'Failed to fetch team leads', 500);
+  }
+};
+
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({ isDeleted: false })
@@ -1086,6 +1097,7 @@ const getLeaveRecords = async (req, res) => {
 };
 
 module.exports = {
+  getTeamLeads,
   getAllUsers,
   toggleUserActive,
   updateUser,

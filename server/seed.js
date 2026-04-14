@@ -12,8 +12,8 @@ const seed = async () => {
 
     const hashedPwd = await bcrypt.hash('password123', 10);
 
-    // Upsert all 4 users
-    const [admin, teamLead, worker1, worker2] = await Promise.all([
+    // Step 1 — Create admin and teamlead first
+    const [admin, teamLead] = await Promise.all([
       User.findOneAndUpdate(
         { username: 'admin@sevasetu.gov.in' },
         {
@@ -22,7 +22,7 @@ const seed = async () => {
           password: hashedPwd,
           role: 'ADMIN'
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       ),
       User.findOneAndUpdate(
         { username: 'lead@sevasetu.gov.in' },
@@ -32,8 +32,12 @@ const seed = async () => {
           password: hashedPwd,
           role: 'TEAM_LEAD'
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       ),
+    ]);
+
+    // Step 2 — Create workers using teamLead._id
+    const [worker1, worker2] = await Promise.all([
       User.findOneAndUpdate(
         { username: 'worker@sevasetu.gov.in' },
         {
@@ -41,10 +45,11 @@ const seed = async () => {
           username: 'worker@sevasetu.gov.in',
           password: hashedPwd,
           role: 'FIELD_WORKER',
+          assignedTeamLead: teamLead._id,
           faceImagePath: null,
           faceEncoding: null
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       ),
       User.findOneAndUpdate(
         { username: 'anjali@sevasetu.gov.in' },
@@ -53,19 +58,18 @@ const seed = async () => {
           username: 'anjali@sevasetu.gov.in',
           password: hashedPwd,
           role: 'FIELD_WORKER',
+          assignedTeamLead: teamLead._id,
           faceImagePath: null,
           faceEncoding: null
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       ),
     ]);
 
-    // Today's date — time set to midnight so date comparison works
+    // Step 3 — Create tasks
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Time window: starts now, ends 8 hours from now
-    // Using wide buffer (120 min) so you can test anytime today
     const now = new Date();
     const later = new Date(now.getTime() + 8 * 60 * 60 * 1000);
     const timeStr = (d) => d.toTimeString().slice(0, 5);
@@ -79,19 +83,19 @@ const seed = async () => {
           locationName: 'Juhu Beach',
           latitude: 19.0988,
           longitude: 72.8264,
-          allowedRadius: 50000,    // 50km — very wide so GPS always passes
-          date: today,             // midnight — clean date comparison
+          allowedRadius: 50000,
+          date: today,
           startTime: timeStr(now),
           endTime: timeStr(later),
           workType: 'Waste Collection',
-          checkInBuffer: 120,      // 2hr buffer — test anytime
+          checkInBuffer: 120,
           checkOutBuffer: 120,
           createdBy: teamLead._id,
           assignedWorkers: [worker1._id],
           status: 'ACTIVE',
           isDeleted: false
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       ),
       Task.findOneAndUpdate(
         { title: 'Monument Site Inspection' },
@@ -113,7 +117,7 @@ const seed = async () => {
           status: 'ACTIVE',
           isDeleted: false
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       ),
     ]);
 
@@ -125,6 +129,7 @@ const seed = async () => {
     console.log('TEAM_LEAD    → lead@sevasetu.gov.in   / password123');
     console.log('ADMIN        → admin@sevasetu.gov.in  / password123');
     console.log('─────────────────────────────');
+    console.log('Workers linked to team lead:', teamLead.fullName);
     process.exit(0);
   } catch (err) {
     console.error('Seeding failed:', err);

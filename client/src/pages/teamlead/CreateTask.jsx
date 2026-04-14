@@ -386,11 +386,21 @@ const CreateTask = () => {
 
                     <span className="text-sm font-normal text-gray-800 flex-1">{w.name}</span>
 
-                    {w.topWorkType ? (
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-normal shrink-0">
-                        {w.topWorkType}
-                      </span>
-                    ) : null}
+                    <div className="flex gap-1 flex-wrap max-w-[200px] justify-end">
+                      {(w.workHistory || []).slice(0, 3).map((type) => (
+                        <span
+                          key={type}
+                          className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-normal shrink-0"
+                        >
+                          {type}
+                        </span>
+                      ))}
+                      {(w.workHistory || []).length === 0 && (
+                        <span className="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-normal shrink-0">
+                          No history
+                        </span>
+                      )}
+                    </div>
 
                     <span
                       className={`text-xs font-normal shrink-0 ${

@@ -12,7 +12,7 @@ import {
   CheckCircle2,
   Loader2,
 } from 'lucide-react';
-import api from '../../utils/api';
+import api from "../../utils/api";
 import StepIndicator from './StepIndicator';
 
 const STEPS = ['GPS Location', 'Face Capture', 'After Photo', 'Confirm'];

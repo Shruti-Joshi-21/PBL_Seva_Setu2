@@ -1,4 +1,3 @@
-const axios = require('axios');
 const Task = require('../models/Task');
 const AttendanceRecord = require('../models/AttendanceRecord');
 const FieldReport = require('../models/FieldReport');
@@ -27,16 +26,11 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 };
 
 const verifyFaceMatch = async (imagePath, storedEncodingB64) => {
-  try {
-    const response = await axios.post('http://localhost:8000/verify', {
-      image_path: imagePath,
-      stored_encoding: storedEncodingB64,
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Face verification service error:', error.message);
-    return { matched: true, score: 1.0, note: 'Service fallback' };
-  }
+  // Legacy verify call removed — face verification now handled by
+  // workerController.js via /verify-face
+  void imagePath;
+  void storedEncodingB64;
+  return { match: false, matched: false, reason: 'Legacy service disabled' };
 };
 
 const createCheckIn = async (checkInData) => {

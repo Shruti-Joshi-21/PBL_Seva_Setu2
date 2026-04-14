@@ -9,8 +9,9 @@ router.get('/current/:taskId', verifyToken, attendanceController.getCurrentAtten
 router.get('/all', verifyToken, attendanceController.getAllAttendance);
 
 // POST /api/attendance/...
-router.post('/check-in', verifyToken, upload.single('face'), attendanceController.checkIn);
-router.post('/check-out', verifyToken, upload.single('face'), attendanceController.checkOut);
+// Legacy check-in / check-out disabled — face + attendance flow uses /api/worker/checkin|checkout + Python /verify-face
+// router.post('/check-in', verifyToken, upload.single('face'), attendanceController.checkIn);
+// router.post('/check-out', verifyToken, upload.single('face'), attendanceController.checkOut);
 router.post('/report', verifyToken, upload.array('images', 5), attendanceController.submitReport);
 
 // PATCH /api/attendance/...
