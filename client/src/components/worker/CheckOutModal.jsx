@@ -128,15 +128,14 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
     setSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('attendanceId', attendanceRecord._id);
+      formData.append('attendanceId', String(attendanceRecord._id ?? ''));
       formData.append('latitude', String(gpsData.latitude));
       formData.append('longitude', String(gpsData.longitude));
       formData.append('faceImage', faceImageFile);
       formData.append('fieldImage', fieldImageFile);
 
-      const res = await api.post('/worker/checkout', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      // Let axios set multipart boundary — never set Content-Type: multipart/form-data manually.
+      const res = await api.post('/worker/checkout', formData);
       const data = res.data?.data ?? {};
       setResult({
         ...data,
