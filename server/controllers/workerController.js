@@ -40,6 +40,38 @@ function parseBodyDate(str) {
   return new Date(y, m - 1, d, 0, 0, 0, 0);
 }
 
+function parseJsonBodyValue(raw) {
+  if (raw == null) return null;
+  if (typeof raw === 'object') return raw;
+  try {
+    return JSON.parse(String(raw));
+  } catch {
+    return null;
+  }
+}
+
+function normalizeReportFieldResponses(raw) {
+  const parsed = parseJsonBodyValue(raw);
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .map((item) => ({
+      fieldName: item?.fieldName != null ? String(item.fieldName).trim() : '',
+      fieldType: item?.fieldType != null ? String(item.fieldType).trim() : '',
+      value: item?.value,
+    }))
+    .filter((item) => item.fieldName);
+}
+
+function normalizeYesNoValue(value) {
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  const s = String(value ?? '')
+    .trim()
+    .toLowerCase();
+  if (s === 'yes' || s === 'true' || s === '1') return 'Yes';
+  if (s === 'no' || s === 'false' || s === '0') return 'No';
+  return '';
+}
+
 function leaveSpanDays(fromDate, toDate) {
   return Math.ceil((new Date(toDate) - new Date(fromDate)) / (1000 * 60 * 60 * 24)) + 1;
 }
@@ -910,7 +942,7 @@ async function getWorkerTasks(req, res, next) {
       date: { $gte: from },
     })
       .sort({ date: -1 })
-      .select('title locationName date workType startTime endTime status')
+      .select('title locationName date workType startTime endTime status reportFields')
       .lean();
 
     return sendSuccess(res, { tasks }, 'Worker tasks');
@@ -1081,6 +1113,50 @@ async function submitReport(req, res, next) {
       return sendError(res, 'Report already submitted for this task', 400);
     }
 
+    const taskFieldDefs = Array.isArray(task.reportFields) ? task.reportFields : [];
+    const responseRows = normalizeReportFieldResponses(req.body.reportFieldResponses);
+    const responseByName = new Map(responseRows.map((r) => [r.fieldName, r]));
+    const reportFieldResponses = [];
+
+    for (const def of taskFieldDefs) {
+      const fieldName = String(def?.fieldName || '').trim();
+      const fieldType = String(def?.fieldType || '').trim();
+      if (!fieldName) continue;
+
+      const incoming = responseByName.get(fieldName);
+      const rawValue = incoming ? incoming.value : '';
+
+      if (fieldType === 'Number') {
+        const valueStr = String(rawValue ?? '').trim();
+        if (valueStr !== '' && Number.isNaN(Number(valueStr))) {
+          return sendError(res, `Invalid number value for "${fieldName}"`, 400);
+        }
+        reportFieldResponses.push({ fieldName, fieldType, value: valueStr });
+        continue;
+      }
+
+      if (fieldType === 'Yes/No') {
+        const normalized = normalizeYesNoValue(rawValue);
+        if (String(rawValue ?? '').trim() !== '' && normalized === '') {
+          return sendError(res, `Invalid yes/no value for "${fieldName}"`, 400);
+        }
+        reportFieldResponses.push({ fieldName, fieldType, value: normalized });
+        continue;
+      }
+
+      if (fieldType === 'Date') {
+        const valueStr = String(rawValue ?? '').trim();
+        if (valueStr !== '' && Number.isNaN(new Date(valueStr).getTime())) {
+          return sendError(res, `Invalid date value for "${fieldName}"`, 400);
+        }
+        reportFieldResponses.push({ fieldName, fieldType, value: valueStr });
+        continue;
+      }
+
+      const valueStr = String(rawValue ?? '').trim();
+      reportFieldResponses.push({ fieldName, fieldType, value: valueStr });
+    }
+
     const imagePaths = (req.files || []).map((f) => `reports/${f.filename}`);
 
     const created = await FieldReport.create({
@@ -1089,6 +1165,7 @@ async function submitReport(req, res, next) {
       attendance: attendanceRef,
       description: String(description).trim(),
       summary: summary != null ? String(summary).trim() : '',
+      reportFieldResponses,
       images: imagePaths,
       status: 'SUBMITTED',
     });

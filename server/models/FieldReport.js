@@ -8,6 +8,16 @@ const FieldReportSchema = new mongoose.Schema(
     submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     description: { type: String, required: true, trim: true },
     summary: { type: String, default: '' },
+    reportFieldResponses: {
+      type: [
+        {
+          fieldName: { type: String, trim: true },
+          fieldType: { type: String, trim: true },
+          value: { type: mongoose.Schema.Types.Mixed, default: '' },
+        },
+      ],
+      default: [],
+    },
     period: { type: String, default: '' },
     images: [{ type: String }],
     attachments: [{ type: String }],

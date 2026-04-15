@@ -24,13 +24,12 @@ const LeaveRequestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-LeaveRequestSchema.pre('save', function computeTotalDays(next) {
+LeaveRequestSchema.pre('save', function computeTotalDays() {
   if (this.fromDate && this.toDate) {
     const a = new Date(this.fromDate).setHours(0, 0, 0, 0);
     const b = new Date(this.toDate).setHours(0, 0, 0, 0);
     this.totalDays = Math.max(1, Math.round((b - a) / 86400000) + 1);
   }
-  next();
 });
 
 module.exports = mongoose.model('LeaveRequest', LeaveRequestSchema);

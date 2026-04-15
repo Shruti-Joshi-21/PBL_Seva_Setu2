@@ -1,4 +1,4 @@
 @echo off
 cd /d "%~dp0"
-py -m pip install -r requirements.txt -q
-py app.py
+py -3.10 -m pip install --no-deps -r requirements.txt -q
+py -3.10 app.py

@@ -5,6 +5,21 @@ import { toast } from 'react-toastify';
 import api from '../../utils/api.js';
 import { useAuth } from '../../context/AuthContext';
 
+function uploadsBaseUrl() {
+  const raw = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  return raw.replace(/\/api\/?$/, '');
+}
+
+function resolveReportImageSrc(stored) {
+  if (!stored) return null;
+  if (String(stored).startsWith('http')) return stored;
+  const base = uploadsBaseUrl();
+  const s = String(stored).replace(/^\//, '');
+  if (s.startsWith('uploads/')) return `${base}/${s}`;
+  if (s.startsWith('reports/')) return `${base}/uploads/${s}`;
+  return `${base}/uploads/reports/${s}`;
+}
+
 const FieldReports = () => {
   useAuth();
   const [reports, setReports] = useState([]);
@@ -14,6 +29,7 @@ const FieldReports = () => {
   const [summary, setSummary] = useState('');
   const [isForwarding, setIsForwarding] = useState(false);
   const [errorText, setErrorText] = useState('');
+  const [isDetailLoading, setIsDetailLoading] = useState(false);
 
   const fetchReports = async () => {
     const response = await api.get('/teamlead/field-reports');
@@ -51,6 +67,23 @@ const FieldReports = () => {
       setErrorText(err.response?.data?.message || 'Failed to forward report');
     } finally {
       setIsForwarding(false);
+    }
+  };
+
+  const openReportDetail = async (reportId) => {
+    setDialogOpen(true);
+    setErrorText('');
+    setIsDetailLoading(true);
+    try {
+      const response = await api.get(`/teamlead/field-reports/${reportId}`);
+      const report = response.data?.data || null;
+      setSelectedReport(report);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to load report details');
+      setDialogOpen(false);
+      setSelectedReport(null);
+    } finally {
+      setIsDetailLoading(false);
     }
   };
 
@@ -112,13 +145,9 @@ const FieldReports = () => {
                 <button
                   type="button"
                   className="bg-white border border-[#e8e0d0] text-gray-600 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
-                  onClick={() => {
-                    setSelectedReport(report);
-                    setDialogOpen(true);
-                    setErrorText('');
-                  }}
+                  onClick={() => openReportDetail(report._id)}
                 >
-                  View & forward
+                  View More
                 </button>
               </div>
             </motion.div>
@@ -159,8 +188,55 @@ const FieldReports = () => {
                 </button>
               </div>
               <div className="px-5 py-4 max-h-[60vh] overflow-y-auto">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-3">Worker&apos;s report</p>
-                <p className="text-sm text-gray-700 font-normal">{selectedReport.description || selectedReport.summary || 'No details provided'}</p>
+                {isDetailLoading ? (
+                  <p className="text-sm text-gray-500">Loading report details...</p>
+                ) : (
+                  <>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-3">Worker&apos;s report</p>
+                    <p className="text-sm text-gray-700 font-normal">
+                      {selectedReport.description || selectedReport.summary || 'No details provided'}
+                    </p>
+                    {Array.isArray(selectedReport.reportFieldResponses) &&
+                    selectedReport.reportFieldResponses.length > 0 ? (
+                      <div className="mt-4 space-y-2">
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-widest">
+                          Submitted fields
+                        </p>
+                        {selectedReport.reportFieldResponses.map((item, idx) => (
+                          <div
+                            key={`${item.fieldName}-${idx}`}
+                            className="rounded-lg border border-[#e8e0d0] bg-[#f9f9f7] px-3 py-2"
+                          >
+                            <p className="text-xs text-gray-500">{item.fieldName}</p>
+                            <p className="text-sm text-gray-700">{item.value != null && item.value !== '' ? String(item.value) : '—'}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    {Array.isArray(selectedReport.images) && selectedReport.images.length > 0 ? (
+                      <div className="mt-4">
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-widest mb-2">
+                          Field photos
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {selectedReport.images.map((path) => {
+                            const src = resolveReportImageSrc(path);
+                            return (
+                              <button
+                                key={path}
+                                type="button"
+                                className="block w-full overflow-hidden rounded-lg border border-[#e8e0d0]"
+                                onClick={() => src && window.open(src, '_blank', 'noopener,noreferrer')}
+                              >
+                                {src ? <img src={src} alt="" className="h-24 w-full object-cover" /> : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
+                  </>
+                )}
                 <div className="border-t border-[#e8e0d0] my-4" />
                 {selectedReport.forwardedToAdmin ? (
                   <div className="bg-[#eaf3de] border border-[#c5deb0] rounded-lg p-3 text-sm text-[#27500A] flex items-center gap-2 font-normal">
@@ -184,7 +260,7 @@ const FieldReports = () => {
                     </p>
                     <button
                       type="button"
-                      disabled={!summary.trim() || isForwarding}
+                      disabled={!summary.trim() || isForwarding || isDetailLoading}
                       className="w-full mt-3 bg-[#1a4a1a] hover:bg-[#2d6b2d] text-white text-sm font-medium rounded-lg py-2.5 transition-colors disabled:opacity-50"
                       onClick={forward}
                     >

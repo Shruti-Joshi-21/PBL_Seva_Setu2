@@ -20,6 +20,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
   const [tasks, setTasks] = useState([]);
   const [tasksLoading, setTasksLoading] = useState(false);
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [dynamicFieldValues, setDynamicFieldValues] = useState({});
 
   const revokePreviews = useCallback((urls) => {
     urls.forEach((u) => {
@@ -52,6 +53,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
       images: [],
     });
     setImagePreviews([]);
+    setDynamicFieldValues({});
   }, [isOpen, loadTasks]);
 
   useEffect(() => {
@@ -101,6 +103,12 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
       fd.append('taskId', formData.taskId);
       fd.append('description', formData.description.trim());
       fd.append('summary', formData.summary.trim());
+      const reportFieldResponses = selectedTaskFields.map((field) => ({
+        fieldName: field.fieldName,
+        fieldType: field.fieldType,
+        value: dynamicFieldValues[field.fieldName] ?? '',
+      }));
+      fd.append('reportFieldResponses', JSON.stringify(reportFieldResponses));
       if (formData.attendanceId) fd.append('attendanceId', formData.attendanceId);
       formData.images.forEach((img) => fd.append('images', img));
       await api.post('/worker/reports', fd, {
@@ -116,6 +124,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
         summary: '',
         images: [],
       });
+      setDynamicFieldValues({});
       onClose();
       onSuccess();
     } catch (err) {
@@ -126,6 +135,8 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
   };
 
   const descLen = formData.description.length;
+  const selectedTask = tasks.find((t) => t._id === formData.taskId) || null;
+  const selectedTaskFields = Array.isArray(selectedTask?.reportFields) ? selectedTask.reportFields : [];
   const canSubmit =
     Boolean(formData.taskId) && formData.description.trim().length >= 20 && !submitting;
 
@@ -141,7 +152,13 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
             onClick={handleClose}
           />
           <motion.div
-            className="fixed left-1/2 top-1/2 z-50 w-[min(100vw-1.5rem,28rem)] max-h-[90vh] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-[min(100%,28rem)] max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
@@ -167,7 +184,10 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
                 <select
                   id="report-task"
                   value={formData.taskId}
-                  onChange={(ev) => setFormData((p) => ({ ...p, taskId: ev.target.value }))}
+                  onChange={(ev) => {
+                    setFormData((p) => ({ ...p, taskId: ev.target.value }));
+                    setDynamicFieldValues({});
+                  }}
                   disabled={tasksLoading}
                   className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
                 >
@@ -179,6 +199,96 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
                   ))}
                 </select>
               </div>
+
+              {selectedTaskFields.map((field, idx) => {
+                const fieldName = String(field?.fieldName || '').trim();
+                const fieldType = String(field?.fieldType || '').trim();
+                if (!fieldName) return null;
+
+                if (fieldType === 'Number') {
+                  return (
+                    <div key={`${fieldName}-${idx}`}>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">{fieldName}</label>
+                      <input
+                        type="number"
+                        value={dynamicFieldValues[fieldName] ?? ''}
+                        onChange={(ev) =>
+                          setDynamicFieldValues((prev) => ({ ...prev, [fieldName]: ev.target.value }))
+                        }
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                        placeholder={`Enter ${fieldName.toLowerCase()}`}
+                      />
+                    </div>
+                  );
+                }
+
+                if (fieldType === 'Yes/No') {
+                  return (
+                    <div key={`${fieldName}-${idx}`}>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">{fieldName}</label>
+                      <select
+                        value={dynamicFieldValues[fieldName] ?? ''}
+                        onChange={(ev) =>
+                          setDynamicFieldValues((prev) => ({ ...prev, [fieldName]: ev.target.value }))
+                        }
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                      >
+                        <option value="">Select</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                  );
+                }
+
+                if (fieldType === 'Date') {
+                  return (
+                    <div key={`${fieldName}-${idx}`}>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">{fieldName}</label>
+                      <input
+                        type="date"
+                        value={dynamicFieldValues[fieldName] ?? ''}
+                        onChange={(ev) =>
+                          setDynamicFieldValues((prev) => ({ ...prev, [fieldName]: ev.target.value }))
+                        }
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                      />
+                    </div>
+                  );
+                }
+
+                if (fieldType === 'Image') {
+                  return (
+                    <div key={`${fieldName}-${idx}`}>
+                      <label className="mb-1 block text-sm font-medium text-gray-700">{fieldName}</label>
+                      <input
+                        type="text"
+                        value={dynamicFieldValues[fieldName] ?? ''}
+                        onChange={(ev) =>
+                          setDynamicFieldValues((prev) => ({ ...prev, [fieldName]: ev.target.value }))
+                        }
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                        placeholder="Optional note for uploaded field photo"
+                      />
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={`${fieldName}-${idx}`}>
+                    <label className="mb-1 block text-sm font-medium text-gray-700">{fieldName}</label>
+                    <textarea
+                      rows={2}
+                      value={dynamicFieldValues[fieldName] ?? ''}
+                      onChange={(ev) =>
+                        setDynamicFieldValues((prev) => ({ ...prev, [fieldName]: ev.target.value }))
+                      }
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                      placeholder={`Enter ${fieldName.toLowerCase()}`}
+                    />
+                  </div>
+                );
+              })}
 
               <div>
                 <label htmlFor="report-desc" className="mb-1 block text-sm font-medium text-gray-700">
@@ -264,6 +374,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
                 )}
               </button>
             </form>
+            </motion.div>
           </motion.div>
         </>
       )}
