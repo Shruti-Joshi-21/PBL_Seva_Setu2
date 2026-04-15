@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import {
@@ -71,6 +71,14 @@ function formatRelativeTime(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   const diffMs = Date.now() - d.getTime();
+  if (diffMs < 0) {
+    const aheadMin = Math.ceil(Math.abs(diffMs) / 60000);
+    if (aheadMin < 60) return `in ${aheadMin} min`;
+    const aheadHr = Math.floor(aheadMin / 60);
+    if (aheadHr < 48) return `in ${aheadHr} hour${aheadHr !== 1 ? 's' : ''}`;
+    const aheadDays = Math.floor(aheadHr / 24);
+    return `in ${aheadDays} day${aheadDays !== 1 ? 's' : ''}`;
+  }
   const sec = Math.floor(diffMs / 1000);
   if (sec < 45) return 'Just now';
   const min = Math.floor(sec / 60);
@@ -106,6 +114,9 @@ function activityVisuals(item) {
     if (status === 'APPROVED') return { circle: 'bg-green-100', Icon: FileText, iconClass: 'text-green-600' };
     if (status === 'REJECTED') return { circle: 'bg-red-100', Icon: FileText, iconClass: 'text-red-600' };
   }
+  if (type === 'TASK') {
+    return { circle: 'bg-[#427A43]/15', Icon: ClipboardList, iconClass: 'text-[#005F02]' };
+  }
   return { circle: 'bg-gray-100', Icon: Activity, iconClass: 'text-gray-600' };
 }
 
@@ -126,24 +137,57 @@ function statusBadgeClass(type, status) {
     if (status === 'APPROVED') return 'bg-green-100 text-green-700';
     if (status === 'REJECTED') return 'bg-red-100 text-red-700';
   }
+  if (type === 'TASK') return 'bg-[#E8F5E9] text-[#1B5E20]';
   return 'bg-gray-100 text-gray-600';
 }
 
 export default function WorkerDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [dashboardData, setDashboardData] = useState(null);
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [elapsedTime, setElapsedTime] = useState('0h 0m 0s');
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showCheckOut, setShowCheckOut] = useState(false);
+  const [checkInTaskOverride, setCheckInTaskOverride] = useState(null);
 
   const fullName = user?.fullName || user?.name || 'there';
 
   const attendanceState = useMemo(() => deriveAttendanceState(todayAttendance), [todayAttendance]);
 
   const todayTask = dashboardData?.todayTask ?? null;
+  const checkInModalTask = checkInTaskOverride || todayTask;
+
+  useEffect(() => {
+    if (loading) return;
+    const st = location.state;
+    if (!st || (!st.openCheckIn && !st.openCheckOut)) return;
+
+    if (st.openCheckIn) {
+      const tid = st.taskId;
+      if (tid && todayTask && String(todayTask._id) !== String(tid)) {
+        (async () => {
+          try {
+            const res = await api.get('/worker/tasks/all');
+            const list = res.data?.data?.tasks || [];
+            const t = list.find((x) => String(x._id) === String(tid));
+            setCheckInTaskOverride(t || null);
+          } catch {
+            setCheckInTaskOverride(null);
+          }
+        })();
+      } else {
+        setCheckInTaskOverride(null);
+      }
+      setShowCheckIn(true);
+    }
+    if (st.openCheckOut) {
+      setShowCheckOut(true);
+    }
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [loading, location.state, location.pathname, navigate, todayTask]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -329,7 +373,7 @@ export default function WorkerDashboard() {
         <div>
           {todayTask ? (
             <span className="inline-block rounded-full bg-[#005F02] text-white text-xs font-semibold px-4 py-2 shadow-sm">
-              1 task assigned today
+              {todayTask.isUpcoming ? '1 upcoming task' : '1 task assigned today'}
             </span>
           ) : (
             <span className="inline-block rounded-full bg-gray-200 text-gray-600 text-xs font-semibold px-4 py-2">
@@ -353,7 +397,9 @@ export default function WorkerDashboard() {
               {attendanceState === 'NOT_CHECKED_IN' && (
                 <div className="flex flex-col lg:flex-row gap-8">
                   <div className="lg:w-[60%] space-y-4">
-                    <p className="text-xs uppercase tracking-widest text-white/60">TODAY&apos;S TASK</p>
+                    <p className="text-xs uppercase tracking-widest text-white/60">
+                      {todayTask?.isUpcoming ? 'UPCOMING TASK' : "TODAY'S TASK"}
+                    </p>
                     <h2 className="text-xl font-bold text-white">
                       {todayTask ? todayTask.title : <span className="italic text-white/70">No task assigned for today</span>}
                     </h2>
@@ -390,11 +436,10 @@ export default function WorkerDashboard() {
                       onClick={onCheckIn}
                       whileHover={todayTask ? { scale: 1.03 } : {}}
                       whileTap={todayTask ? { scale: 0.97 } : {}}
-                      className={`flex items-center gap-2 rounded-2xl px-10 py-4 text-lg font-bold shadow-lg transition-colors ${
-                        todayTask
-                          ? 'bg-white text-[#005F02] hover:bg-[#F2E3BB]'
-                          : 'bg-white/40 text-white/60 cursor-not-allowed'
-                      }`}
+                      className={`flex items-center gap-2 rounded-2xl px-10 py-4 text-lg font-bold shadow-lg transition-colors ${todayTask
+                        ? 'bg-white text-[#005F02] hover:bg-[#F2E3BB]'
+                        : 'bg-white/40 text-white/60 cursor-not-allowed'
+                        }`}
                     >
                       <LogIn className="w-6 h-6" />
                       CHECK IN
@@ -512,7 +557,9 @@ export default function WorkerDashboard() {
       {todayTask && (
         <motion.div {...section(3)} className="rounded-2xl bg-white shadow-sm p-6">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
-            <span className="font-semibold text-[#005F02]">Today&apos;s Task</span>
+            <span className="font-semibold text-[#005F02]">
+              {todayTask?.isUpcoming ? 'Upcoming Task' : "Today's Task"}
+            </span>
             <span className="rounded-full bg-[#F2E3BB] text-[#005F02] text-xs font-semibold px-3 py-1">ACTIVE</span>
           </div>
           <div className="grid md:grid-cols-2 gap-8">
@@ -559,7 +606,7 @@ export default function WorkerDashboard() {
       )}
 
       {/* Quick actions */}
-      <motion.div {...section(4)} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <motion.div {...section(4)} className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           {
             title: 'Submit Report',
@@ -567,7 +614,7 @@ export default function WorkerDashboard() {
             Icon: FileText,
             circle: 'bg-[#005F02]/10',
             iconColor: '#005F02',
-            onClick: () => navigate('/worker/reports'),
+            onClick: () => navigate('/worker/reports', { state: { openModal: true } }),
           },
           {
             title: 'Request Leave',
@@ -575,7 +622,7 @@ export default function WorkerDashboard() {
             Icon: Calendar,
             circle: 'bg-[#C0B87A]/20',
             iconColor: '#C0B87A',
-            onClick: () => navigate('/worker/leave'),
+            onClick: () => navigate('/worker/leave', { state: { openModal: true } }),
           },
           {
             title: 'View History',
@@ -584,6 +631,14 @@ export default function WorkerDashboard() {
             circle: 'bg-[#427A43]/10',
             iconColor: '#427A43',
             onClick: () => navigate('/worker/attendance/history'),
+          },
+          {
+            title: 'My Tasks',
+            subtitle: 'View all assigned tasks',
+            Icon: ClipboardList,
+            circle: 'bg-[#427A43]/10',
+            iconColor: '#427A43',
+            onClick: () => navigate('/worker/tasks'),
           },
         ].map((action, i) => (
           <motion.button
@@ -656,10 +711,14 @@ export default function WorkerDashboard() {
 
       <CheckInModal
         isOpen={showCheckIn}
-        onClose={() => setShowCheckIn(false)}
-        task={dashboardData?.todayTask}
+        onClose={() => {
+          setShowCheckIn(false);
+          setCheckInTaskOverride(null);
+        }}
+        task={checkInModalTask}
         onSuccess={(result) => {
           setShowCheckIn(false);
+          setCheckInTaskOverride(null);
           refreshDashboard();
           if (result?.message) toast.success(result.message);
         }}

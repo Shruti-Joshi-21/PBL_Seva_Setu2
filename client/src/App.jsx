@@ -3,23 +3,33 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+
+// Shared pages
 import LandingPage from './pages/LandingPage';
-import MarkAttendance from './pages/MarkAttendance';
-import AdminDashboard from './pages/AdminDashboard';
-import UserManagement from './pages/UserManagement';
-import SubmitReport from './pages/SubmitReport';
 
-import TeamLeadDashboard from './pages/teamlead/TeamLeadDashboard';
-import Tasks from './pages/teamlead/Tasks';
-import CreateTask from './pages/teamlead/CreateTask';
-import AttendanceReview from './pages/teamlead/AttendanceReview';
-import FlaggedRecords from './pages/teamlead/FlaggedRecords';
-import LeaveManagement from './pages/teamlead/LeaveManagement';
-import FieldReports from './pages/teamlead/FieldReports';
-
+// Worker pages
 import WorkerDashboard from './pages/worker/WorkerDashboard';
 import WorkerAttendancePage from './pages/worker/AttendancePage';
 import LeavePage from './pages/worker/LeavePage';
+import MarkAttendance from './pages/worker/MarkAttendance';
+import SubmitReport from './pages/worker/SubmitReport';
+import ReportsPage from './pages/worker/ReportsPage';
+import TasksPage from './pages/worker/TasksPage';
+
+// Team Lead pages — pulled from aarya-final into pages/teamlead/
+import TeamLeadDashboard from './pages/teamlead/TeamLeadDashboard';
+import Tasks from './pages/teamlead/Tasks';
+import TaskDetail from './pages/teamlead/TaskDetail';
+import CreateTask from './pages/teamlead/CreateTask';
+import AttendanceReview from './pages/teamlead/AttendanceReview';
+import LeaveManagement from './pages/teamlead/LeaveManagement';
+import FlaggedRecords from './pages/teamlead/FlaggedRecords';
+import FieldReports from './pages/teamlead/FieldReports';
+
+// Admin pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+
+
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -37,6 +47,7 @@ const teamLeadNested = (
       <Route index element={<TeamLeadDashboard />} />
       <Route path="tasks" element={<Tasks />} />
       <Route path="tasks/create" element={<CreateTask />} />
+      <Route path="tasks/:taskId" element={<TaskDetail />} />
       <Route path="attendance" element={<AttendanceReview />} />
       <Route path="leave" element={<LeaveManagement />} />
       <Route path="flags" element={<FlaggedRecords />} />
@@ -62,7 +73,7 @@ function App() {
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <Routes>
                   <Route index element={<AdminDashboard />} />
-                  <Route path="users" element={<Layout><UserManagement /></Layout>} />
+                  <Route path="users" element={<AdminDashboard />} />
                   <Route path="reports" element={<Layout><DashboardPlaceholder title="System Reports" /></Layout>} />
                 </Routes>
               </ProtectedRoute>
@@ -88,8 +99,11 @@ function App() {
                 <Layout>
                   <Routes>
                     <Route index element={<WorkerDashboard />} />
+                    <Route path="tasks" element={<TasksPage />} />
                     <Route path="attendance" element={<WorkerAttendancePage />} />
+                    <Route path="attendance/history" element={<WorkerAttendancePage />} />
                     <Route path="attendance/:taskId" element={<MarkAttendance />} />
+                    <Route path="reports" element={<ReportsPage />} />
                     <Route path="report/:taskId" element={<SubmitReport />} />
                     <Route path="leave" element={<LeavePage />} />
                   </Routes>

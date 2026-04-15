@@ -128,15 +128,13 @@ export default function CheckInModal({ isOpen, onClose, task, onSuccess }) {
     setSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('taskId', task._id);
+      formData.append('taskId', String(task._id ?? ''));
       formData.append('latitude', String(gpsData.latitude));
       formData.append('longitude', String(gpsData.longitude));
       formData.append('faceImage', faceImageFile);
       formData.append('fieldImage', fieldImageFile);
 
-      const res = await api.post('/worker/checkin', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const res = await api.post('/worker/checkin', formData);
       const data = res.data?.data ?? {};
       setResult({
         ...data,
@@ -225,10 +223,10 @@ export default function CheckInModal({ isOpen, onClose, task, onSuccess }) {
                       at{' '}
                       {result.checkInTime
                         ? new Date(result.checkInTime).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true,
-                          })
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true,
+                        })
                         : '—'}
                     </p>
                   </>

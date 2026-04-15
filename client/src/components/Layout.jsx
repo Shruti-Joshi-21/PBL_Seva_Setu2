@@ -5,7 +5,7 @@ import {
     LayoutDashboard,
     MapPin,
     CheckSquare,
-    Clock, 
+    Clock,
     Flag,
     Calendar,
     Users,
@@ -14,7 +14,8 @@ import {
     LogOut,
     Menu,
     X,
-    User
+    User,
+    ClipboardList,
 } from 'lucide-react';
 
 const SidebarLink = ({ to, icon: Icon, label, active, onClick }) => (
@@ -30,6 +31,13 @@ const SidebarLink = ({ to, icon: Icon, label, active, onClick }) => (
         <span className="font-medium">{label}</span>
     </Link>
 );
+
+function isWorkerNavActive(pathname, to) {
+    const p = pathname.replace(/\/$/, '') || '/';
+    if (to === '/worker') return p === '/worker';
+    if (to === '/worker/attendance') return p.startsWith('/worker/attendance');
+    return p === to || p.startsWith(`${to}/`);
+}
 
 const Layout = ({ children }) => {
     const { user, logout } = useAuth();
@@ -53,7 +61,8 @@ const Layout = ({ children }) => {
       ];
 
     const workerLinks = [
-        { to: '/worker', icon: LayoutDashboard, label: 'My Tasks' },
+        { to: '/worker', icon: LayoutDashboard, label: 'Home' },
+        { to: '/worker/tasks', icon: ClipboardList, label: 'My Tasks' },
         { to: '/worker/attendance', icon: CheckSquare, label: 'Attendance' },
         { to: '/worker/leave', icon: FileText, label: 'Leave Requests' },
     ];
@@ -80,7 +89,11 @@ const Layout = ({ children }) => {
                         <SidebarLink
                             key={link.to}
                             {...link}
-                            active={location.pathname === link.to}
+                            active={
+                                user?.role === 'FIELD_WORKER'
+                                    ? isWorkerNavActive(location.pathname, link.to)
+                                    : location.pathname === link.to
+                            }
                         />
                     ))}
                 </nav>
@@ -137,7 +150,11 @@ const Layout = ({ children }) => {
                                 <SidebarLink
                                     key={link.to}
                                     {...link}
-                                    active={location.pathname === link.to}
+                                    active={
+                                        user?.role === 'FIELD_WORKER'
+                                            ? isWorkerNavActive(location.pathname, link.to)
+                                            : location.pathname === link.to
+                                    }
                                     onClick={() => setSidebarOpen(false)}
                                 />
                             ))}

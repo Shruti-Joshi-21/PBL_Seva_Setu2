@@ -272,13 +272,12 @@ export default function AttendancePage() {
               </span>
             ) : (
               <span
-                className={`text-sm font-semibold ${
-                  isFuture
+                className={`text-sm font-semibold ${isFuture
                     ? 'text-gray-200'
                     : showPastEmpty
                       ? 'text-gray-300'
                       : 'text-gray-800'
-                }`}
+                  }`}
               >
                 {day}
               </span>

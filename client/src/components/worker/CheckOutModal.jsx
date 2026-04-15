@@ -128,15 +128,14 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
     setSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('attendanceId', attendanceRecord._id);
+      formData.append('attendanceId', String(attendanceRecord._id ?? ''));
       formData.append('latitude', String(gpsData.latitude));
       formData.append('longitude', String(gpsData.longitude));
       formData.append('faceImage', faceImageFile);
       formData.append('fieldImage', fieldImageFile);
 
-      const res = await api.post('/worker/checkout', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      // Let axios set multipart boundary — never set Content-Type: multipart/form-data manually.
+      const res = await api.post('/worker/checkout', formData);
       const data = res.data?.data ?? {};
       setResult({
         ...data,
@@ -229,20 +228,20 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
                         In:{' '}
                         {result.checkInTime
                           ? new Date(result.checkInTime).toLocaleTimeString('en-US', {
-                              hour: 'numeric',
-                              minute: '2-digit',
-                              hour12: true,
-                            })
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })
                           : '—'}
                       </p>
                       <p>
                         Out:{' '}
                         {result.checkOutTime
                           ? new Date(result.checkOutTime).toLocaleTimeString('en-US', {
-                              hour: 'numeric',
-                              minute: '2-digit',
-                              hour12: true,
-                            })
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })
                           : '—'}
                       </p>
                     </div>
@@ -480,10 +479,10 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
                           <span className="text-gray-800">
                             {attendanceRecord.checkInTime
                               ? new Date(attendanceRecord.checkInTime).toLocaleTimeString('en-US', {
-                                  hour: 'numeric',
-                                  minute: '2-digit',
-                                  hour12: true,
-                                })
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true,
+                              })
                               : '—'}
                           </span>
                         </div>
