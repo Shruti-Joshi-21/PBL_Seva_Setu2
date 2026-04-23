@@ -122,23 +122,23 @@ function activityVisuals(item) {
 
 function statusBadgeClass(type, status) {
   if (type === 'ATTENDANCE') {
-    if (status === 'VERIFIED') return 'bg-green-100 text-green-700';
-    if (status === 'FLAGGED') return 'bg-amber-100 text-amber-700';
-    if (status === 'PENDING') return 'bg-blue-100 text-blue-700';
-    if (status === 'REJECTED') return 'bg-red-100 text-red-700';
+    if (status === 'VERIFIED') return 'bg-[#E8F5E9] text-[#246427]';
+    if (status === 'FLAGGED') return 'bg-[#FFF8E1] text-[#B07D00]';
+    if (status === 'PENDING') return 'bg-[#E3F2FD] text-[#0277BD]';
+    if (status === 'REJECTED') return 'bg-[#FFEBEE] text-[#C62828]';
   }
   if (type === 'LEAVE') {
-    if (status === 'PENDING') return 'bg-amber-100 text-amber-700';
-    if (status === 'APPROVED') return 'bg-green-100 text-green-700';
-    if (status === 'REJECTED') return 'bg-red-100 text-red-700';
+    if (status === 'PENDING') return 'bg-[#FFF8E1] text-[#B07D00]';
+    if (status === 'APPROVED') return 'bg-[#E8F5E9] text-[#246427]';
+    if (status === 'REJECTED') return 'bg-[#FFEBEE] text-[#C62828]';
   }
   if (type === 'REPORT') {
-    if (status === 'SUBMITTED') return 'bg-blue-100 text-blue-700';
-    if (status === 'APPROVED') return 'bg-green-100 text-green-700';
-    if (status === 'REJECTED') return 'bg-red-100 text-red-700';
+    if (status === 'SUBMITTED') return 'bg-[#E3F2FD] text-[#0277BD]';
+    if (status === 'APPROVED') return 'bg-[#E8F5E9] text-[#246427]';
+    if (status === 'REJECTED') return 'bg-[#FFEBEE] text-[#C62828]';
   }
-  if (type === 'TASK') return 'bg-[#E8F5E9] text-[#1B5E20]';
-  return 'bg-gray-100 text-gray-600';
+  if (type === 'TASK') return 'bg-[#E8F5E9] text-[#246427]';
+  return 'bg-[#F9FBF7] text-[#616161]';
 }
 
 export default function WorkerDashboard() {
@@ -305,17 +305,17 @@ export default function WorkerDashboard() {
 
   const statTodayStatus = () => {
     if (attendanceState === 'NOT_CHECKED_IN') {
-      return { iconColor: 'text-gray-400', value: '—', label: 'Not Started' };
+      return { iconColor: '#616161', value: '—', label: 'Not Started' };
     }
     if (attendanceState === 'CHECKED_IN') {
-      return { iconColor: 'text-[#005F02]', value: 'Active', label: 'In Progress' };
+      return { iconColor: '#246427', value: 'Active', label: 'In Progress' };
     }
     const st = todayAttendance?.status;
-    if (st === 'VERIFIED') return { iconColor: 'text-[#005F02]', value: 'Verified', label: 'Completed' };
-    if (st === 'FLAGGED') return { iconColor: 'text-amber-600', value: 'Flagged', label: 'Completed' };
-    if (st === 'PENDING') return { iconColor: 'text-blue-600', value: 'Pending', label: 'Completed' };
-    if (st === 'REJECTED') return { iconColor: 'text-red-600', value: 'Rejected', label: 'Completed' };
-    return { iconColor: 'text-gray-500', value: st || '—', label: 'Completed' };
+    if (st === 'VERIFIED') return { iconColor: '#246427', value: 'Verified', label: 'Completed' };
+    if (st === 'FLAGGED') return { iconColor: '#B07D00', value: 'Flagged', label: 'Completed' };
+    if (st === 'PENDING') return { iconColor: '#0277BD', value: 'Pending', label: 'Completed' };
+    if (st === 'REJECTED') return { iconColor: '#C62828', value: 'Rejected', label: 'Completed' };
+    return { iconColor: '#616161', value: st || '—', label: 'Completed' };
   };
   const todayStat = statTodayStatus();
 
@@ -357,35 +357,68 @@ export default function WorkerDashboard() {
 
   return (
     <motion.div
-      className="space-y-8 pb-10 bg-[#f7f9f7] -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 min-h-full rounded-b-2xl"
+      className="space-y-8 pb-10 bg-[#F9FBF7] -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 min-h-full rounded-b-[20px]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Page header */}
-      <motion.div {...section(0)} className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#005F02]">
-            Good {greeting}, {fullName}!
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">{dateLabel}</p>
-        </div>
-        <div>
-          {todayTask ? (
-            <span className="inline-block rounded-full bg-[#005F02] text-white text-xs font-semibold px-4 py-2 shadow-sm">
-              {todayTask.isUpcoming ? '1 upcoming task' : '1 task assigned today'}
-            </span>
-          ) : (
-            <span className="inline-block rounded-full bg-gray-200 text-gray-600 text-xs font-semibold px-4 py-2">
-              No tasks today
-            </span>
-          )}
-        </div>
+
+      {/* Row 1: Stats */}
+      <motion.div {...section(1)} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          {
+            Icon: CheckSquare,
+            iconColor: '#246427',
+            value: `${weeklyAttendanceCount} days verified`,
+            label: 'This Week',
+          },
+          {
+            Icon: ClipboardList,
+            iconColor: '#246427',
+            value: String(totalTasksThisWeek),
+            label: 'Tasks Assigned',
+          },
+          {
+            Icon: Calendar,
+            iconColor: '#B07D00',
+            value: String(pendingLeaveCount),
+            label: 'Awaiting Approval',
+            valueClass: pendingLeaveCount > 0 ? 'text-[#B07D00]' : '',
+          },
+          {
+            Icon: Activity,
+            iconColor: todayStat.iconColor,
+            value: todayStat.value,
+            label: todayStat.label,
+            valueClass: todayStat.iconColor,
+          },
+        ].map((card, cardIndex) => (
+          <motion.div
+            key={card.label}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.05 * cardIndex }}
+            className="rounded-[20px] bg-[#FFFFFF] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC] flex flex-col gap-2"
+          >
+            <div className="flex items-center gap-3">
+              <card.Icon className="w-[22px] h-[22px] text-[#246427]" strokeWidth={2.5} />
+              <p className="text-[1.125rem] lg:text-[1.375rem] font-bold text-[#212121] leading-tight truncate">
+                {card.value}
+              </p>
+            </div>
+            <div className="flex flex-col">
+              <p className="text-[0.75rem] text-[#616161] truncate line-clamp-1">{card.label}</p>
+            </div>
+          </motion.div>
+        ))}
       </motion.div>
 
-      {/* Hero */}
-      <motion.div {...section(1)}>
-        <div className="rounded-2xl shadow-md bg-gradient-to-br from-[#005F02] to-[#427A43] p-6 md:p-8 overflow-hidden">
+      {/* Row 2: Hero (Check-in/Today Task) */}
+      <motion.div {...section(2)}>
+        <div 
+          className={`relative overflow-hidden ${attendanceState === 'NOT_CHECKED_IN' ? 'rounded-[16px] shadow-[0_4px_20px_rgba(36,100,39,0.1)] px-[32px] py-[28px]' : 'rounded-[20px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] bg-[#246427] p-6 md:p-8'}`}
+          style={attendanceState === 'NOT_CHECKED_IN' ? { background: 'linear-gradient(135deg, #F1F8E9 0%, #C8E6C9 100%)' } : {}}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={attendanceState}
@@ -395,58 +428,68 @@ export default function WorkerDashboard() {
               transition={{ duration: 0.35 }}
             >
               {attendanceState === 'NOT_CHECKED_IN' && (
-                <div className="flex flex-col lg:flex-row gap-8">
-                  <div className="lg:w-[60%] space-y-4">
-                    <p className="text-xs uppercase tracking-widest text-white/60">
-                      {todayTask?.isUpcoming ? 'UPCOMING TASK' : "TODAY'S TASK"}
-                    </p>
-                    <h2 className="text-xl font-bold text-white">
-                      {todayTask ? todayTask.title : <span className="italic text-white/70">No task assigned for today</span>}
-                    </h2>
-                    {todayTask && (
-                      <div className="space-y-2 text-sm text-white/80">
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 shrink-0" />
-                          <span>{todayTask.locationName}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 shrink-0" />
-                          <span>
-                            {todayTask.startTime} – {todayTask.endTime}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Timer className="w-4 h-4 shrink-0" />
-                          <span>
-                            Check-in window: {adjustTimeHM(todayTask.startTime, -(todayTask.checkInBuffer ?? 15))} to{' '}
-                            {adjustTimeHM(todayTask.startTime, todayTask.checkInBuffer ?? 15)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Wrench className="w-4 h-4 shrink-0" />
-                          <span>{todayTask.workType}</span>
-                        </div>
-                      </div>
-                    )}
+                <>
+                  <div 
+                    className="absolute top-0 right-0 text-[0.6875rem] font-[700] tracking-[0.08em] text-[#246427] uppercase"
+                    style={{ background: 'rgba(36,100,39,0.1)', borderBottomLeftRadius: '16px', padding: '6px 16px' }}
+                  >
+                    {todayTask?.isUpcoming ? 'UPCOMING TASK' : "TODAY'S TASK"}
                   </div>
-                  <div className="lg:w-[40%] flex flex-col items-center justify-center gap-3">
-                    <motion.button
-                      type="button"
-                      disabled={!todayTask}
-                      onClick={onCheckIn}
-                      whileHover={todayTask ? { scale: 1.03 } : {}}
-                      whileTap={todayTask ? { scale: 0.97 } : {}}
-                      className={`flex items-center gap-2 rounded-2xl px-10 py-4 text-lg font-bold shadow-lg transition-colors ${todayTask
-                        ? 'bg-white text-[#005F02] hover:bg-[#F2E3BB]'
-                        : 'bg-white/40 text-white/60 cursor-not-allowed'
+                  <div className="flex flex-col lg:flex-row gap-6 justify-between items-center relative z-10 pt-4 md:pt-0">
+                    <div className="flex-1 flex flex-col items-start w-full gap-3">
+                      <h2 className="text-[1.5rem] font-[700] text-[#212121]">
+                        {todayTask ? todayTask.title : <span className="italic text-[#212121]/70">No task assigned for today</span>}
+                      </h2>
+                      {todayTask && (
+                        <div className="flex flex-col sm:flex-row items-start gap-[24px]">
+                          <div className="flex items-start gap-[6px] text-[0.875rem] text-[#2d5a2e] max-w-[355px]">
+                            <MapPin className="w-[16px] h-[16px] text-[#246427] opacity-80 shrink-0 mt-[2px]" />
+                            <span className="leading-[1.4]">{todayTask.locationName}</span>
+                          </div>
+                          <div className="flex flex-col gap-[8px]">
+                            <div className="flex items-center gap-[6px] text-[0.875rem] text-[#2d5a2e]">
+                              <Clock className="w-[16px] h-[16px] text-[#246427] opacity-80 shrink-0" />
+                              <span>
+                                {todayTask.startTime} – {todayTask.endTime}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-[6px] text-[0.875rem] text-[#2d5a2e]">
+                              <Wrench className="w-[16px] h-[16px] text-[#246427] opacity-80 shrink-0" />
+                              <span>{todayTask.workType}</span>
+                            </div>
+                            <div className="flex items-center gap-[6px] text-[0.875rem] text-[#2d5a2e]">
+                              <Radio className="w-[16px] h-[16px] text-[#246427] opacity-80 shrink-0" />
+                              <span>Within {todayTask.allowedRadius}m radius</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-row gap-4 items-center sm:items-end lg:items-center shrink-0 mt-4 lg:mt-0">
+                      {todayTask && (
+                        <p className="text-[0.7rem] text-[#2d5a2e]/70 italic whitespace-nowrap">
+                          Attendance allowed {todayTask.checkInBuffer || 15}m before & {todayTask.checkOutBuffer || 15}m after
+                        </p>
+                      )}
+                      <motion.button
+                        type="button"
+                        disabled={!todayTask}
+                        onClick={onCheckIn}
+                        whileHover={todayTask ? { scale: 1.02, backgroundColor: '#1a4d1c' } : {}}
+                        whileTap={todayTask ? { scale: 0.97 } : {}}
+                        transition={{ duration: 0.18, ease: "easeOut" }}
+                        className={`flex items-center justify-center gap-2 rounded-[12px] px-[32px] py-[14px] text-[0.9375rem] font-[700] tracking-[0.03em] text-[#FFFFFF] w-full lg:w-auto ${
+                          todayTask
+                            ? 'bg-[#246427] shadow-[0_4px_14px_rgba(36,100,39,0.2)]'
+                            : 'bg-[#246427]/40 cursor-not-allowed'
                         }`}
-                    >
-                      <LogIn className="w-6 h-6" />
-                      CHECK IN
-                    </motion.button>
-                    <p className="text-xs italic text-white/50 text-center">Captures your GPS + face on click</p>
+                      >
+                        CHECK IN
+                        <LogIn className="w-[18px] h-[18px]" />
+                      </motion.button>
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {attendanceState === 'CHECKED_IN' && (
@@ -473,9 +516,9 @@ export default function WorkerDashboard() {
                       onClick={onCheckOut}
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
-                      className="flex items-center gap-2 rounded-2xl bg-white px-10 py-4 text-lg font-bold text-[#dc2626] shadow-lg transition-colors hover:bg-red-50"
+                      className="flex items-center gap-2 rounded-[10px] bg-[#FFFFFF] px-10 py-4 text-[1rem] font-bold text-[#C62828] shadow-lg transition-colors hover:bg-[#FFEBEE]"
                     >
-                      <LogOut className="w-6 h-6" />
+                      <LogOut className="w-5 h-5" />
                       CHECK OUT
                     </motion.button>
                     <p className="text-xs italic text-white/50 text-center">Captures GPS + after photo on click</p>
@@ -510,134 +553,39 @@ export default function WorkerDashboard() {
         </div>
       </motion.div>
 
-      {/* Stats */}
-      <motion.div {...section(2)} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          {
-            Icon: CheckSquare,
-            iconClass: 'text-[#005F02]',
-            value: `${weeklyAttendanceCount} days verified`,
-            label: 'This Week',
-          },
-          {
-            Icon: ClipboardList,
-            iconClass: 'text-[#427A43]',
-            value: String(totalTasksThisWeek),
-            label: 'Tasks Assigned',
-          },
-          {
-            Icon: Calendar,
-            iconClass: 'text-[#C0B87A]',
-            value: String(pendingLeaveCount),
-            label: 'Awaiting Approval',
-            valueClass: pendingLeaveCount > 0 ? 'text-amber-600' : '',
-          },
-          {
-            Icon: Activity,
-            iconClass: todayStat.iconColor,
-            value: todayStat.value,
-            label: todayStat.label,
-          },
-        ].map((card, cardIndex) => (
-          <motion.div
-            key={card.label}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: 0.05 * cardIndex }}
-            className="rounded-2xl bg-white p-4 shadow-sm"
-          >
-            <card.Icon className={`mb-3 w-[22px] h-[22px] ${card.iconClass}`} strokeWidth={2} />
-            <p className={`text-2xl font-bold text-gray-900 ${card.valueClass || ''}`}>{card.value}</p>
-            <p className="text-xs text-gray-500 mt-1">{card.label}</p>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Today task detail */}
-      {todayTask && (
-        <motion.div {...section(3)} className="rounded-2xl bg-white shadow-sm p-6">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
-            <span className="font-semibold text-[#005F02]">
-              {todayTask?.isUpcoming ? 'Upcoming Task' : "Today's Task"}
-            </span>
-            <span className="rounded-full bg-[#F2E3BB] text-[#005F02] text-xs font-semibold px-3 py-1">ACTIVE</span>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-[#005F02]">{todayTask.title}</h3>
-              <p className="text-sm text-gray-500">
-                Assigned by {todayTask.createdBy?.fullName || '—'}
-              </p>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <MapPin className="w-4 h-4 text-[#427A43] shrink-0" />
-                  {todayTask.locationName}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Clock className="w-4 h-4 text-[#427A43] shrink-0" />
-                  {todayTask.startTime} – {todayTask.endTime}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Wrench className="w-4 h-4 text-[#427A43] shrink-0" />
-                  {todayTask.workType}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Radio className="w-4 h-4 text-[#427A43] shrink-0" />
-                  Within {todayTask.allowedRadius}m radius
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="rounded-xl bg-[#f7f9f7] p-3 space-y-3">
-                <p className="text-xs uppercase tracking-wide text-gray-400">Earliest check-in</p>
-                <p className="text-sm font-bold text-[#005F02]">{earliestIn}</p>
-                <p className="text-xs uppercase tracking-wide text-gray-400">Latest check-in</p>
-                <p className="text-sm font-bold text-[#005F02]">{latestIn}</p>
-              </div>
-              <div className="rounded-xl bg-[#f7f9f7] p-3 space-y-3">
-                <p className="text-xs uppercase tracking-wide text-gray-400">Earliest check-out</p>
-                <p className="text-sm font-bold text-[#005F02]">{earliestOut}</p>
-                <p className="text-xs uppercase tracking-wide text-gray-400">Latest check-out</p>
-                <p className="text-sm font-bold text-[#005F02]">{latestOut}</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Quick actions */}
-      <motion.div {...section(4)} className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Row 3: Quick actions */}
+      <motion.div {...section(3)} className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           {
             title: 'Submit Report',
             subtitle: "Document today's fieldwork",
             Icon: FileText,
-            circle: 'bg-[#005F02]/10',
-            iconColor: '#005F02',
+            circle: 'bg-[#E8F5E9]',
+            iconColor: '#246427',
             onClick: () => navigate('/worker/reports', { state: { openModal: true } }),
           },
           {
             title: 'Request Leave',
             subtitle: 'Apply for time off',
             Icon: Calendar,
-            circle: 'bg-[#C0B87A]/20',
-            iconColor: '#C0B87A',
+            circle: 'bg-[#FFF8E1]',
+            iconColor: '#B07D00',
             onClick: () => navigate('/worker/leave', { state: { openModal: true } }),
           },
           {
             title: 'View History',
             subtitle: 'Past check-ins & records',
             Icon: History,
-            circle: 'bg-[#427A43]/10',
-            iconColor: '#427A43',
+            circle: 'bg-[#E8F5E9]',
+            iconColor: '#246427',
             onClick: () => navigate('/worker/attendance/history'),
           },
           {
             title: 'My Tasks',
             subtitle: 'View all assigned tasks',
             Icon: ClipboardList,
-            circle: 'bg-[#427A43]/10',
-            iconColor: '#427A43',
+            circle: 'bg-[#E8F5E9]',
+            iconColor: '#246427',
             onClick: () => navigate('/worker/tasks'),
           },
         ].map((action, i) => (
@@ -648,29 +596,79 @@ export default function WorkerDashboard() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.05 * i }}
-            whileHover={{ scale: 1.02, boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+            whileHover={{ scale: 1.02, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}
             whileTap={{ scale: 0.98 }}
-            className="rounded-2xl bg-white p-6 shadow-sm text-left border border-transparent hover:border-gray-100"
+            className="rounded-[20px] bg-[#FFFFFF] p-6 shadow-[0_4px_12px_rgba(0,0,0,0.05)] text-left border border-[#E0E7DC] hover:border-[#246427] transition-all"
           >
             <div
               className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${action.circle}`}
             >
               <action.Icon className="w-7 h-7" style={{ color: action.iconColor }} />
             </div>
-            <h3 className="font-semibold text-gray-800 text-center">{action.title}</h3>
-            <p className="text-sm text-gray-500 text-center mt-1">{action.subtitle}</p>
+            <h3 className="font-semibold text-[#212121] text-center">{action.title}</h3>
+            <p className="text-[0.75rem] text-[#616161] text-center mt-1">{action.subtitle}</p>
           </motion.button>
         ))}
       </motion.div>
 
-      {/* Activity */}
+      {/* Row 4: Task detail */}
+      {todayTask && (
+        <div {...section(4)} className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <span className="font-semibold text-[#212121]">
+              {todayTask?.isUpcoming ? 'Upcoming Task' : "Today's Task"}
+            </span>
+          </div>
+
+          <motion.div className="rounded-[20px] bg-[#FFFFFF] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC] p-6 relative">
+            <div className="flex flex-wrap items-start justify-between gap-4 mb-3">
+              <div className="flex flex-col gap-1">
+                <h3 className="text-[1.125rem] font-bold text-[#212121]">{todayTask.title}</h3>
+                <p className="text-[0.8125rem] text-[#616161] font-semibold">
+                  Assigned by {todayTask.createdBy?.fullName || '—'}
+                </p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <span className="rounded-[10px] bg-[#E8F5E9] text-[#246427] text-xs font-semibold px-3 py-1">ACTIVE</span>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="flex items-start gap-2 text-[0.9375rem] text-[#616161]">
+                  <MapPin className="w-5 h-5 text-[#246427] shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{todayTask.locationName}</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-[0.9375rem] text-[#616161]">
+                  <Clock className="w-5 h-5 text-[#246427] shrink-0" />
+                  {todayTask.startTime} – {todayTask.endTime}
+                </div>
+                <div className="flex items-center gap-2 text-[0.9375rem] text-[#616161]">
+                  <Wrench className="w-5 h-5 text-[#246427] shrink-0" />
+                  {todayTask.workType}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-[#F1F8E9] flex justify-end">
+              <p className="text-[0.75rem] text-[#616161] italic">
+                You can mark attendance {todayTask.checkInBuffer || 15} minutes before and {todayTask.checkOutBuffer || 15} minutes after the scheduled time
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Row 5: Activity */}
       <motion.div {...section(5)}>
-        <h2 className="font-semibold text-[#005F02]">Recent Activity</h2>
-        <p className="text-sm text-gray-400 mb-4">Your last 5 actions</p>
+        <h2 className="font-semibold text-[#212121]">Recent Activity</h2>
+        <p className="text-[0.75rem] text-[#616161] mb-4">Your last 5 actions</p>
         {recentActivity.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 rounded-2xl bg-white shadow-sm">
-            <Activity className="w-16 h-16 text-gray-200 mb-3" />
-            <p className="text-gray-400">No recent activity</p>
+          <div className="flex flex-col items-center justify-center py-16 rounded-[20px] bg-[#FFFFFF] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC]">
+            <Activity className="w-16 h-16 text-[#E0E7DC] mb-3" />
+            <p className="text-[0.875rem] text-[#616161]">No recent activity</p>
           </div>
         ) : (
           <ul className="space-y-3">
@@ -682,20 +680,14 @@ export default function WorkerDashboard() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: 0.04 * itemIndex }}
-                  className="flex flex-row items-center gap-4 rounded-xl bg-white p-4 shadow-sm"
+                  className="flex flex-row items-center gap-4 rounded-[14px] bg-[#FFFFFF] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-[#E0E7DC]"
                 >
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${circle}`}>
-                    <Icon className={`w-5 h-5 ${iconClass}`} />
-                  </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-gray-800 truncate">{item.label}</span>
-                      <span className="text-xs rounded-full bg-gray-100 text-gray-500 px-2 py-0.5">{item.type}</span>
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1">{formatRelativeTime(item.time)}</p>
+                    <span className="font-medium text-[#212121] block truncate">{item.label}</span>
+                    <p className="text-[0.75rem] text-[#616161] mt-1">{formatRelativeTime(item.time)}</p>
                   </div>
                   <span
-                    className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${statusBadgeClass(
+                    className={`shrink-0 rounded-[10px] px-3 py-1 text-[0.75rem] font-medium ${statusBadgeClass(
                       item.type,
                       item.status
                     )}`}

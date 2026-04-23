@@ -145,7 +145,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
       {isOpen && (
         <>
           <motion.div
-            className="fixed inset-0 z-40 bg-black/40"
+            className="fixed inset-0 z-40 bg-black/35 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -158,18 +158,18 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="w-[min(100%,28rem)] max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+              className="w-[min(100%,28rem)] max-h-[90vh] overflow-y-auto rounded-[20px] bg-[#FFFFFF] p-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ type: 'spring', damping: 26, stiffness: 320 }}
           >
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-[#005F02]">Submit Report</h2>
+            <div className="bg-[#F1F8E9] border-b border-[#E0E7DC] px-[24px] py-[16px] rounded-t-[20px] flex items-center justify-between -mx-[24px] -mt-[24px] mb-[24px]">
+              <h2 className="text-[1rem] font-semibold text-[#212121]">Submit Report</h2>
               <button
                 type="button"
                 aria-label="Close"
-                className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"
+                className="rounded-lg p-1.5 text-[#616161] hover:text-[#246427] transition-colors"
                 onClick={handleClose}
               >
                 <X className="h-5 w-5" />
@@ -178,7 +178,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="report-task" className="mb-1 block text-sm font-medium text-gray-700">
+                <label htmlFor="report-task" className="mb-1 block text-[0.875rem] font-medium text-[#212121]">
                   Task
                 </label>
                 <select
@@ -189,7 +189,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
                     setDynamicFieldValues({});
                   }}
                   disabled={tasksLoading}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                  className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
                 >
                   <option value="">{tasksLoading ? 'Loading tasks…' : 'Select a task'}</option>
                   {tasks.map((t) => (
@@ -208,14 +208,14 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
                 if (fieldType === 'Number') {
                   return (
                     <div key={`${fieldName}-${idx}`}>
-                      <label className="mb-1 block text-sm font-medium text-gray-700">{fieldName}</label>
+                      <label className="mb-1 block text-[0.875rem] font-medium text-[#212121]">{fieldName}</label>
                       <input
                         type="number"
                         value={dynamicFieldValues[fieldName] ?? ''}
                         onChange={(ev) =>
                           setDynamicFieldValues((prev) => ({ ...prev, [fieldName]: ev.target.value }))
                         }
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                        className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
                         placeholder={`Enter ${fieldName.toLowerCase()}`}
                       />
                     </div>
@@ -225,13 +225,13 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
                 if (fieldType === 'Yes/No') {
                   return (
                     <div key={`${fieldName}-${idx}`}>
-                      <label className="mb-1 block text-sm font-medium text-gray-700">{fieldName}</label>
+                      <label className="mb-1 block text-[0.875rem] font-medium text-[#212121]">{fieldName}</label>
                       <select
                         value={dynamicFieldValues[fieldName] ?? ''}
                         onChange={(ev) =>
                           setDynamicFieldValues((prev) => ({ ...prev, [fieldName]: ev.target.value }))
                         }
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                        className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
                       >
                         <option value="">Select</option>
                         <option value="Yes">Yes</option>
@@ -244,14 +244,14 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
                 if (fieldType === 'Date') {
                   return (
                     <div key={`${fieldName}-${idx}`}>
-                      <label className="mb-1 block text-sm font-medium text-gray-700">{fieldName}</label>
+                      <label className="mb-1 block text-[0.875rem] font-medium text-[#212121]">{fieldName}</label>
                       <input
                         type="date"
                         value={dynamicFieldValues[fieldName] ?? ''}
                         onChange={(ev) =>
                           setDynamicFieldValues((prev) => ({ ...prev, [fieldName]: ev.target.value }))
                         }
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                        className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
                       />
                     </div>
                   );
@@ -260,14 +260,14 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
                 if (fieldType === 'Image') {
                   return (
                     <div key={`${fieldName}-${idx}`}>
-                      <label className="mb-1 block text-sm font-medium text-gray-700">{fieldName}</label>
+                      <label className="mb-1 block text-[0.875rem] font-medium text-[#212121]">{fieldName}</label>
                       <input
                         type="text"
                         value={dynamicFieldValues[fieldName] ?? ''}
                         onChange={(ev) =>
                           setDynamicFieldValues((prev) => ({ ...prev, [fieldName]: ev.target.value }))
                         }
-                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                        className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
                         placeholder="Optional note for uploaded field photo"
                       />
                     </div>
@@ -276,14 +276,14 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
 
                 return (
                   <div key={`${fieldName}-${idx}`}>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">{fieldName}</label>
+                    <label className="mb-1 block text-[0.875rem] font-medium text-[#212121]">{fieldName}</label>
                     <textarea
                       rows={2}
                       value={dynamicFieldValues[fieldName] ?? ''}
                       onChange={(ev) =>
                         setDynamicFieldValues((prev) => ({ ...prev, [fieldName]: ev.target.value }))
                       }
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                      className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
                       placeholder={`Enter ${fieldName.toLowerCase()}`}
                     />
                   </div>
@@ -291,7 +291,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
               })}
 
               <div>
-                <label htmlFor="report-desc" className="mb-1 block text-sm font-medium text-gray-700">
+                <label htmlFor="report-desc" className="mb-1 block text-[0.875rem] font-medium text-[#212121]">
                   Description
                 </label>
                 <textarea
@@ -300,16 +300,16 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
                   maxLength={MAX_DESC}
                   value={formData.description}
                   onChange={(ev) => setFormData((p) => ({ ...p, description: ev.target.value }))}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                  className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
                   placeholder="Describe your field work (min 20 characters)"
                 />
-                <p className="mt-1 text-right text-xs text-gray-400">
+                <p className="mt-1 text-right text-[0.75rem] text-[#616161]">
                   {descLen}/{MAX_DESC}
                 </p>
               </div>
 
               <div>
-                <label htmlFor="report-summary" className="mb-1 block text-sm font-medium text-gray-700">
+                <label htmlFor="report-summary" className="mb-1 block text-[0.875rem] font-medium text-[#212121]">
                   Summary (optional)
                 </label>
                 <textarea
@@ -317,16 +317,16 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
                   rows={2}
                   value={formData.summary}
                   onChange={(ev) => setFormData((p) => ({ ...p, summary: ev.target.value }))}
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:border-[#005F02] focus:outline-none focus:ring-2 focus:ring-[#005F02]/20"
+                  className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
                   placeholder="Brief summary…"
                 />
               </div>
 
               <div>
-                <p className="text-sm font-medium text-gray-700">Field Photos (optional)</p>
-                <p className="text-xs text-gray-400">Up to 5 images</p>
+                <p className="text-[0.875rem] font-medium text-[#212121]">Field Photos (optional)</p>
+                <p className="text-[0.75rem] text-[#616161]">Up to 5 images</p>
                 <label
-                  className={`mt-2 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-[#f7f9f7] px-4 py-8 text-center text-sm text-gray-500 transition hover:border-[#427A43]/40 ${
+                  className={`mt-2 flex cursor-pointer flex-col items-center justify-center rounded-[14px] border border-dashed border-[#246427] bg-[#F9FBF7] px-4 py-8 text-center text-[0.875rem] text-[#616161] transition hover:bg-[#F1F8E9] ${
                     formData.images.length >= MAX_IMAGES ? 'pointer-events-none opacity-50' : ''
                   }`}
                 >
@@ -344,7 +344,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     {imagePreviews.map((url, i) => (
                       <div key={url} className="relative">
-                        <img src={url} alt="" className="h-28 w-full rounded-xl object-cover" />
+                        <img src={url} alt="" className="h-28 w-full rounded-[14px] object-cover border border-[#E0E7DC]" />
                         <button
                           type="button"
                           className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
@@ -362,7 +362,7 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
               <button
                 type="submit"
                 disabled={!canSubmit}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#005F02] py-3 text-sm font-semibold text-white transition enabled:hover:bg-[#004702] disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-[#246427] py-[10px] text-[0.875rem] font-semibold text-[#FFFFFF] transition-colors enabled:hover:bg-[#1a4d1c] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting ? (
                   <>

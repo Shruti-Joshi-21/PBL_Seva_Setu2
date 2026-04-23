@@ -65,16 +65,9 @@ export default function TaskDetail() {
   const workers = Array.isArray(task?.assignedWorkers) ? task.assignedWorkers : [];
 
   return (
-    <div className="bg-[#f5f0e8] min-h-screen p-6">
+    <div className="bg-transparent  p-6">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-        <button
-          type="button"
-          onClick={goBack}
-          className="inline-flex items-center gap-2 text-sm font-medium text-[#1a4a1a] hover:underline mb-5"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
+
 
         {loading ? (
           <div className="space-y-4 max-w-3xl">
@@ -97,10 +90,7 @@ export default function TaskDetail() {
           <div className="max-w-3xl space-y-4">
             <div className="bg-white rounded-xl border border-[#e8e0d0] p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h1 className="text-xl font-semibold text-[#1a4a1a]">{task.title}</h1>
-                  <p className="text-sm text-gray-500 mt-1">{task.workType}</p>
-                </div>
+
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${badgeForStatus(task.status)}`}>
                   {task.status}
                 </span>
@@ -179,7 +169,7 @@ export default function TaskDetail() {
                   {workers.map((w) => (
                     <div
                       key={w._id}
-                      className="inline-flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-[#e8e0d0] bg-[#f5f0e8]/80"
+                      className="inline-flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border border-[#e8e0d0] bg-transparent/80"
                     >
                       <span
                         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1a4a1a] text-[10px] font-semibold text-white"
@@ -211,3 +201,4 @@ export default function TaskDetail() {
     </div>
   );
 }
+

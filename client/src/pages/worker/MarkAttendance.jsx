@@ -78,22 +78,22 @@ const MarkAttendance = () => {
 
     if (result) {
         return (
-            <div className="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8 text-center animate-in fade-in zoom-in duration-300">
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${result.status === 'VERIFIED' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'
+            <div className="max-w-md mx-auto bg-[#FFFFFF] rounded-[20px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC] p-8 text-center animate-in fade-in zoom-in duration-300">
+                <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${result.status === 'VERIFIED' ? 'bg-[#E8F5E9] text-[#246427]' : 'bg-[#FFF8E1] text-[#B07D00]'
                     }`}>
                     {result.status === 'VERIFIED' ? <CheckCircle2 className="w-12 h-12" /> : <AlertTriangle className="w-12 h-12" />}
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                <h2 className="text-[1.5rem] font-bold text-[#212121] mb-2">
                     {attendance ? 'Check-out' : 'Check-in'} {result.status}
                 </h2>
-                <p className="text-gray-500 mb-8">
+                <p className="text-[#616161] mb-8">
                     {result.status === 'VERIFIED'
                         ? 'Your attendance has been verified automatically.'
                         : 'Your record has been flagged for supervisor review.'}
                 </p>
 
                 {result.flags?.length > 0 && (
-                    <div className="bg-yellow-50 p-4 rounded-xl text-left text-sm text-yellow-700 mb-8">
+                    <div className="bg-[#FFF8E1] p-4 rounded-[14px] text-left text-[0.875rem] text-[#B07D00] mb-8">
                         <ul className="list-disc pl-4 space-y-1">
                             {result.flags.map((f, i) => <li key={i}>{f}</li>)}
                         </ul>
@@ -104,14 +104,14 @@ const MarkAttendance = () => {
                     {(attendance || (result.status && !attendance)) && (
                         <button
                             onClick={() => navigate(`/worker/report/${taskId}`)}
-                            className="w-full py-3 bg-[#005F02] text-white rounded-xl font-bold hover:bg-[#427A43] flex items-center justify-center gap-2"
+                            className="w-full py-3 bg-[#246427] text-white rounded-[14px] font-bold hover:bg-[#1a4d1c] flex items-center justify-center gap-2"
                         >
                             <FileText className="w-5 h-5" /> Submit Full Report
                         </button>
                     )}
                     <button
                         onClick={() => navigate('/worker')}
-                        className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200"
+                        className="w-full py-3 bg-[#F9FBF7] text-[#616161] rounded-[14px] font-bold hover:bg-[#F1F8E9]"
                     >
                         Return to Dashboard
                     </button>
@@ -124,25 +124,20 @@ const MarkAttendance = () => {
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
-            <button
-                onClick={() => navigate('/worker')}
-                className="flex items-center gap-2 text-gray-500 hover:text-[#005F02] transition-colors"
-            >
-                <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-            </button>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+
+            <div className="bg-[#FFFFFF] rounded-[20px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC] overflow-hidden">
+                <div className="p-6 border-b border-[#E0E7DC] flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${isCheckout ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-green-600'}`}>
+                        <div className={`p-2 rounded-lg ${isCheckout ? 'bg-[#FFF8E1] text-[#B07D00]' : 'bg-[#E8F5E9] text-[#246427]'}`}>
                             {isCheckout ? <LogOut className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-800">{isCheckout ? 'End of Work' : 'Start of Work'}</h2>
-                            <p className="text-sm text-gray-500">{isCheckout ? 'Perform face check-out' : 'Verify face to begin task'}</p>
+                            <h2 className="text-[1.125rem] font-bold text-[#212121]">{isCheckout ? 'End of Work' : 'Start of Work'}</h2>
+                            <p className="text-[0.875rem] text-[#616161]">{isCheckout ? 'Perform face check-out' : 'Verify face to begin task'}</p>
                         </div>
                     </div>
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${location ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-[10px] text-[0.75rem] font-bold ${location ? 'bg-[#E8F5E9] text-[#246427]' : 'bg-[#F9FBF7] text-[#9E9E9E]'
                         }`}>
                         <MapPin className="w-3 h-3" />
                         {location ? 'GPS Fixed' : 'Acquiring GPS...'}
@@ -161,7 +156,7 @@ const MarkAttendance = () => {
                         <button
                             onClick={capture}
                             disabled={loading || !location}
-                            className={`group relative flex items-center justify-center w-20 h-20 rounded-full shadow-2xl transition-all active:scale-95 border-4 border-white ${isCheckout ? 'bg-orange-600' : 'bg-[#005F02]'
+                            className={`group relative flex items-center justify-center w-20 h-20 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.1)] transition-all active:scale-95 border-4 border-white ${isCheckout ? 'bg-[#B07D00]' : 'bg-[#246427]'
                                 } text-white disabled:opacity-50`}
                         >
                             {loading ? (
@@ -174,13 +169,13 @@ const MarkAttendance = () => {
                 </div>
 
                 {error && (
-                    <div className="p-4 bg-red-50 text-red-600 text-sm border-t border-red-100 flex items-center gap-2">
+                    <div className="p-4 bg-[#FFEBEE] text-[#C62828] text-[0.875rem] border-t border-[#EF9A9A] flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4" /> {error}
                     </div>
                 )}
             </div>
 
-            <div className="bg-[#F2E3BB]/30 p-4 rounded-2xl border border-[#F2E3BB] text-sm text-[#005F02] flex items-start gap-3">
+            <div className="bg-[#E8F5E9] p-4 rounded-[20px] border border-[#A5D6A7] text-[0.875rem] text-[#246427] flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0" />
                 <p className="font-medium">
                     Remember: Your location and face are verified against the task assignment.

@@ -62,24 +62,16 @@ const SubmitReport = () => {
 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
-            <button
-                onClick={() => navigate('/worker')}
-                className="flex items-center gap-2 text-gray-500 hover:text-[#005F02] transition-colors"
-            >
-                <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-            </button>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-gray-800">Field Report</h2>
-                    <p className="text-gray-500 mt-1">Submit your work summary and onsite photographs.</p>
-                </div>
+
+            <div className="bg-[#FFFFFF] rounded-[20px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC] p-8">
+
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Work Description</label>
+                        <label className="block text-[0.875rem] font-semibold text-[#212121] mb-2">Work Description</label>
                         <textarea
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-[#005F02] h-40 resize-none transition-all"
+                            className="w-full px-4 py-3 border border-[#E0E7DC] rounded-[14px] outline-none focus:ring-2 focus:ring-[#246427] h-40 resize-none transition-all placeholder-[#BDBDBD]"
                             placeholder="Describe the tasks completed and any issues encountered..."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
@@ -87,10 +79,10 @@ const SubmitReport = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-3">Onsite Photos (Max 5)</label>
+                        <label className="block text-[0.875rem] font-semibold text-[#212121] mb-3">Onsite Photos (Max 5)</label>
                         <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                             {previews.map((url, i) => (
-                                <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-gray-100 group">
+                                <div key={i} className="relative aspect-square rounded-[10px] overflow-hidden border border-[#E0E7DC] group">
                                     <img src={url} alt="preview" className="w-full h-full object-cover" />
                                     <button
                                         type="button"
@@ -102,9 +94,9 @@ const SubmitReport = () => {
                                 </div>
                             ))}
                             {previews.length < 5 && (
-                                <label className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-lg hover:border-[#005F02] hover:bg-gray-50 cursor-pointer transition-all">
-                                    <Camera className="w-6 h-6 text-gray-400" />
-                                    <span className="text-[10px] font-bold text-gray-400 mt-1 uppercase">Add</span>
+                                <label className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-[#E0E7DC] rounded-[10px] hover:border-[#246427] hover:bg-[#F1F8E9] cursor-pointer transition-all">
+                                    <Camera className="w-6 h-6 text-[#9E9E9E]" />
+                                    <span className="text-[10px] font-bold text-[#9E9E9E] mt-1 uppercase">Add</span>
                                     <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageChange} />
                                 </label>
                             )}
@@ -114,7 +106,7 @@ const SubmitReport = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#005F02] text-white rounded-xl font-bold hover:bg-[#427A43] transition-all disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#246427] text-white rounded-[14px] font-bold hover:bg-[#1a4d1c] transition-all disabled:opacity-50"
                     >
                         {loading ? <Loader className="w-5 h-5 animate-spin" /> : <><Send className="w-5 h-5" /> Submit Final Report</>}
                     </button>

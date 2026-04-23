@@ -24,13 +24,13 @@ function snippet(text, n) {
 function statusPillClass(status) {
   switch (status) {
     case 'SUBMITTED':
-      return 'bg-[#eff6ff] text-[#2563eb]';
+      return 'bg-[#E3F2FD] text-[#0277BD] border border-[#90CAF9]';
     case 'APPROVED':
-      return 'bg-[#f0fdf4] text-[#16a34a]';
+      return 'bg-[#E8F5E9] text-[#246427] border border-[#A5D6A7]';
     case 'REJECTED':
-      return 'bg-[#fef2f2] text-[#dc2626]';
+      return 'bg-[#FFEBEE] text-[#C62828] border border-[#EF9A9A]';
     default:
-      return 'bg-gray-100 text-gray-600';
+      return 'bg-[#F9FBF7] text-[#616161] border border-[#E0E7DC]';
   }
 }
 
@@ -139,20 +139,17 @@ export default function ReportsPage() {
 
   return (
     <motion.div
-      className="space-y-6 pb-10 bg-[#f7f9f7] -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 min-h-full rounded-b-2xl"
+      className="space-y-6 pb-10 bg-[#F9FBF7] -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 min-h-full rounded-b-[20px]"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-[#005F02]">My Reports</h1>
-          <p className="text-sm text-gray-500">Field reports you&apos;ve submitted</p>
-        </div>
+        <div className="flex-1" />
         <button
           type="button"
           onClick={() => setShowModal(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#005F02] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#004702]"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#246427] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1a4d1c]"
         >
           <Plus className="h-4 w-4" />
           Submit Report
@@ -165,33 +162,30 @@ export default function ReportsPage() {
             label: 'Total',
             value: stats.total,
             Icon: ClipboardList,
-            iconClass: 'text-[#005F02]',
-            valueClass: 'text-gray-900',
-            cardClass: 'bg-white',
+            iconClass: 'text-[#246427]',
+            valueClass: 'text-[#212121]',
+            cardClass: 'bg-[#FFFFFF]',
           },
           {
             label: 'Submitted',
             value: stats.submitted,
             Icon: Clock,
-            iconClass: 'text-[#2563eb]',
-            valueClass: 'text-[#2563eb]',
-            cardClass: 'bg-white',
+            iconClass: 'text-[#0277BD]',
+            cardClass: 'bg-[#FFFFFF]',
           },
           {
             label: 'Approved',
             value: stats.approved,
             Icon: CheckCircle2,
-            iconClass: 'text-[#16a34a]',
-            valueClass: 'text-[#16a34a]',
-            cardClass: 'bg-white',
+            iconClass: 'text-[#246427]',
+            cardClass: 'bg-[#FFFFFF]',
           },
           {
             label: 'Rejected',
             value: stats.rejected,
             Icon: XCircle,
-            iconClass: 'text-[#dc2626]',
-            valueClass: 'text-[#dc2626]',
-            cardClass: rejectedCount > 0 ? 'bg-[#fef2f2]' : 'bg-white',
+            iconClass: 'text-[#C62828]',
+            cardClass: rejectedCount > 0 ? 'bg-[#FFEBEE] border-none' : 'bg-[#FFFFFF]',
           },
         ].map((card, index) => (
           <motion.div
@@ -199,11 +193,17 @@ export default function ReportsPage() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.05 * index }}
-            className={`rounded-2xl p-4 shadow-sm ${card.cardClass}`}
+            className={`rounded-[20px] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC] flex flex-col gap-2 ${card.cardClass}`}
           >
-            <card.Icon className={`mb-2 h-6 w-6 ${card.iconClass}`} strokeWidth={2} />
-            <p className={`text-2xl font-bold ${card.valueClass}`}>{card.value}</p>
-            <p className="text-xs text-gray-500">{card.label}</p>
+            <div className="flex items-center gap-3">
+              <card.Icon className={`h-[22px] w-[22px] ${card.iconClass}`} strokeWidth={2.5} />
+              <p className="text-[1.25rem] lg:text-[1.5rem] font-bold leading-tight text-[#212121]">
+                {card.value}
+              </p>
+            </div>
+            <div className="flex flex-col">
+              <p className="text-[0.75rem] text-[#616161] truncate line-clamp-1">{card.label}</p>
+            </div>
           </motion.div>
         ))}
       </div>
@@ -217,10 +217,10 @@ export default function ReportsPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.03 * index }}
             onClick={() => onFilterClick(f.value)}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+            className={`rounded-[10px] px-4 py-2 text-[0.875rem] font-medium transition ${
               statusFilter === f.value
-                ? 'bg-[#005F02] text-white'
-                : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                ? 'bg-[#246427] text-white shadow-sm'
+                : 'border border-[#E0E7DC] bg-[#FFFFFF] text-[#616161] hover:border-[#246427]/40 hover:bg-[#F1F8E9]'
             }`}
           >
             {f.label}
@@ -231,15 +231,15 @@ export default function ReportsPage() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 animate-pulse rounded-2xl bg-white shadow-sm" />
+            <div key={i} className="h-32 animate-pulse rounded-[14px] bg-[#FFFFFF] shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-[#E0E7DC]" />
           ))}
         </div>
       ) : reports.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-16 shadow-sm">
-          <FileText className="mb-3 h-16 w-16 text-gray-300" strokeWidth={1.25} />
-          <p className="text-gray-600">No reports found</p>
+        <div className="flex flex-col items-center justify-center rounded-[20px] bg-[#FFFFFF] py-16 shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC]">
+          <FileText className="mb-3 h-16 w-16 text-[#E0E7DC]" strokeWidth={1.25} />
+          <p className="text-[#616161]">No reports found</p>
           {statusFilter ? (
-            <p className="mt-1 text-sm text-gray-400">Try selecting All</p>
+            <p className="mt-1 text-[0.875rem] text-[#9E9E9E]">Try selecting All</p>
           ) : null}
         </div>
       ) : (
@@ -255,28 +255,28 @@ export default function ReportsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.04 * index }}
                 whileHover={{ scale: 1.01 }}
-                className="cursor-pointer rounded-2xl bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
+                className="cursor-pointer rounded-[14px] bg-[#FFFFFF] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-[#E0E7DC] transition-all hover:border-[#246427]/30 hover:shadow-md"
               >
                 <button
                   type="button"
                   className="flex w-full gap-4 text-left"
                   onClick={() => openDetail(report)}
                 >
-                  <div className="flex w-14 flex-none flex-col items-center border-r border-gray-100 pr-3">
-                    <span className="text-2xl font-bold text-[#005F02]">{day}</span>
-                    <span className="text-xs uppercase text-gray-500">{month}</span>
-                    <span className="text-xs text-gray-400">{year}</span>
+                  <div className="flex w-14 flex-none flex-col items-center border-r border-[#E0E7DC] pr-3">
+                    <span className="text-[1.5rem] font-bold text-[#212121]">{day}</span>
+                    <span className="text-[0.65rem] uppercase text-[#616161]">{month}</span>
+                    <span className="text-[0.65rem] text-[#9E9E9E]">{year}</span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-gray-800">{task?.title || 'Report'}</p>
+                    <p className="font-semibold text-[#212121]">{task?.title || 'Report'}</p>
                     {task?.workType ? (
-                      <span className="mt-1 inline-block rounded-full bg-[#427A43]/10 px-2 py-0.5 text-xs text-[#427A43]">
+                      <span className="mt-1 inline-block rounded-[10px] bg-[#E8F5E9] border border-[#A5D6A7] px-2 py-0.5 text-[0.65rem] text-[#246427]">
                         {task.workType}
                       </span>
                     ) : null}
-                    <p className="mt-1 text-sm text-gray-500">{snippet(report.description, 80)}</p>
+                    <p className="mt-1 text-[0.875rem] text-[#616161]">{snippet(report.description, 80)}</p>
                     {report.reviewNote ? (
-                      <p className="mt-1 text-xs italic text-gray-400">
+                      <p className="mt-1 text-[0.75rem] italic text-[#616161]">
                         Review note: {snippet(report.reviewNote, 120)}
                       </p>
                     ) : null}
@@ -311,18 +311,18 @@ export default function ReportsPage() {
             type="button"
             disabled={page <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 disabled:opacity-40"
+            className="rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-4 py-2 text-[0.875rem] text-[#616161] hover:bg-[#F1F8E9] disabled:opacity-40"
           >
             Previous
           </button>
-          <span className="text-sm text-gray-500">
+          <span className="text-[0.875rem] text-[#616161]">
             Page {page} of {pagination.totalPages}
           </span>
           <button
             type="button"
             disabled={page >= pagination.totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 disabled:opacity-40"
+            className="rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-4 py-2 text-[0.875rem] text-[#616161] hover:bg-[#F1F8E9] disabled:opacity-40"
           >
             Next
           </button>
