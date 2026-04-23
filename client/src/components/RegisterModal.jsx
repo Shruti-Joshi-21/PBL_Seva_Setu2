@@ -79,57 +79,57 @@ const RegisterModal = ({ isOpen, onClose, role }) => {
     const getRoleIcon = () => {
         switch (role) {
             case 'Volunteer': return <User className="text-[#427A43]" />;
-            case 'Team Lead': return <Users className="text-[#005F02]" />;
+            case 'Team Lead': return <Users className="text-[#246427]" />;
             case 'Administrator': return <Shield className="text-[#F8AC3B]" />;
             default: return null;
         }
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden relative shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/35 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-[#FFFFFF] rounded-[20px] w-full max-w-md overflow-hidden relative shadow-[0_8px_32px_rgba(0,0,0,0.14)] p-0 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
                 
                 {/* Header */}
-                <div className="bg-[#F1F8E9] p-6 flex justify-between items-center border-b border-[#E0D9C8]">
+                <div className="bg-[#F1F8E9] px-[24px] py-[16px] flex justify-between items-center border-b border-[#E0E7DC]">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-xl bg-white shadow-sm">
                             {getRoleIcon()}
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-[#1A1A1A]">Register as {role}</h2>
+                            <h2 className="text-[1rem] font-semibold text-[#212121]">Register as {role}</h2>
                             <p className="text-xs text-[#616161]">Create your SevaSetu account</p>
                         </div>
                     </div>
                     <button 
                         onClick={onClose}
-                        className="p-2 rounded-full hover:bg-white transition-colors text-[#616161]"
+                        className="p-2 rounded-full text-[#616161] hover:text-[#246427] transition-colors"
                     >
                         <X size={20} />
                     </button>
                 </div>
 
                 {/* Form Body */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <form onSubmit={handleSubmit} className="p-[24px] bg-[#FFFFFF] space-y-4 max-h-[70vh] overflow-y-auto">
                     
                     {/* Role Warning / Context */}
                     {(role === 'Volunteer') && (
-                        <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-xl flex gap-3 text-xs text-yellow-800">
+                        <div className="bg-[#FFF8E1] border border-[#FFE082] p-3 rounded-[10px] flex gap-3 text-xs text-[#B07D00]">
                             <Camera size={16} className="shrink-0" />
                             <p>For Volunteers, face capture is mandatory for attendance verification during work.</p>
                         </div>
                     )}
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <label className="block text-[0.875rem] font-medium text-[#212121] mb-[6px]">Full Name</label>
+                        <div className="relative group">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#246427] transition-colors">
                                 <User size={16} />
                             </span>
                             <input
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#005F02] focus:border-transparent outline-none transition-all"
+                                className="w-full pl-10 pr-[14px] py-[10px] bg-[#FFFFFF] border border-[#E0E7DC] rounded-[10px] text-[0.875rem] text-[#212121] focus:ring-0 focus:border-[#246427] focus:shadow-[0_0_0_3px_rgba(36,100,39,0.1)] outline-none transition-[border-color,box-shadow] duration-180 placeholder:text-[#9E9E9E]"
                                 placeholder="Enter your full name"
                                 required
                             />
@@ -137,16 +137,16 @@ const RegisterModal = ({ isOpen, onClose, role }) => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <label className="block text-[0.875rem] font-medium text-[#212121] mb-[6px]">Username</label>
+                        <div className="relative group">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#246427] transition-colors">
                                 <Mail size={16} />
                             </span>
                             <input
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#005F02] focus:border-transparent outline-none transition-all"
+                                className="w-full pl-10 pr-[14px] py-[10px] bg-[#FFFFFF] border border-[#E0E7DC] rounded-[10px] text-[0.875rem] text-[#212121] focus:ring-0 focus:border-[#246427] focus:shadow-[0_0_0_3px_rgba(36,100,39,0.1)] outline-none transition-[border-color,box-shadow] duration-180 placeholder:text-[#9E9E9E]"
                                 placeholder="Choose a username"
                                 required
                             />
@@ -154,16 +154,16 @@ const RegisterModal = ({ isOpen, onClose, role }) => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <label className="block text-[0.875rem] font-medium text-[#212121] mb-[6px]">Password</label>
+                        <div className="relative group">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#246427] transition-colors">
                                 <Lock size={16} />
                             </span>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#005F02] focus:border-transparent outline-none transition-all"
+                                className="w-full pl-10 pr-[14px] py-[10px] bg-[#FFFFFF] border border-[#E0E7DC] rounded-[10px] text-[0.875rem] text-[#212121] focus:ring-0 focus:border-[#246427] focus:shadow-[0_0_0_3px_rgba(36,100,39,0.1)] outline-none transition-[border-color,box-shadow] duration-180 placeholder:text-[#9E9E9E]"
                                 placeholder="Min 8 characters"
                                 required
                                 minLength={8}
@@ -231,12 +231,12 @@ const RegisterModal = ({ isOpen, onClose, role }) => {
                         </div>
                     )}
 
-                    <div className="pt-4">
+                    <div className="pt-4 border-t border-[#E0E7DC]">
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-3 rounded-xl font-bold text-white shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${
-                                loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#005F02] hover:bg-[#003D01] shadow-green-900/20'
+                            className={`w-full px-[20px] py-[10px] rounded-[10px] font-semibold text-[0.875rem] text-[#FFFFFF] shadow-sm transition-[background-color,shadow] duration-180 flex items-center justify-center gap-2 ${
+                                loading ? 'bg-[#9E9E9E] cursor-not-allowed' : 'bg-[#246427] hover:bg-[#1a4d1c] hover:shadow'
                             }`}
                         >
                             {loading ? (

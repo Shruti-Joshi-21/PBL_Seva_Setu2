@@ -49,10 +49,10 @@ function taskAttendanceState(todayAttendance, taskId) {
 }
 
 function statusBadgeClass(status) {
-  if (status === 'ACTIVE') return 'bg-[#E8F5E9] text-[#1B5E20]';
-  if (status === 'COMPLETED') return 'bg-gray-100 text-gray-600';
-  if (status === 'CANCELLED') return 'bg-red-100 text-red-700';
-  return 'bg-gray-100 text-gray-600';
+  if (status === 'ACTIVE') return 'bg-[#E8F5E9] text-[#246427]';
+  if (status === 'COMPLETED') return 'bg-[#F9FBF7] text-[#616161]';
+  if (status === 'CANCELLED') return 'bg-[#FFEBEE] text-[#C62828]';
+  return 'bg-[#F9FBF7] text-[#616161]';
 }
 
 const TAB_TODAY = 'TODAY';
@@ -137,14 +137,14 @@ export default function TasksPage() {
       onClick={() => setActiveTab(key)}
       className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
         activeTab === key
-          ? 'bg-[#005F02] text-white shadow-md'
-          : 'bg-white text-gray-600 border border-gray-200 hover:border-[#005F02]/40'
+          ? 'bg-[#246427] text-white shadow-md'
+          : 'bg-[#FFFFFF] text-[#616161] border border-[#E0E7DC] hover:border-[#246427]/40'
       }`}
     >
       {label}
       <span
         className={`rounded-full px-2 py-0.5 text-xs ${
-          activeTab === key ? 'bg-white/20 text-white' : 'bg-[#F2E3BB] text-[#005F02]'
+          activeTab === key ? 'bg-white/20 text-white' : 'bg-[#E8F5E9] text-[#246427]'
         }`}
       >
         {counts[key]}
@@ -166,23 +166,16 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="min-h-full bg-[#f7f9f7] -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 pb-10">
-      <div className="max-w-3xl mx-auto">
-        <button
-          type="button"
-          onClick={() => navigate('/worker')}
-          className="flex items-center gap-2 text-sm font-medium text-[#427A43] hover:text-[#005F02] mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </button>
+    <motion.div
+      className="space-y-8 bg-[#F9FBF7] -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 pb-10 min-h-full rounded-b-[20px]"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
 
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-[#005F02]">My Tasks</h1>
-          <p className="text-gray-500 text-sm mt-1">All your assigned tasks</p>
-        </header>
 
-        <div className="flex flex-wrap gap-2 mb-6">
+
+        <div className="flex flex-wrap gap-2">
           {tabBtn(TAB_TODAY, 'Today')}
           {tabBtn(TAB_UPCOMING, 'Upcoming')}
           {tabBtn(TAB_PAST, 'Past')}
@@ -191,27 +184,27 @@ export default function TasksPage() {
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-40 rounded-2xl bg-white border border-gray-100 animate-pulse" />
+              <div key={i} className="h-40 rounded-[20px] bg-[#FFFFFF] border border-[#E0E7DC] animate-pulse" />
             ))}
           </div>
         ) : visibleTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 rounded-2xl bg-white border border-gray-100 text-center px-6">
+          <div className="flex flex-col items-center justify-center py-16 rounded-[20px] bg-[#FFFFFF] border border-[#E0E7DC] text-center px-6">
             {activeTab === TAB_TODAY && (
               <>
-                <Calendar className="w-12 h-12 text-gray-300 mb-3" />
-                <p className="text-gray-600 font-medium">No tasks assigned for today</p>
+                <Calendar className="w-12 h-12 text-[#E0E7DC] mb-3" />
+                <p className="text-[#616161] font-medium">No tasks assigned for today</p>
               </>
             )}
             {activeTab === TAB_UPCOMING && (
               <>
-                <Clock className="w-12 h-12 text-gray-300 mb-3" />
-                <p className="text-gray-600 font-medium">No upcoming tasks</p>
+                <Clock className="w-12 h-12 text-[#E0E7DC] mb-3" />
+                <p className="text-[#616161] font-medium">No upcoming tasks</p>
               </>
             )}
             {activeTab === TAB_PAST && (
               <>
-                <History className="w-12 h-12 text-gray-300 mb-3" />
-                <p className="text-gray-600 font-medium">No past tasks yet</p>
+                <History className="w-12 h-12 text-[#E0E7DC] mb-3" />
+                <p className="text-[#616161] font-medium">No past tasks yet</p>
               </>
             )}
           </div>
@@ -241,12 +234,22 @@ export default function TasksPage() {
                     key={id}
                     variants={cardVariants}
                     layout
-                    className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5"
+                    className="rounded-[20px] bg-[#FFFFFF] border border-[#E0E7DC] shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-6 relative"
                   >
-                    <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
-                      <h2 className="text-lg font-bold text-[#005F02] flex-1 min-w-0">{task.title}</h2>
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-3">
+                          <h2 className="text-[1.125rem] font-bold text-[#212121]">{task.title}</h2>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[10px] bg-[#E8F5E9] text-[#246427] whitespace-nowrap">
+                            {task.workType}
+                          </span>
+                        </div>
+                        <p className="text-[0.8125rem] text-[#616161] font-semibold">
+                          Assigned by {task.createdBy?.fullName || '—'}
+                        </p>
+                      </div>
                       <span
-                        className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusBadgeClass(
+                        className={`shrink-0 px-3 py-1 rounded-[10px] text-xs font-semibold ${statusBadgeClass(
                           task.status
                         )}`}
                       >
@@ -254,152 +257,116 @@ export default function TasksPage() {
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 mb-3 items-center">
-                      <Wrench className="w-3.5 h-3.5 text-[#427A43]" aria-hidden />
-                      <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-[#F2E3BB] text-[#005F02]">
-                        {task.workType}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2 text-sm text-gray-600 mb-3">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-[#427A43] shrink-0" />
-                        <span>{task.locationName}</span>
+                    <div className="grid md:grid-cols-2 gap-8 mb-4">
+                      <div className="space-y-4">
+                        <div className="flex items-start gap-2 text-[0.9375rem] text-[#616161]">
+                          <MapPin className="w-5 h-5 text-[#246427] shrink-0 mt-0.5" />
+                          <span className="leading-relaxed">{task.locationName}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-[#427A43] shrink-0" />
-                        <span>{task.date ? format(new Date(task.date), 'EEE, d MMM yyyy') : '—'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-[#427A43] shrink-0" />
-                        <span>
-                          {task.startTime} – {task.endTime}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Assigned by:{' '}
-                        <span className="font-medium text-gray-700">{task.createdBy?.fullName || '—'}</span>
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-[#f7f9f7] p-3 text-xs text-gray-600 space-y-2 mb-3">
-                      <div className="flex items-start gap-2">
-                        <Timer className="w-3.5 h-3.5 text-[#005F02] shrink-0 mt-0.5" />
-                        <span>
-                          Check-in window: {adjustTimeHM(task.startTime, -inBuf)} –{' '}
-                          {adjustTimeHM(task.startTime, inBuf)}
-                        </span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <Timer className="w-3.5 h-3.5 text-[#005F02] shrink-0 mt-0.5" />
-                        <span>
-                          Check-out window: {adjustTimeHM(task.endTime, -outBuf)} –{' '}
-                          {adjustTimeHM(task.endTime, outBuf)}
-                        </span>
-                      </div>
-                    </div>
-
-                    {desc ? (
-                      <div className="mb-3">
-                        <p className={`text-sm text-gray-600 ${expanded ? '' : 'line-clamp-2'}`}>{desc}</p>
-                        {desc.length > 100 && (
-                          <button
-                            type="button"
-                            onClick={() => toggleDesc(id)}
-                            className="mt-1 flex items-center gap-1 text-xs font-medium text-[#005F02]"
-                          >
-                            {expanded ? (
-                              <>
-                                Read less <ChevronUp className="w-3 h-3" />
-                              </>
-                            ) : (
-                              <>
-                                Read more <ChevronDown className="w-3 h-3" />
-                              </>
-                            )}
-                          </button>
-                        )}
-                      </div>
-                    ) : null}
-
-                    <div className="flex flex-wrap gap-2 items-center pt-2 border-t border-gray-100">
-                      {task.reportStatus == null && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigate('/worker/reports', { state: { openModal: true, taskId: task._id } })
-                          }
-                          className="inline-flex items-center gap-1.5 rounded-lg border-2 border-[#005F02] text-[#005F02] text-xs font-semibold px-3 py-2 hover:bg-[#005F02]/5"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          Submit Report
-                        </button>
-                      )}
-                      {task.reportStatus === 'SUBMITTED' && (
-                        <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                          Report Submitted
-                        </span>
-                      )}
-                      {task.reportStatus === 'APPROVED' && (
-                        <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-green-100 text-green-800">
-                          Report Approved
-                        </span>
-                      )}
-                      {task.reportStatus === 'REJECTED' && (
-                        <>
-                          <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-red-100 text-red-800">
-                            Report Rejected
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-[0.9375rem] text-[#616161]">
+                          <Calendar className="w-5 h-5 text-[#246427] shrink-0" />
+                          <span>{task.date ? format(new Date(task.date), 'EEE, d MMM yyyy') : '—'}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[0.9375rem] text-[#616161]">
+                          <Clock className="w-5 h-5 text-[#246427] shrink-0" />
+                          <span>
+                            {task.startTime} – {task.endTime}
                           </span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              navigate('/worker/reports', { state: { openModal: true, taskId: task._id } })
-                            }
-                            className="rounded-lg border border-red-600 text-red-600 text-xs font-semibold px-3 py-2 hover:bg-red-50"
-                          >
-                            Resubmit
-                          </button>
-                        </>
-                      )}
+                        </div>
+                      </div>
                     </div>
 
-                    {showActions && (
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        {attState === 'NOT_CHECKED_IN' && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              navigate('/worker', { state: { openCheckIn: true, taskId: task._id } })
-                            }
-                            className="rounded-xl bg-[#005F02] text-white text-sm font-semibold px-4 py-2.5 hover:bg-[#427A43]"
-                          >
-                            Check In
-                          </button>
-                        )}
-                        {attState === 'CHECKED_IN' && (
-                          <button
-                            type="button"
-                            onClick={() => navigate('/worker', { state: { openCheckOut: true } })}
-                            className="rounded-xl bg-red-600 text-white text-sm font-semibold px-4 py-2.5 hover:bg-red-700"
-                          >
-                            Check Out
-                          </button>
-                        )}
-                        {attState === 'COMPLETED' && (
-                          <span className="inline-flex items-center gap-1 text-sm font-medium text-[#005F02]">
-                            <CheckCircle2 className="w-4 h-4" />
-                            Attendance Done
-                          </span>
-                        )}
-                      </div>
-                    )}
+
+
+                    <div className="space-y-4">
+                        {desc ? (
+                            <div className="mb-2">
+                                <p className={`text-[0.875rem] text-[#616161] leading-relaxed ${expanded ? '' : 'line-clamp-2'}`}>
+                                    {desc}
+                                </p>
+                                {desc.length > 100 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleDesc(id)}
+                                        className="mt-2 flex items-center gap-1 text-[0.75rem] font-bold text-[#246427] uppercase tracking-wider"
+                                    >
+                                        {expanded ? <>Read less <ChevronUp className="w-4 h-4" /></> : <>Read more <ChevronDown className="w-4 h-4" /></>}
+                                    </button>
+                                )}
+                            </div>
+                        ) : null}
+
+                        <div className="flex flex-col sm:flex-row items-end justify-between gap-4 pt-5 border-t border-[#F1F8E9]">
+                            <div className="flex flex-wrap items-center gap-3">
+                                {showActions && (
+                                    <div className="flex flex-wrap gap-2">
+                                        {attState === 'NOT_CHECKED_IN' && (
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate('/worker', { state: { openCheckIn: true, taskId: task._id } })}
+                                                className="rounded-[12px] bg-[#246427] text-white text-[0.8125rem] font-bold px-5 py-2.5 hover:bg-[#1a4d1c] shadow-[0_4px_14px_rgba(36,100,39,0.2)] transition-all active:scale-95 uppercase"
+                                            >
+                                                Check In
+                                            </button>
+                                        )}
+                                        {attState === 'CHECKED_IN' && (
+                                            <button
+                                                type="button"
+                                                onClick={() => navigate('/worker', { state: { openCheckOut: true } })}
+                                                className="rounded-[12px] bg-[#C62828] text-white text-[0.8125rem] font-bold px-5 py-2.5 hover:bg-[#b71c1c] shadow-[0_4px_14px_rgba(198,40,40,0.2)] transition-all active:scale-95 uppercase"
+                                            >
+                                                Check Out
+                                            </button>
+                                        )}
+                                        {attState === 'COMPLETED' && (
+                                            <span className="inline-flex items-center gap-2 rounded-full bg-[#E8F5E9] px-4 py-2 text-[0.8125rem] font-bold text-[#246427]">
+                                                <CheckCircle2 className="w-4 h-4" />
+                                                ATTENDANCE DONE
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
+
+                                {(task.reportStatus == null || task.reportStatus === 'DRAFT' || task.reportStatus === 'REJECTED') && (
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate(`/worker/report/${task._id}`)}
+                                        className="inline-flex items-center gap-2 rounded-[12px] border-2 border-[#246427] text-[#246427] text-[0.8125rem] font-bold px-4 py-2.5 hover:bg-[#F1F8E9] transition-all active:scale-95 uppercase"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        {task.reportStatus === 'REJECTED' ? 'Resubmit Report' : 'Submit Report'}
+                                    </button>
+                                )}
+
+                                {task.reportStatus === 'SUBMITTED' && (
+                                    <span className="inline-flex items-center gap-2 rounded-full bg-[#E3F2FD] px-4 py-2 text-[0.8125rem] font-bold text-[#0277BD]">
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        REPORT SUBMITTED
+                                    </span>
+                                )}
+                                {task.reportStatus === 'APPROVED' && (
+                                    <span className="inline-flex items-center gap-2 rounded-full bg-[#E8F5E9] px-4 py-2 text-[0.8125rem] font-bold text-[#246427]">
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        REPORT APPROVED
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="text-right shrink-0">
+                                <p className="text-[0.7rem] text-[#212121]/50 italic font-medium">
+                                    Attendance allowed {inBuf}m before & {outBuf}m after schedule
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                   </motion.li>
                 );
               })}
             </AnimatePresence>
           </motion.ul>
         )}
-      </div>
-    </div>
+    </motion.div>
   );
 }

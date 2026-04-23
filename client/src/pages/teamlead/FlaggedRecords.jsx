@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../utils/api.js';
 import { useAuth } from '../../context/AuthContext';
@@ -51,7 +51,7 @@ const FlaggedRecords = () => {
 
   return (
     <>
-      <div className="bg-[#f5f0e8] min-h-screen p-6">
+      <div className="bg-transparent p-6">
         <div className="flex gap-2 mb-5 flex-wrap">
           {['ALL', 'Location mismatch', 'Face mismatch', 'Incomplete checkout'].map((f) => (
             <button
@@ -77,19 +77,30 @@ const FlaggedRecords = () => {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: index * 0.04 }}
-              className="bg-white rounded-xl border border-[#e8e0d0] border-l-4 border-l-red-400 p-5 mb-3"
+              className="bg-white rounded-xl border border-[#e8e0d0] border-l-4 border-l-red-400 p-5 mb-3 flex flex-col md:flex-row md:items-center justify-between gap-4"
             >
-              <p className="text-sm font-medium text-[#791F1F]">{(record.flagReasons || []).join(', ') || 'Flagged'}</p>
-              <p className="text-sm text-gray-600 font-normal mt-1">
-                {record.worker?.fullName} · {record.task?.title}
-              </p>
-              <p className="text-xs text-gray-400 font-normal mt-0.5">
-                Distance: {record.distanceAtCheckIn || 0}m (threshold: {record.task?.allowedRadius || 0}m)
-              </p>
-              <div className="flex justify-end mt-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-x-3 text-sm text-gray-800 font-semibold">
+                  <span>{record.worker?.fullName}</span>
+                  <span className="text-gray-300 font-normal">·</span>
+                  <span className="text-gray-600 font-medium">{record.task?.title}</span>
+                </div>
+                
+                <p className="text-xs text-gray-400 font-normal mt-1 flex items-center gap-2">
+                  <span className="font-medium">Distance:</span>
+                  <span>{record.distanceAtCheckIn != null ? `${record.distanceAtCheckIn}m` : '—'}</span>
+                  <span className="text-gray-300">(threshold: {record.task?.allowedRadius || 0}m)</span>
+                </p>
+
+                <p className="text-xs font-medium text-[#791F1F] mt-2 max-w-[75%] leading-relaxed">
+                  {(record.flagReasons || []).join(', ') || 'Flagged activity detected'}
+                </p>
+              </div>
+
+              <div className="shrink-0 pt-3 md:pt-0 border-t md:border-t-0 flex justify-end">
                 <button
                   type="button"
-                  className="bg-white border border-[#e8e0d0] text-gray-600 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="rounded-[10px] border-[1.5px] border-[#246427] bg-white px-4 py-2 text-xs font-semibold text-[#246427] hover:bg-[#E8F5E9] transition-colors whitespace-nowrap"
                   onClick={() => {
                     setSelectedRecord(record);
                     setDialogOpen(true);
@@ -112,65 +123,77 @@ const FlaggedRecords = () => {
       <AnimatePresence>
         {dialogOpen && selectedRecord ? (
           <motion.div
-            className="bg-black/40 fixed inset-0 z-50 flex items-center justify-center"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/35 backdrop-blur-sm p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            onClick={() => setDialogOpen(false)}
           >
             <motion.div
-              className="bg-white rounded-xl border border-[#e8e0d0] w-full max-w-md mx-4 overflow-hidden"
-              initial={{ opacity: 0, scale: 0.97 }}
+              role="dialog"
+              aria-modal="true"
+              className="relative mt-8 w-full max-w-lg rounded-[20px] bg-[#FFFFFF] shadow-[0_8px_32px_rgba(0,0,0,0.14)] overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ duration: 0.15 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="bg-[#1a4a1a] px-5 py-4 flex justify-between items-center">
                 <p className="text-[#C0B87A] text-sm font-medium">Flagged record — {selectedRecord.worker?.fullName}</p>
                 <button
                   type="button"
                   onClick={() => setDialogOpen(false)}
-                  className="text-white/50 hover:text-white transition-colors text-lg leading-none"
+                  className="text-white/50 hover:text-white transition-colors"
                 >
-                  ×
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="px-5 py-4">
-                <p className="text-sm font-normal text-[#791F1F] bg-[#fcebeb] border border-[#f0c0c0] rounded-lg p-3 mb-4">
-                  {(selectedRecord.flagReasons || []).join(', ') || 'Flagged'}
-                </p>
-                <textarea
-                  className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors placeholder:text-gray-300"
-                  rows={3}
-                  placeholder="Action remark"
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                />
-              </div>
-              <div className="px-5 py-4 border-t border-[#e8e0d0] flex justify-end gap-2 flex-wrap">
-                <button
-                  type="button"
-                  className="bg-white border border-[#e8e0d0] text-gray-600 text-sm font-normal px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-                  onClick={() => setDialogOpen(false)}
-                >
-                  Dismiss
-                </button>
-                <button
-                  type="button"
-                  disabled={isResolving}
-                  className="bg-[#fcebeb] text-[#791F1F] border border-[#f0c0c0] text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#fad8d8] transition-colors"
-                  onClick={() => resolve('REJECT')}
-                >
-                  Reject attendance
-                </button>
-                <button
-                  type="button"
-                  disabled={isResolving}
-                  className="bg-[#eaf3de] text-[#27500A] border border-[#c5deb0] text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#d4edbc] transition-colors"
-                  onClick={() => resolve('APPROVE')}
-                >
-                  Mark as present
-                </button>
+
+              <div className="p-[24px] space-y-4">
+                <div className="rounded-[10px] bg-[#FFEBEE] border border-[#FFCDD2] p-4 text-sm">
+                  <p className="font-semibold text-[#C62828] mb-1">Reason(s) for Flag:</p>
+                  <p className="text-[#D32F2F]">
+                    {(selectedRecord.flagReasons || []).join(', ') || 'Flagged activity detected'}
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[0.875rem] font-medium text-[#616161]">Action Remark</label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-[#E0E7DC] rounded-[10px] px-3 py-2 text-sm text-[#212121] bg-white focus:outline-none focus:border-[#246427] transition-colors placeholder:text-[#9E9E9E]"
+                    placeholder="Provide details about your decision..."
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <button
+                    type="button"
+                    className="flex-1 rounded-[10px] border-[1.5px] border-[#E0E7DC] py-[10px] text-[0.875rem] font-semibold text-[#616161] hover:bg-gray-50 transition-colors"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isResolving}
+                    className="flex-[2] rounded-[10px] bg-[#246427] py-[10px] text-[0.875rem] font-semibold text-white hover:bg-[#1a4d1c] transition-colors disabled:opacity-50"
+                    onClick={() => resolve('APPROVE')}
+                  >
+                    Mark Present
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isResolving}
+                    className="flex-[1.5] rounded-[10px] border-[1.5px] border-[#246427] bg-white py-[10px] text-[0.875rem] font-semibold text-[#246427] hover:bg-[#E8F5E9] transition-colors disabled:opacity-50"
+                    onClick={() => resolve('REJECT')}
+                  >
+                    Reject Attendance
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

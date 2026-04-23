@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Calendar } from 'lucide-react';
+import { Calendar, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../../utils/api.js';
 import { useAuth } from '../../context/AuthContext';
@@ -58,12 +58,6 @@ const LeaveManagement = () => {
           ? 'bg-[#fcebeb] text-[#791F1F]'
           : 'bg-gray-100 text-gray-500';
 
-  const leaveTypeLabel = (t) => {
-    if (!t) return '';
-    const s = String(t).replace(/_/g, ' ').toLowerCase();
-    return s.charAt(0).toUpperCase() + s.slice(1);
-  };
-
   const initials = (name) => {
     const parts = String(name || '')
       .trim()
@@ -76,7 +70,7 @@ const LeaveManagement = () => {
 
   return (
     <>
-      <div className="bg-[#f5f0e8] min-h-screen p-6">
+      <div className="bg-transparent p-6">
         <div className="flex gap-2 mb-5 flex-wrap">
           {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map((f) => (
             <button
@@ -97,69 +91,73 @@ const LeaveManagement = () => {
           {list.map((leave, index) => (
             <motion.div
               key={leave._id}
-              className="bg-white rounded-xl border border-[#e8e0d0] p-5"
+              className="bg-white rounded-xl border border-[#e8e0d0] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: index * 0.04 }}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-[#faeeda] text-[#633806] text-xs font-medium flex items-center justify-center shrink-0">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-6 h-6 rounded-full bg-[#faeeda] text-[#633806] text-[10px] font-bold flex items-center justify-center shrink-0">
                     {initials(leave.workerName || leave.worker?.fullName)}
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">
-                      {leave.workerName || leave.worker?.fullName}
-                    </p>
-                    <p className="text-xs text-gray-400 flex items-center gap-1.5 mt-1 font-normal">
-                      <Calendar className="w-3 h-3 shrink-0" />
-                      {new Date(leave.fromDate).toLocaleDateString()} to {new Date(leave.toDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end gap-1.5 shrink-0">
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusBadge(leave.status)}`}>
+                  <h3 className="text-sm font-semibold text-gray-800 truncate">
+                    {leave.workerName || leave.worker?.fullName}
+                  </h3>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${statusBadge(leave.status)}`}>
                     {leave.status}
                   </span>
-                  {leave.totalDays != null ? (
-                    <span className="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full font-normal">
-                      {leave.totalDays} days
-                    </span>
-                  ) : null}
                 </div>
+
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-xs text-gray-400 font-medium whitespace-nowrap">
+                    {new Date(leave.fromDate).toLocaleDateString()} — {new Date(leave.toDate).toLocaleDateString()}
+                  </span>
+                  {leave.totalDays != null && (
+                    <span className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded-full font-normal">
+                      {leave.totalDays}d
+                    </span>
+                  )}
+                </div>
+                
+                <p className="text-[13px] text-gray-600 font-normal leading-snug line-clamp-2">
+                  <span className="text-gray-400 font-medium mr-1.5">Reason:</span>
+                  {leave.reason || 'Not specified'}
+                </p>
+                
+                {leave.remarks && (
+                  <p className="text-[11px] text-gray-400 font-normal mt-1 border-l-2 border-gray-100 pl-2 italic truncate">
+                    &ldquo;{leave.remarks}&rdquo;
+                  </p>
+                )}
               </div>
-              {leave.leaveType ? (
-                <span className="inline-block mt-2 text-xs font-medium px-2 py-0.5 rounded-full bg-[#faeeda] text-[#633806]">
-                  {leaveTypeLabel(leave.leaveType)}
-                </span>
-              ) : null}
-              <p className="text-sm text-gray-500 font-normal italic bg-[#f9f9f9] border border-[#e8e0d0] rounded-lg p-3 mt-3">
-                &ldquo;{leave.reason}&rdquo;
-              </p>
-              {leave.status === 'PENDING' ? (
-                <div className="flex justify-end gap-2 mt-3">
+
+              {leave.status === 'PENDING' && (
+                <div className="flex items-center gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0">
                   <button
                     type="button"
-                    className="bg-[#fcebeb] text-[#791F1F] border border-[#f0c0c0] text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#fad8d8] transition-colors"
+                    className="flex-1 md:flex-none rounded-[10px] bg-[#246427] px-5 py-2 text-xs font-semibold text-white hover:bg-[#1a4d1c] transition-colors"
                     onClick={() => {
                       setSelectedLeave(leave);
                       setDialogOpen(true);
-                    }}
-                  >
-                    Reject
-                  </button>
-                  <button
-                    type="button"
-                    className="bg-[#eaf3de] text-[#27500A] border border-[#c5deb0] text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#d4edbc] transition-colors"
-                    onClick={() => {
-                      setSelectedLeave(leave);
-                      setDialogOpen(true);
+                      setRemark('');
                     }}
                   >
                     Approve
                   </button>
+                  <button
+                    type="button"
+                    className="flex-1 md:flex-none rounded-[10px] border-[1.5px] border-[#246427] bg-white px-5 py-2 text-xs font-semibold text-[#246427] hover:bg-[#E8F5E9] transition-colors"
+                    onClick={() => {
+                      setSelectedLeave(leave);
+                      setDialogOpen(true);
+                      setRemark('');
+                    }}
+                  >
+                    Reject
+                  </button>
                 </div>
-              ) : null}
+              )}
             </motion.div>
           ))}
         </div>
@@ -171,67 +169,76 @@ const LeaveManagement = () => {
           </div>
         ) : null}
       </div>
+      
       <AnimatePresence>
         {dialogOpen && selectedLeave ? (
           <motion.div
-            className="bg-black/40 fixed inset-0 z-50 flex items-center justify-center"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/35 backdrop-blur-sm p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            onClick={() => setDialogOpen(false)}
           >
             <motion.div
-              className="bg-white rounded-xl border border-[#e8e0d0] w-full max-w-md mx-4 overflow-hidden"
-              initial={{ opacity: 0, scale: 0.97 }}
+              role="dialog"
+              aria-modal="true"
+              className="relative mt-8 w-full max-w-lg rounded-[20px] bg-[#FFFFFF] shadow-[0_8px_32px_rgba(0,0,0,0.14)] overflow-hidden"
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ duration: 0.15 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="bg-[#1a4a1a] px-5 py-4 flex justify-between items-center">
                 <p className="text-[#C0B87A] text-sm font-medium">
-                  Leave request — {selectedLeave.workerName || selectedLeave.worker?.fullName}
+                  Leave decision — {selectedLeave.workerName || selectedLeave.worker?.fullName}
                 </p>
                 <button
                   type="button"
                   onClick={() => setDialogOpen(false)}
-                  className="text-white/50 hover:text-white transition-colors text-lg leading-none"
+                  className="text-white/50 hover:text-white transition-colors"
                 >
-                  ×
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="px-5 py-4">
-                <textarea
-                  rows={2}
-                  className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors placeholder:text-gray-300"
-                  placeholder="Add a note for the worker..."
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                />
-              </div>
-              <div className="px-5 py-4 border-t border-[#e8e0d0] flex justify-end gap-2 flex-wrap">
-                <button
-                  type="button"
-                  className="bg-white border border-[#e8e0d0] text-gray-600 text-sm font-normal px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-                  onClick={() => setDialogOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled={isUpdating}
-                  className="bg-[#fcebeb] text-[#791F1F] border border-[#f0c0c0] text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#fad8d8] transition-colors"
-                  onClick={() => updateLeave('REJECTED')}
-                >
-                  Reject
-                </button>
-                <button
-                  type="button"
-                  disabled={isUpdating}
-                  className="bg-[#eaf3de] text-[#27500A] border border-[#c5deb0] text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#d4edbc] transition-colors"
-                  onClick={() => updateLeave('APPROVED')}
-                >
-                  Approve
-                </button>
+
+              <div className="p-[24px] space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[0.875rem] font-medium text-[#616161]">Decision Result Remark (optional)</label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-[#E0E7DC] rounded-[10px] px-3 py-2 text-sm text-[#212121] bg-white focus:outline-none focus:border-[#246427] transition-colors placeholder:text-[#9E9E9E]"
+                    placeholder="Add a remark for the worker regarding your decision..."
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <button
+                    type="button"
+                    className="flex-1 rounded-[10px] border-[1.5px] border-[#E0E7DC] py-[10px] text-[0.875rem] font-semibold text-[#616161] hover:bg-gray-50 transition-colors"
+                    onClick={() => setDialogOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isUpdating}
+                    className="flex-[2] rounded-[10px] bg-[#246427] py-[10px] text-[0.875rem] font-semibold text-white hover:bg-[#1a4d1c] transition-colors disabled:opacity-50"
+                    onClick={() => updateLeave('APPROVED')}
+                  >
+                    Confirm Approval
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isUpdating}
+                    className="flex-[1.5] rounded-[10px] border-[1.5px] border-[#246427] bg-white py-[10px] text-[0.875rem] font-semibold text-[#246427] hover:bg-[#E8F5E9] transition-colors disabled:opacity-50"
+                    onClick={() => updateLeave('REJECTED')}
+                  >
+                    Reject Leave
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

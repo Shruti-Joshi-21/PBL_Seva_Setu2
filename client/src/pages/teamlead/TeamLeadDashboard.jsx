@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { CheckCircle2, X } from 'lucide-react';
+import { CheckCircle2, X, CheckSquare, Users, AlertTriangle, Calendar, ClipboardList, UserCheck } from 'lucide-react';
 import api from '../../utils/api.js';
 import { useAuth } from '../../context/AuthContext';
 
@@ -14,7 +14,6 @@ const TeamLeadDashboard = () => {
   const [workerAttendance, setWorkerAttendance] = useState([]);
   const [flaggedRecords, setFlaggedRecords] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
-  const [clock, setClock] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedFlag, setSelectedFlag] = useState(null);
@@ -39,10 +38,8 @@ const TeamLeadDashboard = () => {
   useEffect(() => {
     fetchDashboard();
     const refresh = setInterval(fetchDashboard, 30000);
-    const timer = setInterval(() => setClock(new Date()), 1000);
     return () => {
       clearInterval(refresh);
-      clearInterval(timer);
     };
   }, []);
 
@@ -89,8 +86,6 @@ const TeamLeadDashboard = () => {
     }
   };
 
-  const liveTime = useMemo(() => clock.toLocaleTimeString('en-GB', { hour12: false }), [clock]);
-
   const taskStatusBadge = (status) =>
     status === 'FLAGGED'
       ? 'bg-[#fcebeb] text-[#791F1F]'
@@ -102,35 +97,34 @@ const TeamLeadDashboard = () => {
 
   return (
     <>
-      <div className="bg-[#f5f0e8] min-h-screen p-6 space-y-6">
-        <div className="flex items-center justify-end gap-3">
-          <span className="text-xs font-normal text-gray-400">{liveTime}</span>
-          <button
-            type="button"
-            onClick={() => navigate('/teamlead/tasks/create')}
-            className="bg-[#1a4a1a] hover:bg-[#2d6b2d] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-          >
-            Create task
-          </button>
-        </div>
+      <div className="bg-transparent  p-6 space-y-6">
         {error ? <p className="text-sm font-normal text-red-600">{error}</p> : null}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Active tasks', value: stats.activeTasks || 0 },
-            { label: 'Workers present', value: `${stats.presentToday || 0}/${stats.totalWorkers || 0}` },
-            { label: 'Flagged today', value: stats.flaggedToday || 0, sub: 'Needs review' },
-            { label: 'Pending leaves', value: stats.pendingLeaves || 0, sub: 'Awaiting action' },
+            { label: 'Active tasks', value: stats.activeTasks || 0, Icon: ClipboardList },
+            { label: 'Workers present', value: `${stats.presentToday || 0}/${stats.totalWorkers || 0}`, Icon: UserCheck },
+            { label: 'Flagged today', value: stats.flaggedToday || 0, sub: 'Needs review', Icon: AlertTriangle },
+            { label: 'Pending leaves', value: stats.pendingLeaves || 0, sub: 'Awaiting action', Icon: Calendar },
           ].map((item, index) => (
             <motion.div
               key={item.label}
-              className="bg-white rounded-xl border border-[#e8e0d0] p-5"
+              className="bg-white rounded-[20px] border border-[#E0E7DC] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.05)] flex flex-col gap-2"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: index * 0.04 }}
             >
-              <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1 font-normal">{item.label}</p>
-              <p className="text-2xl font-medium text-gray-800">{item.value}</p>
-              {item.sub ? <p className="text-xs mt-1.5 font-normal text-gray-500">{item.sub}</p> : null}
+              <div className="flex items-center gap-3">
+                <item.Icon className="w-[22px] h-[22px] text-[#246427]" strokeWidth={2.5} />
+                <p className="text-[1.125rem] lg:text-[1.375rem] font-bold text-[#212121] leading-tight truncate">
+                  {item.value}
+                </p>
+              </div>
+              <div className="flex flex-col">
+                <p className="text-[0.75rem] text-[#616161] truncate line-clamp-1">{item.label}</p>
+                {item.sub ? (
+                  <p className="text-[0.65rem] text-[#9E9E9E] mt-0.5 truncate font-normal line-clamp-1">{item.sub}</p>
+                ) : null}
+              </div>
             </motion.div>
           ))}
         </div>
@@ -205,7 +199,7 @@ const TeamLeadDashboard = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedFlag(f)}
-                  className="bg-white border border-[#e8e0d0] text-gray-600 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors shrink-0"
+                  className="rounded-[10px] border-[1.5px] border-[#246427] bg-white px-4 py-2 text-xs font-semibold text-[#246427] hover:bg-[#E8F5E9] transition-colors shrink-0"
                 >
                   Review
                 </button>
@@ -238,7 +232,7 @@ const TeamLeadDashboard = () => {
                     setSelectedLeave(leave);
                     setRemark('');
                   }}
-                  className="bg-white border border-[#e8e0d0] text-gray-600 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="rounded-[10px] border-[1.5px] border-[#246427] bg-white px-4 py-2 text-xs font-semibold text-[#246427] hover:bg-[#E8F5E9] transition-colors"
                 >
                   Review
                 </button>
@@ -253,59 +247,76 @@ const TeamLeadDashboard = () => {
       <AnimatePresence>
         {selectedFlag ? (
           <motion.div
-            className="bg-black/40 fixed inset-0 z-50 flex items-center justify-center"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/35 backdrop-blur-sm p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            onClick={() => setSelectedFlag(null)}
           >
             <motion.div
-              className="bg-white rounded-xl border border-[#e8e0d0] w-full max-w-md mx-4 overflow-hidden"
-              initial={{ opacity: 0, scale: 0.97 }}
+              role="dialog"
+              aria-modal="true"
+              className="relative mt-8 w-full max-w-lg rounded-[20px] bg-[#FFFFFF] p-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ duration: 0.15 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-[#1a4a1a] px-5 py-4 flex justify-between items-center">
-                <p className="text-[#C0B87A] text-sm font-medium">Flagged record</p>
-                <button type="button" onClick={() => setSelectedFlag(null)} className="text-white/50 hover:text-white transition-colors text-lg leading-none">
-                  ×
-                </button>
-              </div>
-              <div className="px-5 py-4">
-                <p className="text-sm font-normal text-[#791F1F] bg-[#fcebeb] border border-[#f0c0c0] rounded-lg p-3 mb-4">
-                  {(selectedFlag.flagReasons || []).join(', ') || 'Flagged'}
-                </p>
-                <textarea
-                  rows={3}
-                  className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors placeholder:text-gray-300"
-                  placeholder="Action remark"
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                />
-              </div>
-              <div className="px-5 py-4 border-t border-[#e8e0d0] flex justify-end gap-2 flex-wrap">
-                <button
-                  type="button"
-                  className="bg-white border border-[#e8e0d0] text-gray-600 text-sm font-normal px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-                  onClick={() => setSelectedFlag(null)}
-                >
-                  Dismiss
-                </button>
-                <button
-                  type="button"
-                  className="bg-[#fcebeb] text-[#791F1F] border border-[#f0c0c0] text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#fad8d8] transition-colors"
-                  onClick={() => handleResolveFlag('REJECT')}
-                >
-                  Reject attendance
-                </button>
-                <button
-                  type="button"
-                  className="bg-[#eaf3de] text-[#27500A] border border-[#c5deb0] text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#d4edbc] transition-colors"
-                  onClick={() => handleResolveFlag('APPROVE')}
-                >
-                  Mark as present
-                </button>
+              <button
+                type="button"
+                className="absolute right-[16px] top-[16px] rounded-lg p-1 text-[#616161] hover:text-[#246427] transition-colors z-10"
+                onClick={() => setSelectedFlag(null)}
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <h2 className="bg-[#F1F8E9] border-b border-[#E0E7DC] px-[24px] py-[16px] rounded-t-[20px] text-[1rem] font-semibold text-[#212121] -mx-[24px] -mt-[24px] mb-[24px] pr-12">
+                Flagged Record
+              </h2>
+
+              <div className="space-y-4">
+                <div className="rounded-[10px] bg-[#FFEBEE] border border-[#FFCDD2] p-4">
+                  <p className="text-sm font-semibold text-[#C62828] mb-1">Reason(s) for Flag:</p>
+                  <p className="text-sm text-[#D32F2F]">
+                    {(selectedFlag.flagReasons || []).join(', ') || 'Flagged activity detected'}
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[0.875rem] font-medium text-[#616161]">Action Remark</label>
+                  <textarea
+                    rows={3}
+                    className="w-full border border-[#E0E7DC] rounded-[10px] px-3 py-2 text-sm text-[#212121] bg-white focus:outline-none focus:border-[#246427] transition-colors placeholder:text-[#9E9E9E]"
+                    placeholder="Provide details about your decision..."
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <button
+                    type="button"
+                    className="flex-1 rounded-[10px] border-[1.5px] border-[#E0E7DC] py-[10px] text-[0.875rem] font-semibold text-[#616161] hover:bg-gray-50 transition-colors"
+                    onClick={() => setSelectedFlag(null)}
+                  >
+                    Dismiss
+                  </button>
+                  <button
+                    type="button"
+                    className="flex-[2] rounded-[10px] bg-[#246427] py-[10px] text-[0.875rem] font-semibold text-white hover:bg-[#1a4d1c] transition-colors"
+                    onClick={() => handleResolveFlag('APPROVE')}
+                  >
+                    Mark Present
+                  </button>
+                  <button
+                    type="button"
+                    className="flex-[1.5] rounded-[10px] border-[1.5px] border-[#246427] bg-white py-[10px] text-[0.875rem] font-semibold text-[#246427] hover:bg-[#E8F5E9] transition-colors"
+                    onClick={() => handleResolveFlag('REJECT')}
+                  >
+                    Reject Record
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -314,57 +325,81 @@ const TeamLeadDashboard = () => {
       <AnimatePresence>
         {selectedLeave ? (
           <motion.div
-            className="bg-black/40 fixed inset-0 z-50 flex items-center justify-center"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/35 backdrop-blur-sm p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            onClick={() => setSelectedLeave(null)}
           >
             <motion.div
-              className="bg-white rounded-xl border border-[#e8e0d0] w-full max-w-md mx-4 overflow-hidden"
-              initial={{ opacity: 0, scale: 0.97 }}
+              role="dialog"
+              aria-modal="true"
+              className="relative mt-8 w-full max-w-lg rounded-[20px] bg-[#FFFFFF] p-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ duration: 0.15 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-[#1a4a1a] px-5 py-4 flex justify-between items-center">
-                <p className="text-[#C0B87A] text-sm font-medium">Leave request</p>
-                <button type="button" onClick={() => setSelectedLeave(null)} className="text-white/50 hover:text-white transition-colors text-lg leading-none">
-                  ×
-                </button>
-              </div>
-              <div className="px-5 py-4">
-                <p className="text-sm font-normal text-gray-600">{selectedLeave.worker?.fullName}</p>
-                <textarea
-                  rows={2}
-                  className="w-full border border-[#e8e0d0] rounded-lg px-3 py-2 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a] transition-colors placeholder:text-gray-300 mt-3"
-                  placeholder="Remarks (optional)"
-                  value={remark}
-                  onChange={(e) => setRemark(e.target.value)}
-                />
-              </div>
-              <div className="px-5 py-4 border-t border-[#e8e0d0] flex justify-end gap-2 flex-wrap">
-                <button
-                  type="button"
-                  className="bg-white border border-[#e8e0d0] text-gray-600 text-sm font-normal px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-                  onClick={() => setSelectedLeave(null)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="bg-[#fcebeb] text-[#791F1F] border border-[#f0c0c0] text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#fad8d8] transition-colors"
-                  onClick={() => handleLeave('REJECTED')}
-                >
-                  Reject leave
-                </button>
-                <button
-                  type="button"
-                  className="bg-[#eaf3de] text-[#27500A] border border-[#c5deb0] text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-[#d4edbc] transition-colors"
-                  onClick={() => handleLeave('APPROVED')}
-                >
-                  Approve leave
-                </button>
+              <button
+                type="button"
+                className="absolute right-[16px] top-[16px] rounded-lg p-1 text-[#616161] hover:text-[#246427] transition-colors z-10"
+                onClick={() => setSelectedLeave(null)}
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <h2 className="bg-[#F1F8E9] border-b border-[#E0E7DC] px-[24px] py-[16px] rounded-t-[20px] text-[1rem] font-semibold text-[#212121] -mx-[24px] -mt-[24px] mb-[24px] pr-12">
+                Leave Request Decision
+              </h2>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 p-4 rounded-[12px] bg-[#F9FBF7] border border-[#E0E7DC]">
+                  <div className="h-12 w-12 rounded-full bg-[#E8F5E9] flex items-center justify-center text-[#246427] font-bold text-lg">
+                    {selectedLeave.worker?.fullName?.charAt(0) || 'W'}
+                  </div>
+                  <div>
+                    <p className="text-[1rem] font-bold text-[#212121]">{selectedLeave.worker?.fullName || 'Worker'}</p>
+                    <p className="text-sm text-[#616161]">
+                      {new Date(selectedLeave.startDate).toLocaleDateString()} — {new Date(selectedLeave.endDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[0.875rem] font-medium text-[#616161]">Remarks (optional)</label>
+                  <textarea
+                    rows={2}
+                    className="w-full border border-[#E0E7DC] rounded-[10px] px-3 py-2 text-sm text-[#212121] bg-white focus:outline-none focus:border-[#246427] transition-colors placeholder:text-[#9E9E9E]"
+                    placeholder="Add more context to your decision..."
+                    value={remark}
+                    onChange={(e) => setRemark(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <button
+                    type="button"
+                    className="flex-1 rounded-[10px] border-[1.5px] border-[#E0E7DC] py-[10px] text-[0.875rem] font-semibold text-[#616161] hover:bg-gray-50 transition-colors"
+                    onClick={() => setSelectedLeave(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="flex-[2] rounded-[10px] bg-[#246427] py-[10px] text-[0.875rem] font-semibold text-white hover:bg-[#1a4d1c] transition-colors"
+                    onClick={() => handleLeave('APPROVED')}
+                  >
+                    Approve Leave
+                  </button>
+                  <button
+                    type="button"
+                    className="flex-[1.5] rounded-[10px] border-[1.5px] border-[#246427] bg-white py-[10px] text-[0.875rem] font-semibold text-[#246427] hover:bg-[#E8F5E9] transition-colors"
+                    onClick={() => handleLeave('REJECTED')}
+                  >
+                    Reject Leave
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -375,3 +410,4 @@ const TeamLeadDashboard = () => {
 };
 
 export default TeamLeadDashboard;
+

@@ -52,24 +52,24 @@ function truncate(s, n) {
 function leaveTypeBadgeClass(type) {
   switch (type) {
     case 'SICK':
-      return 'border border-red-200 bg-red-50 text-red-700';
+      return 'border border-[#EF9A9A] bg-[#FFEBEE] text-[#C62828]';
     case 'EMERGENCY':
-      return 'border border-amber-200 bg-amber-50 text-amber-700';
+      return 'border border-[#FFE082] bg-[#FFF8E1] text-[#B07D00]';
     case 'CASUAL':
     default:
-      return 'border border-blue-200 bg-blue-50 text-blue-700';
+      return 'border border-[#90CAF9] bg-[#E3F2FD] text-[#0277BD]';
   }
 }
 
 function statusPillClass(status) {
   switch (status) {
     case 'APPROVED':
-      return 'border border-green-200 bg-[#f0fdf4] text-[#16a34a]';
+      return 'border border-[#A5D6A7] bg-[#E8F5E9] text-[#246427]';
     case 'REJECTED':
-      return 'border border-red-200 bg-[#fef2f2] text-[#dc2626]';
+      return 'border border-[#EF9A9A] bg-[#FFEBEE] text-[#C62828]';
     case 'PENDING':
     default:
-      return 'border border-blue-200 bg-[#eff6ff] text-[#2563eb]';
+      return 'border border-[#90CAF9] bg-[#E3F2FD] text-[#0277BD]';
   }
 }
 
@@ -127,19 +127,19 @@ export default function LeavePage() {
   const usedPct = total > 0 ? Math.min(100, (used / total) * 100) : 0;
 
   const remainingValueClass =
-    remaining >= 6 ? 'text-[#16a34a]' : remaining >= 3 ? 'text-[#d97706]' : 'text-[#dc2626]';
-  const usedValueClass = used > 0 ? 'text-[#d97706]' : 'text-gray-600';
-  const pendingValueClass = pending > 0 ? 'text-[#2563eb]' : 'text-gray-600';
+    remaining >= 6 ? 'text-[#246427]' : remaining >= 3 ? 'text-[#B07D00]' : 'text-[#C62828]';
+  const usedValueClass = used > 0 ? 'text-[#B07D00]' : 'text-[#616161]';
+  const pendingValueClass = pending > 0 ? 'text-[#0277BD]' : 'text-[#616161]';
 
   const balanceCards = [
     {
       key: 'total',
       icon: Calendar,
-      iconColor: '#005F02',
+      iconColor: '#246427',
       value: total,
       label: 'Days Per Year',
       sub: 'Annual entitlement',
-      valueClass: 'text-gray-900',
+      valueClass: 'text-[#212121]',
       cardClass: '',
     },
     {
@@ -155,12 +155,12 @@ export default function LeavePage() {
     {
       key: 'rem',
       icon: TrendingUp,
-      iconColor: remaining >= 3 ? '#16a34a' : '#dc2626',
+      iconColor: remaining >= 3 ? '#246427' : '#C62828',
       value: remaining,
       label: 'Days Remaining',
       sub: null,
       valueClass: remainingValueClass,
-      cardClass: remaining === 0 ? 'bg-[#fef2f2]' : '',
+      cardClass: remaining === 0 ? 'bg-[#FFEBEE] border-none' : '',
     },
     {
       key: 'pend',
@@ -176,33 +176,20 @@ export default function LeavePage() {
 
   return (
     <motion.div
-      className="min-h-full bg-[#f7f9f7] px-4 pb-10 pt-6"
+      className="space-y-8 bg-[#F9FBF7] -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 pb-10 min-h-full rounded-b-[20px]"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="mx-auto max-w-4xl space-y-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-[#005F02]">Leave Requests</h1>
-            <p className="text-sm text-gray-500">Manage your time-off requests</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowModal(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#005F02] px-4 py-2 text-sm font-medium text-white"
-          >
-            <Plus className="h-4 w-4" />
-            Request Leave
-          </button>
-        </div>
+
+
 
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {loading
             ? [0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-28 animate-pulse rounded-2xl bg-white shadow-sm"
+                  className="h-28 animate-pulse rounded-[20px] bg-[#FFFFFF] border border-[#E0E7DC]"
                 />
               ))
             : balanceCards.map((c, index) => (
@@ -211,15 +198,17 @@ export default function LeavePage() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: 0.05 * index }}
-                  className={`rounded-2xl bg-white p-4 shadow-sm ${c.cardClass}`}
+                  className={`rounded-[20px] bg-[#FFFFFF] border border-[#E0E7DC] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.05)] flex flex-col gap-2 ${c.cardClass}`}
                 >
-                  <div className="flex items-start gap-3">
-                    <c.icon className="h-6 w-6 shrink-0" style={{ color: c.iconColor }} />
-                    <div className="min-w-0 flex-1">
-                      <p className={`text-2xl font-bold tabular-nums ${c.valueClass}`}>{c.value}</p>
-                      <p className="text-sm text-gray-600">{c.label}</p>
-                      {c.sub && <p className="mt-1 text-xs text-gray-400">{c.sub}</p>}
-                    </div>
+                  <div className="flex items-center gap-3">
+                    <c.icon className="h-[22px] w-[22px] text-[#246427]" strokeWidth={2.5} />
+                    <p className="text-[1.25rem] lg:text-[1.5rem] font-bold text-[#212121] leading-tight truncate">
+                      {c.value}
+                    </p>
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-[0.75rem] text-[#616161] truncate line-clamp-1">{c.label}</p>
+                    {c.sub && <p className="mt-0.5 text-[0.7rem] text-[#9E9E9E] truncate line-clamp-1">{c.sub}</p>}
                   </div>
                 </motion.div>
               ))}
@@ -227,39 +216,48 @@ export default function LeavePage() {
 
         {!loading && (
           <div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-[#E0E7DC]">
               <motion.div
-                className="h-full rounded-full bg-[#005F02]"
+                className="h-full rounded-full bg-[#246427]"
                 initial={{ width: 0 }}
                 animate={{ width: `${usedPct}%` }}
                 transition={{ duration: 0.8, ease: 'easeOut' }}
               />
             </div>
-            <p className="mt-1 text-right text-xs text-gray-500">
+            <p className="mt-1 text-right text-[0.75rem] text-[#616161]">
               {used} of {total} days used
             </p>
           </div>
         )}
 
         <div>
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <h2 className="font-semibold text-[#005F02]">Leave History</h2>
-            <span className="rounded-full bg-[#F2E3BB] px-2 py-0.5 text-xs text-[#005F02]">
-              {leaves.length} requests
-            </span>
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h2 className="font-semibold text-[#212121]">Leave History</h2>
+              <span className="rounded-full bg-[#E8F5E9] px-2 py-0.5 text-[0.75rem] text-[#246427]">
+                {leaves.length} requests
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowModal(true)}
+              className="flex items-center justify-center gap-2 rounded-[12px] bg-[#246427] px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-[#1a4d1c] transition-all"
+            >
+              Create Request
+            </button>
           </div>
 
           {loading ? (
             <div className="space-y-3">
               {[0, 1, 2].map((i) => (
-                <div key={i} className="h-32 animate-pulse rounded-2xl bg-white shadow-sm" />
+                <div key={i} className="h-32 animate-pulse rounded-[14px] bg-[#FFFFFF] shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-[#E0E7DC]" />
               ))}
             </div>
           ) : leaves.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-16 shadow-sm">
-              <Calendar className="mb-4 h-48 w-48 text-gray-300" strokeWidth={1} />
-              <p className="font-medium text-gray-600">No leave requests yet</p>
-              <p className="mt-1 text-sm text-gray-400">Click &apos;Request Leave&apos; to apply</p>
+            <div className="flex flex-col items-center justify-center rounded-[20px] bg-[#FFFFFF] py-16 shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC]">
+              <Calendar className="mb-4 h-48 w-48 text-[#E0E7DC]" strokeWidth={1} />
+              <p className="font-medium text-[#616161]">No leave requests yet</p>
+              <p className="mt-1 text-[0.875rem] text-[#9E9E9E]">Click &apos;Request Leave&apos; to apply</p>
             </div>
           ) : (
             <ul className="space-y-3">
@@ -272,31 +270,31 @@ export default function LeavePage() {
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.04 * index }}
-                    className="rounded-2xl bg-white p-4 shadow-sm"
+                    className="rounded-[14px] bg-[#FFFFFF] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-[#E0E7DC]"
                   >
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
                       <div className="flex w-full shrink-0 flex-col items-center text-center sm:w-24">
                         <span
-                          className={`rounded-lg px-2 py-1 text-xs font-semibold uppercase ${leaveTypeBadgeClass(lt)}`}
+                          className={`rounded-[10px] px-2 py-1 text-[0.65rem] font-semibold uppercase ${leaveTypeBadgeClass(lt)}`}
                         >
                           {lt}
                         </span>
-                        <p className="mt-1 text-xs text-gray-500">
+                        <p className="mt-1 text-[0.75rem] text-[#616161]">
                           {days} day{days !== 1 ? 's' : ''}
                         </p>
                       </div>
 
                       <div className="min-w-0 flex-1 space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                          <CalendarDays className="h-3.5 w-3.5 shrink-0 text-[#427A43]" />
+                        <div className="flex items-center gap-2 text-[0.875rem] font-medium text-[#212121]">
+                          <CalendarDays className="h-4 w-4 shrink-0 text-[#246427]" />
                           {formatDateRange(leave.fromDate, leave.toDate)}
                         </div>
-                        <div className="flex items-start gap-2 text-sm text-gray-500">
-                          <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gray-400" />
+                        <div className="flex items-start gap-2 text-[0.875rem] text-[#616161]">
+                          <FileText className="mt-0.5 h-4 w-4 shrink-0 text-[#9E9E9E]" />
                           <span className="min-w-0">{truncate(leave.reason, 60)}</span>
                         </div>
                         {leave.exceedsEntitlement && (leave.excessUnpaidDays ?? 0) > 0 && (
-                          <p className="text-xs font-medium text-amber-800">
+                          <p className="text-[0.75rem] font-medium text-[#B07D00]">
                             Includes {leave.excessUnpaidDays} unpaid/extra day
                             {leave.excessUnpaidDays !== 1 ? 's' : ''} (beyond paid allowance at request) — team
                             lead notified.
@@ -305,24 +303,24 @@ export default function LeavePage() {
                         {(leave.status === 'APPROVED' || leave.status === 'REJECTED') && (
                           <>
                             {leave.reviewedBy?.fullName && (
-                              <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                                <User className="h-3 w-3 shrink-0" />
+                              <div className="flex items-center gap-1.5 text-[0.75rem] text-[#9E9E9E]">
+                                <User className="h-3.5 w-3.5 shrink-0" />
                                 Reviewed by {leave.reviewedBy.fullName}
                               </div>
                             )}
                             {leave.reviewNote ? (
-                              <p className="text-xs italic text-gray-400">&ldquo;{leave.reviewNote}&rdquo;</p>
+                              <p className="text-[0.75rem] italic text-[#9E9E9E]">&ldquo;{leave.reviewNote}&rdquo;</p>
                             ) : null}
                           </>
                         )}
-                        <p className="text-xs text-gray-400">
+                        <p className="text-[0.75rem] text-[#9E9E9E]">
                           Applied {formatRelativeTime(leave.createdAt)}
                         </p>
                       </div>
 
                       <div className="flex shrink-0 flex-col items-center justify-center gap-2 sm:items-end">
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-medium ${statusPillClass(leave.status)}`}
+                          className={`rounded-full px-3 py-1 text-[0.65rem] font-medium ${statusPillClass(leave.status)}`}
                         >
                           {leave.status}
                         </span>
@@ -331,7 +329,7 @@ export default function LeavePage() {
                             type="button"
                             disabled={cancellingId === leave._id}
                             onClick={() => handleCancel(leave._id)}
-                            className="text-xs text-red-500 underline disabled:cursor-not-allowed disabled:opacity-60"
+                            className="text-[0.75rem] text-[#C62828] underline disabled:cursor-not-allowed disabled:opacity-60 hover:text-[#b71c1c]"
                           >
                             {cancellingId === leave._id ? (
                               <Loader2 className="mx-auto h-4 w-4 animate-spin" />
@@ -348,7 +346,7 @@ export default function LeavePage() {
             </ul>
           )}
         </div>
-      </div>
+
 
       <LeaveRequestModal
         isOpen={showModal}
