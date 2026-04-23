@@ -31,7 +31,7 @@ const LoginModal = ({ isOpen, onClose, role }) => {
       toast.success(`Welcome back, ${name || userRole}!`);
 
       if (userRole === 'ADMIN') navigate('/admin');
-      else if (userRole === 'TEAM_LEAD') navigate('/team-lead');
+      else if (userRole === 'TEAM_LEAD') navigate('/teamlead');
       else if (userRole === 'FIELD_WORKER') navigate('/worker');
       else navigate('/');
 
@@ -52,7 +52,7 @@ const LoginModal = ({ isOpen, onClose, role }) => {
       case 'Volunteer':
         return <User className="text-[#427A43]" />;
       case 'Team Lead':
-        return <Users className="text-[#005F02]" />;
+        return <Users className="text-[#246427]" />;
       case 'Administrator':
         return <Shield className="text-[#F8AC3B]" />;
       default:
@@ -61,26 +61,26 @@ const LoginModal = ({ isOpen, onClose, role }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden relative shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-        <div className="bg-[#F1F8E9] p-6 flex justify-between items-center border-b border-[#E0D9C8]">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/35 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-[#FFFFFF] rounded-[20px] w-full max-w-sm overflow-hidden relative shadow-[0_8px_32px_rgba(0,0,0,0.14)] animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
+        <div className="bg-[#F1F8E9] px-[24px] py-[16px] flex justify-between items-center border-b border-[#E0E7DC]">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-white shadow-sm">{getRoleIcon()}</div>
             <div>
-              <h2 className="text-xl font-bold text-[#1A1A1A]">Login as {role}</h2>
+              <h2 className="text-[1rem] font-semibold text-[#212121]">Login as {role}</h2>
               <p className="text-xs text-[#616161]">Access your dashboard</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-white transition-colors text-[#616161]"
+            className="p-2 rounded-full text-[#616161] hover:text-[#246427] transition-colors"
           >
             <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="p-[24px] space-y-5 bg-[#FFFFFF]">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm animate-in shake-in duration-300">
               {error}
@@ -88,9 +88,9 @@ const LoginModal = ({ isOpen, onClose, role }) => {
           )}
 
           <div className="space-y-1">
-            <label className="block text-sm font-semibold text-gray-700 ml-1">Username</label>
+            <label className="block text-[0.875rem] font-medium text-[#212121] mb-[6px]">Username</label>
             <div className="relative group">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#005F02] transition-colors">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#246427] transition-colors">
                 <User size={18} />
               </span>
               <input
@@ -99,16 +99,16 @@ const LoginModal = ({ isOpen, onClose, role }) => {
                 autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#005F02] focus:border-transparent outline-none transition-all placeholder:text-gray-300"
+                className="w-full pl-10 pr-[14px] py-[10px] bg-[#FFFFFF] border border-[#E0E7DC] rounded-[10px] text-[0.875rem] text-[#212121] focus:ring-0 focus:border-[#246427] focus:shadow-[0_0_0_3px_rgba(36,100,39,0.1)] outline-none transition-[border-color,box-shadow] duration-180 placeholder:text-[#9E9E9E]"
                 placeholder="Username / Email"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="block text-sm font-semibold text-gray-700 ml-1">Password</label>
+            <label className="block text-[0.875rem] font-medium text-[#212121] mb-[6px]">Password</label>
             <div className="relative group">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#005F02] transition-colors">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#246427] transition-colors">
                 <Lock size={18} />
               </span>
               <input
@@ -117,7 +117,7 @@ const LoginModal = ({ isOpen, onClose, role }) => {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#005F02] focus:border-transparent outline-none transition-all placeholder:text-gray-300"
+                className="w-full pl-10 pr-[14px] py-[10px] bg-[#FFFFFF] border border-[#E0E7DC] rounded-[10px] text-[0.875rem] text-[#212121] focus:ring-0 focus:border-[#246427] focus:shadow-[0_0_0_3px_rgba(36,100,39,0.1)] outline-none transition-[border-color,box-shadow] duration-180 placeholder:text-[#9E9E9E]"
                 placeholder="Password"
               />
             </div>
@@ -127,8 +127,8 @@ const LoginModal = ({ isOpen, onClose, role }) => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3.5 rounded-2xl font-bold text-white shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-3 ${
-                loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#005F02] hover:bg-[#003D01] shadow-green-900/20'
+              className={`w-full px-[20px] py-[10px] rounded-[10px] font-semibold text-[0.875rem] text-[#FFFFFF] shadow-sm transition-[background-color,shadow] duration-180 flex items-center justify-center gap-3 ${
+                loading ? 'bg-[#9E9E9E] cursor-not-allowed' : 'bg-[#246427] hover:bg-[#1a4d1c] hover:shadow'
               }`}
             >
               {loading ? (

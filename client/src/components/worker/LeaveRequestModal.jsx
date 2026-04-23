@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Coffee, Thermometer, AlertTriangle, Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
-import api from '../../utils/api';
+import api from "../../utils/api";
 
 function localISODate(d = new Date()) {
   const y = d.getFullYear();
@@ -115,13 +115,13 @@ export default function LeaveRequestModal({ isOpen, onClose, remainingDays = 0, 
   };
 
   const remainingColorClass =
-    remainingSafe > 3 ? 'text-green-600' : remainingSafe >= 1 ? 'text-amber-600' : 'text-red-600';
+    remainingSafe > 3 ? 'text-[#246427]' : remainingSafe >= 1 ? 'text-[#B07D00]' : 'text-[#C62828]';
 
   const modal = (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex justify-center bg-black/50 px-4"
+          className="fixed inset-0 z-50 flex justify-center bg-black/35 backdrop-blur-sm px-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -131,26 +131,26 @@ export default function LeaveRequestModal({ isOpen, onClose, remainingDays = 0, 
             role="dialog"
             aria-modal="true"
             aria-labelledby="leave-modal-title"
-            className="relative mt-20 h-max w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+            className="relative mt-20 h-max w-full max-w-md rounded-[20px] bg-[#FFFFFF] p-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', damping: 26, stiffness: 320 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-4 flex items-start justify-between gap-2">
+            <div className="bg-[#F1F8E9] border-b border-[#E0E7DC] px-[24px] py-[16px] rounded-t-[20px] flex items-start justify-between gap-2 -mx-[24px] -mt-[24px] mb-[24px]">
               <div>
-                <h2 id="leave-modal-title" className="text-lg font-bold text-[#005F02]">
+                <h2 id="leave-modal-title" className="text-[1rem] font-semibold text-[#212121]">
                   Request Leave
                 </h2>
-                <p className={`mt-1 text-sm ${remainingColorClass}`}>
+                <p className={`mt-1 text-[0.875rem] font-medium ${remainingColorClass}`}>
                   {remainingSafe} days remaining
                 </p>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg p-1 text-gray-500 hover:bg-gray-100"
+                className="rounded-lg p-1 text-[#616161] hover:text-[#246427] transition-colors"
                 aria-label="Close"
               >
                 <X className="h-5 w-5" />
@@ -159,25 +159,25 @@ export default function LeaveRequestModal({ isOpen, onClose, remainingDays = 0, 
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">Leave Type</label>
+                <label className="mb-2 block text-[0.875rem] font-medium text-[#212121]">Leave Type</label>
                 <div className="flex gap-2">
                   {TYPES.map(({ value, label, Icon }) => {
                     const selected = formData.leaveType === value;
                     const isEmergency = value === 'EMERGENCY';
                     const btnClass = selected
                       ? isEmergency
-                        ? 'bg-[#d97706] text-white'
-                        : 'bg-[#005F02] text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200';
+                        ? 'bg-[#C62828] text-white'
+                        : 'bg-[#246427] text-white'
+                      : 'bg-[#F9FBF7] text-[#616161] border border-[#E0E7DC] hover:bg-[#F1F8E9]';
                     return (
                       <button
                         key={value}
                         type="button"
                         onClick={() => setFormData((p) => ({ ...p, leaveType: value }))}
-                        className={`flex flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-xs font-medium transition-colors ${btnClass}`}
+                        className={`flex flex-1 flex-col items-center gap-1 rounded-[10px] px-2 py-2 text-[0.8rem] font-medium transition-colors ${btnClass}`}
                       >
                         <Icon
-                          className={`h-4 w-4 shrink-0 ${selected ? 'text-white' : isEmergency ? 'text-amber-600' : 'text-gray-600'}`}
+                          className={`h-4 w-4 shrink-0 ${selected ? 'text-white' : isEmergency ? 'text-[#C62828]' : 'text-[#616161]'}`}
                         />
                         {label}
                       </button>
@@ -187,7 +187,7 @@ export default function LeaveRequestModal({ isOpen, onClose, remainingDays = 0, 
               </div>
 
               <div>
-                <label htmlFor="leave-from" className="mb-1 block text-sm font-medium text-gray-700">
+                <label htmlFor="leave-from" className="mb-1 block text-[0.875rem] font-medium text-[#212121]">
                   From Date
                 </label>
                 <input
@@ -196,12 +196,12 @@ export default function LeaveRequestModal({ isOpen, onClose, remainingDays = 0, 
                   min={todayMin}
                   value={formData.fromDate}
                   onChange={(e) => setFormData((p) => ({ ...p, fromDate: e.target.value, toDate: p.toDate && p.toDate < e.target.value ? e.target.value : p.toDate }))}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#005F02]"
+                  className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
                 />
               </div>
 
               <div>
-                <label htmlFor="leave-to" className="mb-1 block text-sm font-medium text-gray-700">
+                <label htmlFor="leave-to" className="mb-1 block text-[0.875rem] font-medium text-[#212121]">
                   To Date
                 </label>
                 <input
@@ -210,7 +210,7 @@ export default function LeaveRequestModal({ isOpen, onClose, remainingDays = 0, 
                   min={formData.fromDate || todayMin}
                   value={formData.toDate}
                   onChange={(e) => setFormData((p) => ({ ...p, toDate: e.target.value }))}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#005F02]"
+                  className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
                 />
               </div>
 
@@ -222,8 +222,8 @@ export default function LeaveRequestModal({ isOpen, onClose, remainingDays = 0, 
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.8 }}
                     transition={{ duration: 0.2 }}
-                    className={`mx-auto mt-1 max-w-full rounded-xl px-4 py-2 text-center text-sm font-medium ${
-                      overBalance ? 'bg-amber-50 text-amber-900 ring-1 ring-amber-200' : 'bg-[#F2E3BB] text-[#005F02]'
+                    className={`mx-auto mt-1 max-w-full rounded-[10px] px-4 py-2 text-center text-sm font-medium ${
+                      overBalance ? 'bg-[#FFF8E1] text-[#B07D00] border border-[#FFE082]' : 'bg-[#E8F5E9] text-[#246427] border border-[#A5D6A7]'
                     }`}
                   >
                     {overBalance ? (
@@ -247,10 +247,10 @@ export default function LeaveRequestModal({ isOpen, onClose, remainingDays = 0, 
               </AnimatePresence>
 
               <div>
-                <label htmlFor="leave-reason" className="mb-1 block text-sm font-medium text-gray-700">
+                <label htmlFor="leave-reason" className="mb-1 block text-[0.875rem] font-medium text-[#212121]">
                   Reason
                 </label>
-                <p className="mb-1 text-xs text-gray-400">Minimum 10 characters</p>
+                <p className="mb-1 text-[0.75rem] text-[#616161]">Minimum 10 characters</p>
                 <textarea
                   id="leave-reason"
                   rows={3}
@@ -258,17 +258,17 @@ export default function LeaveRequestModal({ isOpen, onClose, remainingDays = 0, 
                   placeholder="Briefly describe your reason..."
                   value={formData.reason}
                   onChange={(e) => setFormData((p) => ({ ...p, reason: e.target.value }))}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#005F02]"
+                  className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
                 />
-                <p className="mt-1 text-right text-xs text-gray-400">{formData.reason.length}/200</p>
+                <p className="mt-1 text-right text-[0.75rem] text-[#616161]">{formData.reason.length}/200</p>
               </div>
 
               <button
                 type="submit"
                 disabled={submitDisabled}
-                className={`w-full rounded-xl py-3 font-semibold text-white transition-opacity ${
-                  submitDisabled ? 'cursor-not-allowed opacity-50' : ''
-                } bg-[#005F02]`}
+                className={`w-full rounded-[10px] py-[10px] text-[0.875rem] font-semibold text-[#FFFFFF] transition-opacity ${
+                  submitDisabled ? 'cursor-not-allowed opacity-50 bg-[#246427]' : 'bg-[#246427] hover:bg-[#1a4d1c]'
+                }`}
               >
                 {submitting ? (
                   <span className="inline-flex items-center justify-center gap-2">
@@ -280,7 +280,7 @@ export default function LeaveRequestModal({ isOpen, onClose, remainingDays = 0, 
                 )}
               </button>
               {submitDisabled && disabledHint ? (
-                <p className="mt-2 text-center text-xs text-gray-500">{disabledHint}</p>
+                <p className="mt-2 text-center text-[0.75rem] text-[#616161]">{disabledHint}</p>
               ) : null}
             </form>
           </motion.div>

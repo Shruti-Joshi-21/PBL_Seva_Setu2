@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import api from '../../utils/api.js';
 import { useAuth } from '../../context/AuthContext';
-import { MapPin, Plus, Loader2 } from 'lucide-react';
+import { MapPin, Plus, Loader2, Check } from 'lucide-react';
 
 const WORK_TYPE_OPTIONS = [
   'Waste Collection',
@@ -122,46 +122,39 @@ const CreateTask = () => {
   const stepLabels = ['Task details', 'Assign workers', 'Report fields'];
 
   return (
-    <div className="bg-[#f5f0e8] min-h-screen p-6 space-y-5">
-      <button
-        type="button"
-        className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1.5 mb-5 font-normal"
-        onClick={() => navigate('/teamlead/tasks')}
-      >
-        ← Back
-      </button>
-      <h1 className="text-xl font-medium text-gray-800 mb-6">Create new task</h1>
+    <div className="bg-transparent  p-6 space-y-5">
+
 
       <div className="bg-white rounded-xl border border-[#e8e0d0] p-6 space-y-6">
         <div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center px-4">
             {[1, 2, 3].map((s, idx) => (
               <React.Fragment key={s}>
-                <StepCircle step={s} currentStep={currentStep} />
+                {/* Step Circle & Label Group */}
+                <div className="flex flex-col items-center relative z-10 w-24">
+                  <StepCircle step={s} currentStep={currentStep} />
+                  <span
+                    className={`text-[10px] uppercase tracking-wider mt-2 whitespace-nowrap ${
+                      currentStep === s
+                        ? 'text-[#1a4a1a] font-bold'
+                        : currentStep > s
+                          ? 'text-[#2d6b2d] font-medium'
+                          : 'text-gray-400 font-normal'
+                    }`}
+                  >
+                    {stepLabels[idx]}
+                  </span>
+                </div>
+                
+                {/* Connector Line */}
                 {idx < 2 ? (
                   <div
-                    className={`h-px flex-1 min-w-[1rem] transition-all duration-300 ${
+                    className={`h-px flex-1 -mt-6 transition-all duration-300 ${
                       currentStep > s ? 'bg-[#2d6b2d]' : 'bg-gray-200'
                     }`}
                   />
                 ) : null}
               </React.Fragment>
-            ))}
-          </div>
-          <div className="flex justify-between gap-2 mt-2">
-            {stepLabels.map((lbl, i) => (
-              <span
-                key={lbl}
-                className={`text-xs font-normal flex-1 text-center ${
-                  currentStep === i + 1
-                    ? 'text-[#1a4a1a] font-medium'
-                    : currentStep > i + 1
-                      ? 'text-[#2d6b2d]'
-                      : 'text-gray-400'
-                }`}
-              >
-                {lbl}
-              </span>
             ))}
           </div>
         </div>
@@ -350,7 +343,7 @@ const CreateTask = () => {
                       )
                     }
                     className={`w-full flex items-center gap-3 px-4 py-3 border-b border-[#e8e0d0] last:border-0 text-left transition-colors ${
-                      selectedWorkers.includes(w._id) ? 'bg-[#f5f0e8]' : 'bg-white hover:bg-gray-50'
+                      selectedWorkers.includes(w._id) ? 'bg-transparent' : 'bg-white hover:bg-gray-50'
                     }`}
                   >
                     <div
@@ -361,17 +354,7 @@ const CreateTask = () => {
                       }`}
                     >
                       {selectedWorkers.includes(w._id) ? (
-                        <svg
-                          className="w-3 h-3 text-white"
-                          viewBox="0 0 12 12"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M2 6l3 3 5-5" />
-                        </svg>
+                        <Check className="w-4 h-4 text-white" />
                       ) : null}
                     </div>
 
@@ -386,11 +369,21 @@ const CreateTask = () => {
 
                     <span className="text-sm font-normal text-gray-800 flex-1">{w.name}</span>
 
-                    {w.topWorkType ? (
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-normal shrink-0">
-                        {w.topWorkType}
-                      </span>
-                    ) : null}
+                    <div className="flex gap-1 flex-wrap max-w-[200px] justify-end">
+                      {(w.workHistory || []).slice(0, 3).map((type) => (
+                        <span
+                          key={type}
+                          className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-normal shrink-0"
+                        >
+                          {type}
+                        </span>
+                      ))}
+                      {(w.workHistory || []).length === 0 && (
+                        <span className="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-normal shrink-0">
+                          No history
+                        </span>
+                      )}
+                    </div>
 
                     <span
                       className={`text-xs font-normal shrink-0 ${
@@ -426,7 +419,7 @@ const CreateTask = () => {
         {currentStep === 3 ? (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             <div className="space-y-3">
-              <div className="bg-[#f5f0e8] rounded-t-lg px-4 py-2 grid grid-cols-[1fr_120px_40px] gap-2 text-[10px] uppercase tracking-widest text-gray-400 font-normal">
+              <div className="bg-transparent rounded-t-lg px-4 py-2 grid grid-cols-[1fr_120px_40px] gap-2 text-[10px] uppercase tracking-widest text-gray-400 font-normal">
                 <span>Field name</span>
                 <span>Type</span>
                 <span />
@@ -529,16 +522,30 @@ function StepCircle({ step, currentStep }) {
   const done = currentStep > step;
   const active = currentStep === step;
   return (
-    <div
-      className={`w-7 h-7 rounded-full text-xs flex items-center justify-center shrink-0 ${
-        done
-          ? 'bg-[#2d6b2d] text-white'
-          : active
-            ? 'bg-[#1a4a1a] text-[#C0B87A]'
-            : 'bg-white border border-gray-300 text-gray-400'
-      }`}
-    >
-      {done ? '✓' : step}
+    <div className="relative">
+      {active && (
+        <motion.div
+          className="absolute inset-0 rounded-full bg-[#1a4a1a]"
+          initial={{ scale: 1, opacity: 0.4 }}
+          animate={{ scale: 1.5, opacity: 0 }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeOut"
+          }}
+        />
+      )}
+      <div
+        className={`w-9 h-9 rounded-full text-sm flex items-center justify-center shrink-0 relative z-10 ${
+          done
+            ? 'bg-[#2d6b2d] text-white'
+            : active
+              ? 'bg-[#1a4a1a] text-white'
+              : 'bg-white border border-gray-300 text-gray-400'
+        }`}
+      >
+        {done ? '✓' : step}
+      </div>
     </div>
   );
 }

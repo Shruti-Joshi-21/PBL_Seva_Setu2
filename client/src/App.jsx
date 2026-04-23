@@ -13,10 +13,13 @@ import WorkerAttendancePage from './pages/worker/AttendancePage';
 import LeavePage from './pages/worker/LeavePage';
 import MarkAttendance from './pages/worker/MarkAttendance';
 import SubmitReport from './pages/worker/SubmitReport';
+import ReportsPage from './pages/worker/ReportsPage';
+import TasksPage from './pages/worker/TasksPage';
 
 // Team Lead pages — pulled from aarya-final into pages/teamlead/
 import TeamLeadDashboard from './pages/teamlead/TeamLeadDashboard';
 import Tasks from './pages/teamlead/Tasks';
+import TaskDetail from './pages/teamlead/TaskDetail';
 import CreateTask from './pages/teamlead/CreateTask';
 import AttendanceReview from './pages/teamlead/AttendanceReview';
 import LeaveManagement from './pages/teamlead/LeaveManagement';
@@ -25,7 +28,6 @@ import FieldReports from './pages/teamlead/FieldReports';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
-import UserManagement from './pages/admin/UserManagement';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -37,17 +39,30 @@ const DashboardPlaceholder = ({ title }) => (
   </div>
 );
 
+const teamLeadNested = (
+  <Layout>
+    <Routes>
+      <Route index element={<TeamLeadDashboard />} />
+      <Route path="tasks" element={<Tasks />} />
+      <Route path="tasks/create" element={<CreateTask />} />
+      <Route path="tasks/:taskId" element={<TaskDetail />} />
+      <Route path="attendance" element={<AttendanceReview />} />
+      <Route path="leave" element={<LeaveManagement />} />
+      <Route path="flags" element={<FlaggedRecords />} />
+      <Route path="reports" element={<FieldReports />} />
+    </Routes>
+  </Layout>
+);
+
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Auth redirects */}
           <Route path="/login" element={<Navigate to="/" replace />} />
           <Route path="/worker/login" element={<Navigate to="/" replace />} />
           <Route path="/teamlead/login" element={<Navigate to="/" replace />} />
           <Route path="/admin/login" element={<Navigate to="/" replace />} />
-          <Route path="/team-lead/*" element={<Navigate to="/teamlead" replace />} />
 
           {/* Admin Routes */}
           <Route
@@ -56,7 +71,7 @@ function App() {
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <Routes>
                   <Route index element={<AdminDashboard />} />
-                  <Route path="users" element={<Layout><UserManagement /></Layout>} />
+                  <Route path="users" element={<AdminDashboard />} />
                   <Route path="reports" element={<Layout><DashboardPlaceholder title="System Reports" /></Layout>} />
                 </Routes>
               </ProtectedRoute>
@@ -68,20 +83,11 @@ function App() {
             path="/teamlead/*"
             element={
               <ProtectedRoute allowedRoles={['TEAM_LEAD']}>
-                <Layout>
-                  <Routes>
-                    <Route index element={<TeamLeadDashboard />} />
-                    <Route path="tasks" element={<Tasks />} />
-                    <Route path="tasks/create" element={<CreateTask />} />
-                    <Route path="attendance" element={<AttendanceReview />} />
-                    <Route path="leave" element={<LeaveManagement />} />
-                    <Route path="flags" element={<FlaggedRecords />} />
-                    <Route path="reports" element={<FieldReports />} />
-                  </Routes>
-                </Layout>
+                {teamLeadNested}
               </ProtectedRoute>
             }
           />
+          <Route path="/team-lead/*" element={<Navigate to="/teamlead" replace />} />
 
           {/* Worker Routes */}
           <Route
@@ -91,10 +97,13 @@ function App() {
                 <Layout>
                   <Routes>
                     <Route index element={<WorkerDashboard />} />
+                    <Route path="tasks" element={<TasksPage />} />
                     <Route path="attendance" element={<WorkerAttendancePage />} />
+                    <Route path="attendance/history" element={<WorkerAttendancePage />} />
                     <Route path="attendance/:taskId" element={<MarkAttendance />} />
-                    <Route path="leave" element={<LeavePage />} />
+                    <Route path="reports" element={<ReportsPage />} />
                     <Route path="report/:taskId" element={<SubmitReport />} />
+                    <Route path="leave" element={<LeavePage />} />
                   </Routes>
                 </Layout>
               </ProtectedRoute>

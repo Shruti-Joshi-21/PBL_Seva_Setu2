@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { ClipboardList, CheckCircle2, AlertTriangle, TrendingUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import api from '../../utils/api';
-import AttendanceDetailDrawer from '../../components/worker/AttendanceDetailDrawer';
+import AttendanceDetailDrawer from "../../components/worker/AttendanceDetailDrawer";
 
 const MONTH_NAMES = [
   'January',
@@ -161,10 +161,10 @@ export default function AttendancePage() {
 
   const rateIconColor =
     stats.attendanceRate >= 80
-      ? '#16a34a'
+      ? '#246427'
       : stats.attendanceRate >= 50
-        ? '#d97706'
-        : '#dc2626';
+        ? '#B07D00'
+        : '#C62828';
   const rateValueColor = rateIconColor;
 
   const paddingCells = Array.from({ length: firstDayOfMonth }, (_, i) => (
@@ -181,8 +181,8 @@ export default function AttendancePage() {
     const hasFlags = rec?.flagReasons?.length > 0;
 
     const status = rec?.status;
-    let dotClass = 'bg-[#d1d5db]';
-    let labelClass = 'text-gray-400';
+    let dotClass = 'bg-[#E0E7DC]';
+    let labelClass = 'text-[#616161]';
     let labelText = '';
     let cellBg = '';
     let hoverBg = '';
@@ -190,30 +190,30 @@ export default function AttendancePage() {
     if (hasRecord) {
       switch (status) {
         case 'VERIFIED':
-          dotClass = 'bg-[#16a34a]';
-          labelClass = 'text-[#16a34a]';
+          dotClass = 'bg-[#246427]';
+          labelClass = 'text-[#246427]';
           labelText = 'VERIFIED';
-          hoverBg = 'hover:bg-[#f0fdf4]';
+          hoverBg = 'hover:bg-[#E8F5E9]';
           break;
         case 'FLAGGED':
-          dotClass = 'bg-[#d97706]';
-          labelClass = 'text-[#d97706]';
+          dotClass = 'bg-[#B07D00]';
+          labelClass = 'text-[#B07D00]';
           labelText = 'FLAGGED';
-          cellBg = 'bg-[#fffbeb]';
-          hoverBg = 'hover:bg-[#fffbeb]';
+          cellBg = 'bg-[#FFF8E1]';
+          hoverBg = 'hover:bg-[#FFF8E1]';
           break;
         case 'PENDING':
-          dotClass = 'bg-[#2563eb]';
-          labelClass = 'text-[#2563eb]';
+          dotClass = 'bg-[#0277BD]';
+          labelClass = 'text-[#0277BD]';
           labelText = 'PENDING';
-          hoverBg = 'hover:bg-[#eff6ff]';
+          hoverBg = 'hover:bg-[#E3F2FD]';
           break;
         case 'REJECTED':
-          dotClass = 'bg-[#dc2626]';
-          labelClass = 'text-[#dc2626]';
+          dotClass = 'bg-[#C62828]';
+          labelClass = 'text-[#C62828]';
           labelText = 'REJECTED';
-          cellBg = 'bg-[#fef2f2]';
-          hoverBg = 'hover:bg-[#fef2f2]';
+          cellBg = 'bg-[#FFEBEE]';
+          hoverBg = 'hover:bg-[#FFEBEE]';
           break;
         default:
           labelText = status || '';
@@ -249,8 +249,8 @@ export default function AttendancePage() {
           whileTap={clickable ? { scale: 0.97 } : undefined}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           className={[
-            'flex h-full min-h-[64px] flex-col rounded-xl p-1',
-            isToday ? 'border-2 border-[#005F02]' : 'border border-transparent',
+            'flex h-full min-h-[64px] flex-col rounded-[14px] p-1',
+            isToday ? 'border-2 border-[#246427]' : 'border border-transparent',
             cellBg,
             clickable ? `cursor-pointer ${hoverBg}` : '',
             !clickable && isFuture ? 'cursor-default' : '',
@@ -267,16 +267,16 @@ export default function AttendancePage() {
           )}
           <div className="flex justify-center">
             {isToday ? (
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#005F02] text-sm font-bold text-white">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#246427] text-[0.875rem] font-bold text-white">
                 {day}
               </span>
             ) : (
               <span
-                className={`text-sm font-semibold ${isFuture
-                    ? 'text-gray-200'
+                className={`text-[0.875rem] font-semibold ${isFuture
+                    ? 'text-[#BDBDBD]'
                     : showPastEmpty
-                      ? 'text-gray-300'
-                      : 'text-gray-800'
+                      ? 'text-[#9E9E9E]'
+                      : 'text-[#212121]'
                   }`}
               >
                 {day}
@@ -288,7 +288,7 @@ export default function AttendancePage() {
               <div className="flex items-center gap-0.5">
                 <span className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`} />
                 {status === 'FLAGGED' && (
-                  <AlertTriangle className="h-2.5 w-2.5 text-[#d97706]" strokeWidth={2.5} />
+                  <AlertTriangle className="h-2.5 w-2.5 text-[#B07D00]" strokeWidth={2.5} />
                 )}
               </div>
               <span className={`text-[10px] font-medium leading-none ${labelClass}`}>{labelText}</span>
@@ -301,20 +301,17 @@ export default function AttendancePage() {
 
   return (
     <motion.div
-      className="space-y-6 bg-[#f7f9f7] -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 pb-10 min-h-full rounded-b-2xl"
+      className="space-y-6 bg-[#F9FBF7] -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 pb-10 min-h-full rounded-b-[20px]"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div>
-        <h1 className="text-2xl font-bold text-[#005F02]">Attendance</h1>
-        <p className="mt-1 text-sm text-gray-500">Track your daily check-in/check-out history</p>
-      </div>
+
 
       {loading ? (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-24 animate-pulse rounded-2xl bg-gray-200" />
+            <div key={i} className="h-24 animate-pulse rounded-[20px] bg-gray-200" />
           ))}
         </div>
       ) : (
@@ -322,35 +319,30 @@ export default function AttendancePage() {
           {[
             {
               Icon: ClipboardList,
-              iconStyle: { color: '#005F02' },
+              iconStyle: { color: '#246427' },
               value: stats.total,
               label: 'All Time',
-              valueClass: 'text-gray-900',
               cardClass: '',
             },
             {
               Icon: CheckCircle2,
-              iconStyle: { color: '#16a34a' },
+              iconStyle: { color: '#246427' },
               value: stats.verified,
               label: 'Verified',
-              valueClass: 'text-[#16a34a]',
               cardClass: '',
             },
             {
               Icon: AlertTriangle,
-              iconStyle: { color: '#d97706' },
+              iconStyle: { color: '#B07D00' },
               value: stats.flagged,
               label: 'Flagged',
-              valueClass: 'text-[#d97706]',
-              cardClass: stats.flagged > 0 ? 'bg-[#fffbeb]' : '',
+              cardClass: stats.flagged > 0 ? 'bg-[#FFF8E1] border-none' : '',
             },
             {
               Icon: TrendingUp,
               iconStyle: { color: rateIconColor },
               value: `${stats.attendanceRate}%`,
               label: 'Verified Rate',
-              valueClass: '',
-              valueStyle: { color: rateValueColor },
               cardClass: '',
             },
           ].map((card, i) => (
@@ -359,23 +351,26 @@ export default function AttendancePage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 * i, duration: 0.25 }}
-              className={`rounded-2xl bg-white p-4 shadow-sm ${card.cardClass}`}
+              className={`rounded-[20px] bg-[#FFFFFF] border border-[#E0E7DC] p-5 shadow-[0_4px_12px_rgba(0,0,0,0.05)] flex flex-col gap-2 ${card.cardClass}`}
             >
-              <card.Icon className="h-6 w-6" style={card.iconStyle} />
-              <p
-                className={`mt-2 text-2xl font-bold ${card.valueClass || ''}`}
-                style={card.valueStyle}
-              >
-                {card.value}
-              </p>
-              <p className="text-xs text-gray-500">{card.label}</p>
+              <div className="flex items-center gap-3">
+                <card.Icon className="h-[22px] w-[22px]" style={card.iconStyle} strokeWidth={2.5} />
+                <p 
+                  className="text-[1.25rem] lg:text-[1.5rem] font-bold leading-tight truncate text-[#212121]"
+                >
+                  {card.value}
+                </p>
+              </div>
+              <div className="flex flex-col">
+                <p className="text-[0.75rem] text-[#616161] truncate line-clamp-1">{card.label}</p>
+              </div>
             </motion.div>
           ))}
         </div>
       )}
 
       <motion.div
-        className="rounded-2xl bg-white p-6 shadow-sm"
+        className="rounded-[20px] bg-[#FFFFFF] p-6 shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC]"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, duration: 0.4 }}
@@ -384,12 +379,12 @@ export default function AttendancePage() {
           <button
             type="button"
             onClick={goPrevMonth}
-            className="flex w-fit items-center justify-center rounded-xl border border-gray-200 p-2 text-gray-700 hover:bg-gray-50"
+            className="flex w-fit items-center justify-center rounded-xl border border-[#E0E7DC] p-2 text-[#616161] hover:bg-[#F1F8E9]"
             aria-label="Previous month"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <div className="text-center text-lg font-bold text-[#005F02]">
+          <div className="text-center text-[1.125rem] font-bold text-[#212121]">
             {MONTH_NAMES[currentMonth - 1]} {currentYear}
           </div>
           <div className="flex justify-end">
@@ -397,7 +392,7 @@ export default function AttendancePage() {
               type="button"
               onClick={goNextMonth}
               disabled={isNextDisabled}
-              className="flex items-center justify-center rounded-xl border border-gray-200 p-2 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex items-center justify-center rounded-xl border border-[#E0E7DC] p-2 text-[#616161] hover:bg-[#F1F8E9] disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Next month"
             >
               <ChevronRight className="h-5 w-5" />
@@ -405,9 +400,9 @@ export default function AttendancePage() {
           </div>
         </div>
 
-        <div className="mb-2 grid grid-cols-7 gap-1 border-b border-gray-100 pb-2">
+        <div className="mb-2 grid grid-cols-7 gap-1 border-b border-[#E0E7DC] pb-2">
           {DAY_LABELS.map((d) => (
-            <div key={d} className="text-center text-xs font-medium uppercase text-gray-400">
+            <div key={d} className="text-center text-[0.75rem] font-medium uppercase text-[#616161]">
               {d}
             </div>
           ))}
@@ -437,17 +432,17 @@ export default function AttendancePage() {
           </AnimatePresence>
         )}
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-4 border-t border-gray-100 pt-4">
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-4 border-t border-[#E0E7DC] pt-4">
           {[
-            { c: '#16a34a', t: 'Verified' },
-            { c: '#d97706', t: 'Flagged' },
-            { c: '#2563eb', t: 'Pending' },
-            { c: '#dc2626', t: 'Rejected' },
-            { c: '#d1d5db', t: 'No Record' },
+            { c: '#246427', t: 'Verified' },
+            { c: '#B07D00', t: 'Flagged' },
+            { c: '#0277BD', t: 'Pending' },
+            { c: '#C62828', t: 'Rejected' },
+            { c: '#E0E7DC', t: 'No Record' },
           ].map((item) => (
             <div key={item.t} className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.c }} />
-              <span className="text-xs text-gray-500">{item.t}</span>
+              <span className="text-[0.75rem] text-[#616161]">{item.t}</span>
             </div>
           ))}
         </div>
@@ -455,15 +450,15 @@ export default function AttendancePage() {
 
       {!loading && (
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <span className="rounded-full bg-[#f0fdf4] px-4 py-2 text-sm font-medium text-[#16a34a]">
+          <span className="rounded-full bg-[#E8F5E9] px-4 py-2 text-[0.875rem] font-medium text-[#246427]">
             {verifiedThisMonth} days verified this month
           </span>
           {flaggedThisMonth > 0 && (
-            <span className="rounded-full bg-[#fffbeb] px-4 py-2 text-sm font-medium text-[#d97706]">
+            <span className="rounded-full bg-[#FFF8E1] px-4 py-2 text-[0.875rem] font-medium text-[#B07D00]">
               {flaggedThisMonth} days flagged
             </span>
           )}
-          <span className="rounded-full bg-[#f7f9f7] px-4 py-2 text-sm font-medium text-gray-600">
+          <span className="rounded-full bg-[#F1F8E9] px-4 py-2 text-[0.875rem] font-medium text-[#616161]">
             {records.length} total records this month
           </span>
         </div>

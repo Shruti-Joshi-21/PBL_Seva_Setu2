@@ -21,6 +21,8 @@ const AttendanceRecordSchema = new mongoose.Schema(
     status: { type: String, enum: ['PENDING', 'VERIFIED', 'FLAGGED', 'REJECTED'], default: 'PENDING' },
     isLate: { type: Boolean, default: false },
     flagReasons: [{ type: String }],
+    resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    resolutionRemark: { type: String, default: '' },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }

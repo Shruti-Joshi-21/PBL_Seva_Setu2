@@ -54,16 +54,7 @@ const Tasks = () => {
             : 'bg-[#eaf3de] text-[#27500A]';
 
   return (
-    <div className="bg-[#f5f0e8] min-h-screen p-6">
-      <div className="flex items-center justify-end mb-5">
-        <button
-          type="button"
-          onClick={() => navigate('/teamlead/tasks/create')}
-          className="bg-[#1a4a1a] hover:bg-[#2d6b2d] text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-        >
-          Create task
-        </button>
-      </div>
+    <div className="bg-transparent  p-6">
       <div className="flex gap-2 mb-4 flex-wrap">
         {['ALL', 'ACTIVE', 'COMPLETED', 'CANCELLED'].map((f) => (
           <button

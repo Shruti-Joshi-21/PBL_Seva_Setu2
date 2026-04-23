@@ -45,7 +45,7 @@ const AttendanceReview = () => {
             : 'bg-gray-100 text-gray-500';
 
   return (
-    <div className="bg-[#f5f0e8] min-h-screen p-6">
+    <div className="bg-transparent  p-6">
       <div className="flex justify-between items-center mb-5 flex-wrap gap-3">
         <div className="flex gap-2 items-center">
           <input
