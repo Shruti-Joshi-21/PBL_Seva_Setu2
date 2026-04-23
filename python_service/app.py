@@ -82,7 +82,7 @@ def register_face():
         if len(encodings) == 0:
             return jsonify({"success": False, "message": "No face detected"}), 400
 
-        encoding = encodings[0].tolist()
+        encoding = encodings[0].astype(np.float64).tolist()
         return jsonify({"success": True, "encoding": encoding}), 200
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
@@ -175,8 +175,16 @@ def verify_face():
             )
 
         raw_enc = user["faceEncoding"]
-        stored_bytes = bytes(raw_enc)
-        stored_encoding = np.frombuffer(stored_bytes, dtype=np.float32)
+
+        # Handle both list-of-floats (JSON array stored by register-face)
+        # and legacy binary blobs
+        if isinstance(raw_enc, list):
+            stored_encoding = np.array(raw_enc, dtype=np.float64)
+        else:
+            stored_bytes = bytes(raw_enc)
+            stored_encoding = np.frombuffer(stored_bytes, dtype=np.float32).astype(
+                np.float64
+            )
 
         if stored_encoding.size != 128:
             _safe_unlink(temp_path)
@@ -213,11 +221,12 @@ def verify_face():
 
         live_encoding = face_recognition.face_encodings(uploaded_image, face_locations)[0]
         tolerance = float(os.environ.get("FACE_TOLERANCE", "0.5"))
-        stored_64 = stored_encoding.astype(np.float64)
         results = face_recognition.compare_faces(
-            [stored_64], live_encoding, tolerance=tolerance
+            [stored_encoding], live_encoding, tolerance=tolerance
         )
-        distance = float(face_recognition.face_distance([stored_64], live_encoding)[0])
+        distance = float(
+            face_recognition.face_distance([stored_encoding], live_encoding)[0]
+        )
         match = bool(results[0])
         confidence = round(max(0.0, min(1.0, 1.0 - distance)), 3)
 

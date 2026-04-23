@@ -29,8 +29,6 @@ import FieldReports from './pages/teamlead/FieldReports';
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 
-
-
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 

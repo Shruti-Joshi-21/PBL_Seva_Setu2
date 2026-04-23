@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import api from '../../utils/api.js';
 import { useAuth } from '../../context/AuthContext';
-import { MapPin, Plus, Loader2 } from 'lucide-react';
+import { MapPin, Plus, Loader2, Check } from 'lucide-react';
 
 const WORK_TYPE_OPTIONS = [
   'Waste Collection',
@@ -551,4 +551,3 @@ function StepCircle({ step, currentStep }) {
 }
 
 export default CreateTask;
-
