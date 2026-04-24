@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import api from '../../utils/api';
 import LeaveRequestModal from '../../components/worker/LeaveRequestModal';
+import DeleteConfirmationModal from '../../components/shared/DeleteConfirmationModal';
 
 function formatRelativeTime(iso) {
   if (!iso) return '';
@@ -52,12 +53,12 @@ function truncate(s, n) {
 function leaveTypeBadgeClass(type) {
   switch (type) {
     case 'SICK':
-      return 'border border-[#EF9A9A] bg-[#FFEBEE] text-[#C62828]';
+      return 'border border-[#246427]/20 bg-[#246427]/10 text-[#246427]';
     case 'EMERGENCY':
-      return 'border border-[#FFE082] bg-[#FFF8E1] text-[#B07D00]';
+      return 'border border-[#EF9A9A] bg-[#FFEBEE] text-[#C62828]';
     case 'CASUAL':
     default:
-      return 'border border-[#90CAF9] bg-[#E3F2FD] text-[#0277BD]';
+      return 'border border-[#E0E7DC] bg-[#F9FBF7] text-[#616161]';
   }
 }
 
@@ -69,7 +70,7 @@ function statusPillClass(status) {
       return 'border border-[#EF9A9A] bg-[#FFEBEE] text-[#C62828]';
     case 'PENDING':
     default:
-      return 'border border-[#90CAF9] bg-[#E3F2FD] text-[#0277BD]';
+      return 'border border-[#FFE082]/60 bg-[#FFF8E1]/60 text-[#B07D00] backdrop-blur-sm';
   }
 }
 
@@ -79,6 +80,7 @@ export default function LeavePage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [cancellingId, setCancellingId] = useState(null);
+  const [selectedLeaveForCancel, setSelectedLeaveForCancel] = useState(null);
 
   const fetchLeaveData = useCallback(async () => {
     try {
@@ -103,7 +105,6 @@ export default function LeavePage() {
   }, [location.state]);
 
   const handleCancel = async (leaveId) => {
-    if (!window.confirm('Are you sure you want to cancel this leave request?')) return;
     setCancellingId(leaveId);
     try {
       await api.delete(`/worker/leave/${leaveId}`);
@@ -176,7 +177,7 @@ export default function LeavePage() {
 
   return (
     <motion.div
-      className="space-y-8 bg-[#F9FBF7] -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 pb-10 min-h-full rounded-b-[20px]"
+      className="space-y-8 bg-transparent -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 pb-10 min-h-full rounded-b-[20px]"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -270,74 +271,83 @@ export default function LeavePage() {
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.04 * index }}
-                    className="rounded-[14px] bg-[#FFFFFF] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-[#E0E7DC]"
+                    className="relative rounded-[20px] bg-[#FFFFFF] p-6 shadow-[var(--shadow-card)] border border-[#E0E7DC]"
                   >
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
-                      <div className="flex w-full shrink-0 flex-col items-center text-center sm:w-24">
+                    <div className="absolute top-4 right-6 flex flex-col items-center gap-2 min-w-[100px]">
+                      <span
+                        className={`rounded-full px-4 py-1.5 text-[0.7rem] font-bold text-center w-full shadow-sm ${statusPillClass(leave.status)}`}
+                      >
+                        {leave.status}
+                      </span>
+                      {leave.status === 'PENDING' && (
+                        <button
+                          type="button"
+                          disabled={cancellingId === leave._id}
+                          onClick={() => setSelectedLeaveForCancel(leave._id)}
+                          className="text-[0.7rem] font-bold text-[#C62828] transition-colors hover:text-[#b71c1c] text-center px-2 py-1 rounded-lg hover:bg-red-50"
+                        >
+                          {cancellingId === leave._id ? (
+                            <Loader2 className="mx-auto h-4 w-4 animate-spin" />
+                          ) : (
+                            'Cancel'
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-start pr-[120px]">
+                      <div className="flex w-full shrink-0 flex-col items-center sm:w-20 pt-1">
                         <span
-                          className={`rounded-[10px] px-2 py-1 text-[0.65rem] font-semibold uppercase ${leaveTypeBadgeClass(lt)}`}
+                          className={`rounded-[12px] px-3 py-1.5 text-[0.7rem] font-bold uppercase tracking-wider text-center w-full ${leaveTypeBadgeClass(lt)}`}
                         >
                           {lt}
                         </span>
-                        <p className="mt-1 text-[0.75rem] text-[#616161]">
+                        <p className="mt-2 text-[0.75rem] font-medium text-[#616161]">
                           {days} day{days !== 1 ? 's' : ''}
                         </p>
                       </div>
 
-                      <div className="min-w-0 flex-1 space-y-2">
-                        <div className="flex items-center gap-2 text-[0.875rem] font-medium text-[#212121]">
-                          <CalendarDays className="h-4 w-4 shrink-0 text-[#246427]" />
+                      <div className="min-w-0 flex-1 space-y-3">
+                        <div className="flex items-center gap-2.5 text-[1rem] font-bold text-[#212121]">
+                          <CalendarDays className="h-5 w-5 shrink-0 text-[#246427]" />
                           {formatDateRange(leave.fromDate, leave.toDate)}
                         </div>
-                        <div className="flex items-start gap-2 text-[0.875rem] text-[#616161]">
-                          <FileText className="mt-0.5 h-4 w-4 shrink-0 text-[#9E9E9E]" />
-                          <span className="min-w-0">{truncate(leave.reason, 60)}</span>
+                        
+                        <div className="flex items-start gap-2.5 text-[0.9375rem] text-[#616161] leading-relaxed">
+                          <FileText className="mt-1 h-4 w-4 shrink-0 text-[#9E9E9E]" />
+                          <span className="min-w-0">{truncate(leave.reason, 120)}</span>
                         </div>
-                        {leave.exceedsEntitlement && (leave.excessUnpaidDays ?? 0) > 0 && (
-                          <p className="text-[0.75rem] font-medium text-[#B07D00]">
-                            Includes {leave.excessUnpaidDays} unpaid/extra day
-                            {leave.excessUnpaidDays !== 1 ? 's' : ''} (beyond paid allowance at request) — team
-                            lead notified.
-                          </p>
-                        )}
-                        {(leave.status === 'APPROVED' || leave.status === 'REJECTED') && (
-                          <>
-                            {leave.reviewedBy?.fullName && (
-                              <div className="flex items-center gap-1.5 text-[0.75rem] text-[#9E9E9E]">
-                                <User className="h-3.5 w-3.5 shrink-0" />
-                                Reviewed by {leave.reviewedBy.fullName}
-                              </div>
-                            )}
-                            {leave.reviewNote ? (
-                              <p className="text-[0.75rem] italic text-[#9E9E9E]">&ldquo;{leave.reviewNote}&rdquo;</p>
-                            ) : null}
-                          </>
-                        )}
-                        <p className="text-[0.75rem] text-[#9E9E9E]">
-                          Applied {formatRelativeTime(leave.createdAt)}
-                        </p>
-                      </div>
 
-                      <div className="flex shrink-0 flex-col items-center justify-center gap-2 sm:items-end">
-                        <span
-                          className={`rounded-full px-3 py-1 text-[0.65rem] font-medium ${statusPillClass(leave.status)}`}
-                        >
-                          {leave.status}
-                        </span>
-                        {leave.status === 'PENDING' && (
-                          <button
-                            type="button"
-                            disabled={cancellingId === leave._id}
-                            onClick={() => handleCancel(leave._id)}
-                            className="text-[0.75rem] text-[#C62828] underline disabled:cursor-not-allowed disabled:opacity-60 hover:text-[#b71c1c]"
-                          >
-                            {cancellingId === leave._id ? (
-                              <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                            ) : (
-                              'Cancel'
-                            )}
-                          </button>
+                        {leave.exceedsEntitlement && (leave.excessUnpaidDays ?? 0) > 0 && (
+                          <div className="rounded-lg bg-amber-50 p-2.5 border border-amber-100 mt-2">
+                            <p className="text-[0.75rem] font-semibold text-[#B07D00]">
+                              Includes {leave.excessUnpaidDays} unpaid/extra day
+                              {leave.excessUnpaidDays !== 1 ? 's' : ''} — management notified.
+                            </p>
+                          </div>
                         )}
+
+                        <div className="flex flex-wrap items-center gap-4 pt-1">
+                          <span className="text-[0.75rem] text-[#9E9E9E]">
+                            Applied {formatRelativeTime(leave.createdAt)}
+                          </span>
+                          
+                          {(leave.status === 'APPROVED' || leave.status === 'REJECTED') && (
+                            <div className="flex items-center gap-2">
+                                {leave.reviewedBy?.fullName && (
+                                  <div className="flex items-center gap-1.5 text-[0.75rem] text-[#616161] font-medium">
+                                    <User className="h-3.5 w-3.5 shrink-0 text-[#246427]" />
+                                    {leave.reviewedBy.fullName}
+                                  </div>
+                                )}
+                                {leave.reviewNote && (
+                                  <span className="text-[0.75rem] italic text-[#9E9E9E] border-l border-[#E0E7DC] pl-2">
+                                    "{truncate(leave.reviewNote, 60)}"
+                                  </span>
+                                )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </motion.li>
@@ -357,6 +367,18 @@ export default function LeavePage() {
           fetchLeaveData();
           toast.success('Leave request submitted!');
         }}
+      />
+
+      <DeleteConfirmationModal
+        isOpen={!!selectedLeaveForCancel}
+        onClose={() => setSelectedLeaveForCancel(null)}
+        onConfirm={() => {
+          handleCancel(selectedLeaveForCancel);
+          setSelectedLeaveForCancel(null);
+        }}
+        loading={!!cancellingId}
+        title="Cancel Leave Request"
+        message="Are you sure you want to cancel this leave request? You will have to reapply again to approve your leave."
       />
     </motion.div>
   );

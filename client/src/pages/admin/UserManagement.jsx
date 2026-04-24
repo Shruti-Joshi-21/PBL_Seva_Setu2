@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import api from '../../utils/api';
 import { Users, UserPlus, Search, MoreVertical, Shield, UserX, UserCheck, Trash2, Loader } from 'lucide-react';
 import { toast } from 'react-toastify';
+import DeleteConfirmationModal from '../../components/shared/DeleteConfirmationModal';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedUserForDelete, setSelectedUserForDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         fetchUsers();
@@ -35,13 +38,16 @@ const UserManagement = () => {
     };
 
     const handleDeleteUser = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this user?')) return;
+        setIsDeleting(true);
         try {
             await api.delete(`/admin/users/${id}`);
             toast.success('User deleted');
             fetchUsers();
         } catch (error) {
             toast.error('Failed to delete user');
+        } finally {
+            setIsDeleting(false);
+            setSelectedUserForDelete(null);
         }
     };
 
@@ -137,7 +143,7 @@ const UserManagement = () => {
                                                 {isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                                             </button>
                                             <button
-                                                onClick={() => handleDeleteUser(uid)}
+                                                onClick={() => setSelectedUserForDelete(uid)}
                                                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                 title="Delete"
                                             >
@@ -152,6 +158,14 @@ const UserManagement = () => {
                     </table>
                 </div>
             </div>
+            <DeleteConfirmationModal
+                isOpen={!!selectedUserForDelete}
+                onClose={() => setSelectedUserForDelete(null)}
+                onConfirm={() => handleDeleteUser(selectedUserForDelete)}
+                loading={isDeleting}
+                title="Delete User"
+                message="Are you sure you want to delete this user? This action cannot be undone."
+            />
         </div>
     );
 };

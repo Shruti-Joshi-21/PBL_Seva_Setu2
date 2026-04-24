@@ -101,6 +101,17 @@ function startOfLast7Days() {
   return d;
 }
 
+function checkIsEarly(endTimeStr, now) {
+  const parts = String(endTimeStr || '').split(':');
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) || 0;
+  if (Number.isNaN(h)) return { isEarly: false, minutes: 0 };
+  const base = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+  const diffMs = base.getTime() - now.getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  return { isEarly: minutes > 0, minutes: Math.max(0, minutes) };
+}
+
 async function getDashboardData(req, res, next) {
   try {
     const workerId = req.user.userId;
@@ -525,6 +536,8 @@ async function checkOut(req, res, next) {
       return sendError(res, 'Invalid attendance id', 400);
     }
 
+    const earlyReason = firstFormScalar(req.body.earlyCheckoutReason) || '';
+
     const lat = parseFloat(latitudeRaw);
     const lon = parseFloat(longitudeRaw);
     if (Number.isNaN(lat) || Number.isNaN(lon)) {
@@ -575,10 +588,15 @@ async function checkOut(req, res, next) {
     const faceValid = faceResult.faceValid;
     const faceReason = faceResult.reason;
 
+    const earlyCheck = checkIsEarly(task.endTime, now);
+    const isEarly = earlyCheck.isEarly;
+    const earlyMins = earlyCheck.minutes;
+
     const newFlagReasons = [];
     if (!timeValid) newFlagReasons.push(timeReason);
     if (!locationValid) newFlagReasons.push(locationReason);
     if (!faceValid) newFlagReasons.push(faceReason);
+    if (isEarly) newFlagReasons.push(`Early checkout (${earlyMins}m early)`);
 
     const existingFlags = Array.isArray(record.flagReasons)
       ? record.flagReasons.map((r) => String(r).trim()).filter(Boolean)
@@ -602,6 +620,10 @@ async function checkOut(req, res, next) {
           afterImage: afterImageRel,
           status: finalStatus,
           flagReasons: allFlags,
+          isEarlyCheckout: isEarly,
+          earlyCheckoutReason: earlyReason,
+          earlyCheckoutMinutes: earlyMins,
+          tlApprovalStatus: isEarly ? 'PENDING' : 'APPROVED',
         },
       },
       { new: true, runValidators: true }
@@ -625,11 +647,21 @@ async function checkOut(req, res, next) {
           const workerDoc = await User.findById(workerId).select('fullName').lean();
           const fullName = workerDoc?.fullName || 'Worker';
           const taskTitle = task.title != null ? String(task.title) : 'Task';
-          const msg = `Check-out flagged for worker ${fullName} on task ${taskTitle}: ${allFlags.join(', ')}`;
+          
+          let msg;
+          if (isEarly) {
+            const h = Math.floor(earlyMins / 60);
+            const m = earlyMins % 60;
+            const timeStr = h > 0 ? `${h}h ${m}m` : `${m}m`;
+            msg = `${fullName} checkedout ${timeStr} early on task ${taskTitle}. Reason: ${earlyReason || 'No reason provided'}`;
+          } else {
+            msg = `Check-out flagged for worker ${fullName} on task ${taskTitle}: ${allFlags.join(', ')}`;
+          }
+
           await Notification.create({
             recipient,
             message: msg.slice(0, 4000),
-            type: 'FLAG',
+            type: isEarly ? 'LEAVE' : 'FLAG', // using LEAVE type for approval flow if appropriate, or just FLAG
             relatedId: updated._id,
           });
         }

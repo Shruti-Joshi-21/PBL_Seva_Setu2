@@ -18,6 +18,7 @@ router.patch('/leave-requests/:leaveId', ...guard, teamleadController.updateLeav
 router.get('/attendance', ...guard, teamleadController.getAttendance);
 router.get('/attendance/flagged', ...guard, teamleadController.getFlaggedRecords);
 router.patch('/attendance/flagged/:recordId/resolve', ...guard, teamleadController.resolveFlaggedRecord);
+router.post('/attendance/:recordId/resolve', ...guard, teamleadController.resolveFlaggedRecord);
 router.get('/field-reports', ...guard, teamleadController.getFieldReports);
 router.get('/field-reports/:reportId', ...guard, teamleadController.getFieldReportById);
 router.post('/field-reports/:reportId/forward', ...guard, teamleadController.forwardReportToAdmin);

@@ -56,6 +56,26 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
 
+  const [earlyReason, setEarlyReason] = useState("");
+  const [showEarlyConfirmation, setShowEarlyConfirmation] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && task?.endTime && !result) {
+      const now = new Date();
+      const [h, m] = task.endTime.split(':').map(Number);
+      const buffer = task.checkOutBuffer || 15;
+      const earlyEndMinutes = h * 60 + m - buffer;
+      const earlyEnd = new Date();
+      earlyEnd.setHours(Math.floor(earlyEndMinutes / 60), earlyEndMinutes % 60, 0, 0);
+
+      if (now < earlyEnd) {
+        setShowEarlyConfirmation(true);
+      } else {
+        setShowEarlyConfirmation(false);
+      }
+    }
+  }, [isOpen, task, result]);
+
   useEffect(() => {
     if (!isOpen) {
       setStep(0);
@@ -123,7 +143,7 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
     e.target.value = '';
   };
 
-  const handleSubmit = async () => {
+  const performCheckOut = async () => {
     if (!attendanceRecord?._id || !gpsData || !faceImageFile || !fieldImageFile) return;
     setSubmitting(true);
     try {
@@ -133,6 +153,9 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
       formData.append('longitude', String(gpsData.longitude));
       formData.append('faceImage', faceImageFile);
       formData.append('fieldImage', fieldImageFile);
+      if (earlyReason) {
+        formData.append('earlyCheckoutReason', earlyReason);
+      }
 
       // Let axios set multipart boundary — never set Content-Type: multipart/form-data manually.
       const res = await api.post('/worker/checkout', formData);
@@ -141,11 +164,17 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
         ...data,
         message: res.data?.message || data.message,
       });
+      setShowEarlyConfirmation(false);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Check-out failed');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleSubmit = () => {
+    if (!attendanceRecord?._id || !gpsData || !faceImageFile || !fieldImageFile) return;
+    performCheckOut();
   };
 
   const handleCloseResult = () => {
@@ -178,85 +207,128 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
             transition={{ duration: 0.2 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              type="button"
-              aria-label="Close"
-              className="absolute right-[16px] top-[16px] rounded-lg p-1 text-[#616161] hover:text-[#246427] transition-colors z-10"
-              onClick={onClose}
-            >
-              <X className="h-5 w-5" />
-            </button>
-
-            {(!task || !attendanceRecord) && (
-              <p className="text-center text-gray-600">Missing task or attendance record.</p>
-            )}
-
-            {task && attendanceRecord && result && (
-              <div className="space-y-6 pt-2 text-center">
-                {result.finalStatus === 'FLAGGED' ? (
-                  <>
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-                      className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-amber-100"
-                    >
-                      <AlertTriangle className="h-12 w-12 text-amber-600" />
-                    </motion.div>
-                    <h3 className="text-xl font-bold text-amber-700">Checked Out with Flags</h3>
-                    <ul className="space-y-2 text-left">
-                      {(result.flagReasons || []).map((r, i) => (
-                        <li key={`${i}-${r}`} className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
-                          {r}
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                ) : (
-                  <>
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 260, damping: 16 }}
-                      className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#005F02]"
-                    >
-                      <CheckCircle2 className="h-12 w-12 text-white" />
-                    </motion.div>
-                    <h3 className="text-xl font-bold text-[#005F02]">Attendance Verified!</h3>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <p>
-                        In:{' '}
-                        {result.checkInTime
-                          ? new Date(result.checkInTime).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true,
-                          })
-                          : '—'}
-                      </p>
-                      <p>
-                        Out:{' '}
-                        {result.checkOutTime
-                          ? new Date(result.checkOutTime).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true,
-                          })
-                          : '—'}
-                      </p>
-                    </div>
-                    <p className="text-gray-500">Great work today!</p>
-                  </>
-                )}
+            {showEarlyConfirmation ? (
+              <div className="space-y-6 py-4">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="bg-amber-50 p-4 rounded-full">
+                    <AlertTriangle className="h-10 w-10 text-amber-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 leading-tight px-4">
+                    You are checking out early, attendance will be marked after approval by team lead
+                  </h3>
+                  <div className="w-full text-left space-y-2 px-2">
+                    <label className="text-sm font-medium text-gray-700">Enter your reason of early checkout</label>
+                    <textarea
+                        className="w-full rounded-xl border border-gray-200 p-4 text-sm focus:ring-2 focus:ring-[#246427] focus:border-transparent transition-all h-32 resize-none"
+                        placeholder="Please state why you are leaving before completion..."
+                        value={earlyReason}
+                        onChange={(e) => setEarlyReason(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex flex-col gap-3 px-2">
+                  <button
+                    type="button"
+                    className="w-full rounded-[12px] bg-[#246427] py-4 text-[1rem] font-bold text-white shadow-[0_4px_14px_rgba(36,100,39,0.2)] hover:bg-[#1a4d1c] transition-all"
+                    onClick={() => {
+                        setShowEarlyConfirmation(false);
+                        onClose();
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!earlyReason.trim()}
+                    className="w-full rounded-[12px] border-2 border-[#246427] py-3 text-[0.95rem] font-bold text-[#246427] hover:bg-[#F1F8E9] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    onClick={() => setShowEarlyConfirmation(false)}
+                  >
+                    Proceed
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
                 <button
                   type="button"
-                  className="w-full rounded-[10px] bg-[#246427] py-[10px] text-[0.875rem] font-semibold text-[#FFFFFF] hover:bg-[#1a4d1c] transition-colors"
-                  onClick={handleCloseResult}
+                  aria-label="Close"
+                  className="absolute right-[16px] top-[16px] rounded-lg p-1 text-[#616161] hover:text-[#246427] transition-colors z-10"
+                  onClick={onClose}
                 >
-                  Close
+                  <X className="h-5 w-5" />
                 </button>
-              </div>
-            )}
+
+                {(!task || !attendanceRecord) && (
+                  <p className="text-center text-gray-600">Missing task or attendance record.</p>
+                )}
+
+                {task && attendanceRecord && result && (
+                  <div className="space-y-6 pt-2 text-center">
+                    {result.finalStatus === 'FLAGGED' ? (
+                      <>
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+                          className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-amber-100"
+                        >
+                          <AlertTriangle className="h-12 w-12 text-amber-600" />
+                        </motion.div>
+                        <h3 className="text-xl font-bold text-amber-700">Checked Out with Flags</h3>
+                        <ul className="space-y-2 text-left">
+                          {(result.flagReasons || []).map((r, i) => (
+                            <li key={`${i}-${r}`} className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+                              {r}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <>
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: 'spring', stiffness: 260, damping: 16 }}
+                          className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-[#005F02]"
+                        >
+                          <CheckCircle2 className="h-12 w-12 text-white" />
+                        </motion.div>
+                        <h3 className="text-xl font-bold text-[#005F02]">Attendance Verified!</h3>
+                        <div className="space-y-1 text-sm text-gray-600">
+                          <p>
+                            In:{' '}
+                            {result.checkInTime
+                              ? new Date(result.checkInTime).toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true,
+                              })
+                              : '—'}
+                          </p>
+                          <p>
+                            Out:{' '}
+                            {result.checkOutTime
+                              ? new Date(result.checkOutTime).toLocaleTimeString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true,
+                              })
+                              : '—'}
+                          </p>
+                        </div>
+                        <p className="text-gray-500">Great work today!</p>
+                      </>
+                    )}
+                    <button
+                      type="button"
+                      className="w-full rounded-[10px] bg-[#246427] py-[10px] text-[0.875rem] font-semibold text-[#FFFFFF] hover:bg-[#1a4d1c] transition-colors"
+                      onClick={handleCloseResult}
+                    >
+                      Close
+                    </button>
+                  </div>
+                )}
 
             {task && attendanceRecord && !result && (
               <>
@@ -567,6 +639,8 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
                   </button>
                 )}
               </>
+            )}
+            </>
             )}
           </motion.div>
         </motion.div>

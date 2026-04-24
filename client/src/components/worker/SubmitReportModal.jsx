@@ -8,7 +8,7 @@ import api from '../../utils/api';
 const MAX_DESC = 500;
 const MAX_IMAGES = 5;
 
-export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
+export default function SubmitReportModal({ isOpen, onClose, onSuccess, initialTaskId = '', initialAttendanceId = '' }) {
   const [formData, setFormData] = useState({
     taskId: '',
     attendanceId: '',
@@ -46,8 +46,8 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
     if (!isOpen) return;
     loadTasks();
     setFormData({
-      taskId: '',
-      attendanceId: '',
+      taskId: initialTaskId || '',
+      attendanceId: initialAttendanceId || '',
       description: '',
       summary: '',
       images: [],
@@ -177,28 +177,35 @@ export default function SubmitReportModal({ isOpen, onClose, onSuccess }) {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="report-task" className="mb-1 block text-[0.875rem] font-medium text-[#212121]">
-                  Task
-                </label>
-                <select
-                  id="report-task"
-                  value={formData.taskId}
-                  onChange={(ev) => {
-                    setFormData((p) => ({ ...p, taskId: ev.target.value }));
-                    setDynamicFieldValues({});
-                  }}
-                  disabled={tasksLoading}
-                  className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
-                >
-                  <option value="">{tasksLoading ? 'Loading tasks…' : 'Select a task'}</option>
-                  {tasks.map((t) => (
-                    <option key={t._id} value={t._id}>
-                      {t.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {!initialTaskId ? (
+                <div>
+                  <label htmlFor="report-task" className="mb-1 block text-[0.875rem] font-medium text-[#212121]">
+                    Task
+                  </label>
+                  <select
+                    id="report-task"
+                    value={formData.taskId}
+                    onChange={(ev) => {
+                      setFormData((p) => ({ ...p, taskId: ev.target.value }));
+                      setDynamicFieldValues({});
+                    }}
+                    disabled={tasksLoading}
+                    className="w-full rounded-[10px] border border-[#E0E7DC] bg-[#FFFFFF] px-3 py-2 text-[0.875rem] text-[#212121] focus:outline-none focus:ring-1 focus:ring-[#246427] transition-shadow"
+                  >
+                    <option value="">{tasksLoading ? 'Loading tasks…' : 'Select a task'}</option>
+                    {tasks.map((t) => (
+                      <option key={t._id} value={t._id}>
+                        {t.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="rounded-[12px] bg-[#F9FBF7] p-3 border border-[#E0E7DC]">
+                  <p className="text-[0.75rem] text-[#616161] font-medium uppercase tracking-wider">Related Task</p>
+                  <p className="text-[1rem] font-bold text-[#246427]">{selectedTask?.title || 'Loading task...'}</p>
+                </div>
+              )}
 
               {selectedTaskFields.map((field, idx) => {
                 const fieldName = String(field?.fieldName || '').trim();

@@ -70,12 +70,10 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="w-8 h-8 rounded-md bg-[#005F02] flex items-center justify-center">
-              <Shield size={18} color="#F1F8E9" />
-            </div>
+            <img src="/sahayog_icon.svg" alt="Sahayog" className="w-11 h-11 object-contain" />
             <div className="flex flex-col">
               <span className="font-bold text-[#005F02] text-[1.1rem] leading-none" style={{ fontFamily: "'Merriweather', serif" }}>
-                SevaSetu
+                Sahayog
               </span>
               <span className="text-[0.65rem] text-[#616161] tracking-wide mt-1">
                 Field Operations Management
@@ -148,12 +146,11 @@ export default function LandingPage() {
           </div>
 
           {/* RIGHT COLUMN */}
-          <div className="relative w-full h-[380px] rounded-xl overflow-hidden shadow-lg">
-            <div className="absolute inset-0 bg-[#005F02]/20 z-10 mix-blend-multiply"></div>
+          <div className="relative w-full h-[380px] flex items-center justify-center">
             <img 
-              src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=800&q=80" 
-              alt="Field workers in nature" 
-              className="w-full h-full object-cover"
+              src="/OBJECTS.svg" 
+              alt="Sahayog illustration" 
+              className="w-full h-full object-contain"
             />
           </div>
         </div>
@@ -166,7 +163,7 @@ export default function LandingPage() {
             <h2 className="text-3xl font-bold text-[#212121] mb-2" style={{ fontFamily: "'Merriweather', serif" }}>
               Access Your Dashboard
             </h2>
-            <p className="text-[#616161]">Choose your role to get started with SevaSetu</p>
+            <p className="text-[#616161]">Choose your role to get started with Sahayog</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -177,7 +174,7 @@ export default function LandingPage() {
                 <User size={32} color="#427A43" />
               </div>
               <h3 className="text-[1.2rem] font-bold text-[#1A1A1A] mb-3" style={{ fontFamily: "'Merriweather', serif" }}>
-                Volunteer
+                Field Worker
               </h3>
               <p className="text-center text-[#555] text-[0.875rem] mb-6 min-h-[60px]">
                 Access your attendance records, submit daily reports, and manage your field activities.
@@ -189,15 +186,15 @@ export default function LandingPage() {
                 <li className="flex items-center gap-2"><span className="text-[#427A43] font-bold">✓</span> View assigned tasks</li>
               </ul>
               <button
-                onClick={() => handleOpenLogin('Volunteer')}
+                onClick={() => handleOpenLogin('Field Worker')}
                 className="w-full bg-[#427A43] hover:bg-[#005F02] text-white rounded-lg py-2.5 transition-colors font-medium mt-auto"
               >
-                Login as Volunteer
+                Login as Field Worker
               </button>
               <p className="mt-4 text-[0.8rem] text-gray-500">
                 Don't have an account?{' '}
                 <button 
-                  onClick={() => handleOpenRegister('Volunteer')}
+                  onClick={() => handleOpenRegister('Field Worker')}
                   className="text-[#427A43] font-bold hover:underline"
                 >
                   Sign up
@@ -345,8 +342,8 @@ export default function LandingPage() {
             {/* Column 1 */}
             <div className="flex flex-col">
               <div className="flex items-center gap-2 mb-4">
-                <Shield size={20} color="#ffffff" className="opacity-90" />
-                <span className="text-white font-bold text-lg" style={{ fontFamily: "'Merriweather', serif" }}>SevaSetu</span>
+                <img src="/sahayog_icon.svg" alt="Sahayog" className="w-8 h-8 object-contain" />
+                <span className="text-white font-bold text-lg" style={{ fontFamily: "'Merriweather', serif" }}>Sahayog</span>
               </div>
               <p className="text-white/80 text-[0.85rem] max-w-[220px] leading-relaxed">
                 Empowering environmental organizations with smart field operations management.
@@ -386,7 +383,7 @@ export default function LandingPage() {
           </div>
 
           <div className="w-full border-t border-white/20 pt-6 text-center">
-            <p className="text-white/60 text-sm">© 2026 SevaSetu. All rights reserved.</p>
+            <p className="text-white/60 text-sm">© 2026 Sahayog. All rights reserved.</p>
           </div>
         </div>
       </footer>

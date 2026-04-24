@@ -1134,6 +1134,7 @@ const TAB_LEAVE = 'leave';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
+  const firstName = user?.fullName ? user.fullName.split(' ')[0] : '';
   const currentUser = user;
   const navigate = useNavigate();
 
@@ -1613,10 +1614,11 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-[var(--color-bg)] overflow-hidden">
+    <div className="flex h-screen" style={{ backgroundColor: '#F9FDF7' }}>
       <aside className="w-64 min-w-[256px] bg-white border-r border-[#E0E7DC] flex flex-col z-20">
-        <div className="p-4 mb-4 bg-white border-b border-[#E0E7DC]">
-          <h1 className="text-2xl font-bold text-[#246427]">SevaSetu</h1>
+        <div className="p-4 mb-4 bg-white border-b border-[#E0E7DC] flex items-center gap-2">
+          <img src="/sahayog_icon.svg" alt="Sahayog" className="w-8 h-8 object-contain" />
+          <h1 className="text-2xl font-bold text-[#246427]">Sahayog</h1>
         </div>
         <nav className="flex-1 space-y-1 px-4 overflow-y-auto">
           {navTabs.map(({ id, icon: Icon, label }) => {
@@ -1650,9 +1652,32 @@ const AdminDashboard = () => {
       </aside>
 
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+         <main 
+            className="flex-1 overflow-y-auto relative w-full !max-w-none"
+            style={{ background: 'linear-gradient(to bottom, #DCE9D5 0%, #F9FDF7 20%, #F9FDF7 100%)' }}
+          >
+            <header className="flex items-center px-8 z-30 py-4" style={{ background: 'transparent' }}>
+                {activeTab === TAB_OVERVIEW ? (
+                    <div className="flex items-center justify-between w-full">
+                        <div>
+                            <h1 className="text-[1.5rem] font-bold text-[#212121]">
+                                Welcome, <span className="text-[#246427] font-bold">{firstName}!</span>
+                            </h1>
+                            <p className="text-[0.75rem] text-[#616161] font-medium uppercase tracking-wider">
+                                SAHAYOG ADMINISTRATOR
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col">
+                        <h1 className="text-[1.5rem] font-bold text-[#212121] leading-tight">
+                            {navTabs.find(t => t.id === activeTab)?.label}
+                        </h1>
+                    </div>
+                )}
+            </header>
 
-
-        <main className="flex-1 overflow-y-auto pt-[24px] px-[24px] pb-[24px] relative w-full !max-w-none">
+            <div className="pt-[8px] px-[24px] pb-[24px]">
           {activeTab === TAB_OVERVIEW && (
             <>
           {/* KPI row */}
@@ -2412,6 +2437,7 @@ const AdminDashboard = () => {
               teamLeadsFromUsers={teamLeadsFromUsers}
             />
           )}
+            </div>
         </main>
       </div>
     </div>

@@ -3,8 +3,8 @@ import api from '../utils/api';
 
 const AuthContext = createContext(null);
 
-const TOKEN_KEY = 'sevasetu_token';
-const ROLE_KEY = 'sevasetu_role';
+const TOKEN_KEY = 'sahayog_token';
+const ROLE_KEY = 'sahayog_role';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
