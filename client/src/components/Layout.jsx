@@ -33,7 +33,7 @@ const PAGE_META = {
     '/teamlead/tasks/create': { title: 'Create Task', subtitle: 'Assign new work to field workers' },
     '/teamlead/attendance': { title: 'Team Attendance', subtitle: 'Monitor field worker activities' },
     '/teamlead/flags': { title: 'Flagged Records', subtitle: 'Review and resolve inconsistencies' },
-    '/teamlead/leave': { title: 'Leave Requests', subtitle: 'Approve or decline volunteer leaves' },
+    '/teamlead/leave': { title: 'Leave Requests', subtitle: 'Approve or decline field worker leaves' },
     '/teamlead/reports': { title: 'Field Reports', subtitle: 'Review submitted reports and evidence' },
     '/admin/users': { title: 'User Management', subtitle: 'Manage platform accounts and roles' },
     '/admin/reports': { title: 'System Analytics', subtitle: 'Review organizational performance' },
@@ -105,6 +105,7 @@ const Layout = ({ children }) => {
         { to: '/worker/tasks', icon: ClipboardList, label: 'My Tasks' },
         { to: '/worker/attendance', icon: CheckSquare, label: 'Attendance' },
         { to: '/worker/leave', icon: FileText, label: 'Leave Requests' },
+        { to: '/worker/reports', icon: ClipboardList, label: 'My Reports' },
     ];
 
     const getLinks = () => {
@@ -117,11 +118,12 @@ const Layout = ({ children }) => {
     };
 
     return (
-        <div className="min-h-screen bg-[var(--color-bg)] flex">
+        <div className="min-h-screen flex" style={{ backgroundColor: '#F9FDF7' }}>
             {/* Sidebar Desktop */}
             <aside className="hidden md:flex flex-col w-64 bg-white border-r border-[#E0E7DC] fixed h-full z-20">
-                <div className="p-4 mb-4 bg-white border-b border-[#E0E7DC]">
-                    <h1 className="text-2xl font-bold text-[#246427]">SevaSetu</h1>
+                <div className="p-4 mb-4 bg-white border-b border-[#E0E7DC] flex items-center gap-2">
+                    <img src="/sahayog_icon.svg" alt="Sahayog" className="w-7 h-7" />
+                    <h1 className="text-xl font-bold text-[#246427]" style={{ fontFamily: "'Merriweather', serif" }}>Sahayog</h1>
                 </div>
 
                 <nav className="flex-1 space-y-1 px-4 overflow-y-auto">
@@ -150,7 +152,10 @@ const Layout = ({ children }) => {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 md:ml-64 relative min-h-screen flex flex-col">
+            <main 
+                className="flex-1 md:ml-64 relative min-h-screen flex flex-col"
+                style={{ background: 'linear-gradient(to bottom, #DCE9D5 0%, #F9FDF7 20%, #F9FDF7 100%)' }}
+            >
                 {/* Header Mobile */}
                 <header className="md:hidden bg-[#FFFFFF] border-b border-[#E0E7DC] p-4 flex items-center justify-between text-[#212121] sticky top-0 z-30">
                     <div className="flex items-center gap-3">
@@ -159,17 +164,24 @@ const Layout = ({ children }) => {
                                 <ArrowLeft className="w-5 h-5" />
                             </button>
                         )}
-                        <h1 className="text-xl font-bold">{isHome ? 'SevaSetu' : meta.title}</h1>
+                        <h1 className="text-xl font-bold">{isHome ? 'Sahayog' : meta.title}</h1>
                     </div>
                     <button onClick={() => setSidebarOpen(true)} className="text-[#616161] hover:text-[#246427]"><Menu className="w-6 h-6" /></button>
                 </header>
 
                 {/* Header Desktop */}
-                <header className="hidden md:flex bg-[#F1F8E9] h-16 border-b border-[#E0E7DC] shadow-[var(--shadow-xs)] items-center px-8 sticky top-0 z-30">
+                <header className="hidden md:flex items-center px-8 sticky top-0 z-30 py-4" style={{ background: 'transparent', backdropFilter: 'blur(8px)' }}>
                     {isHome ? (
                         <div className="flex items-center justify-between w-full">
-                            <div className="text-[#212121] font-semibold text-[1.25rem]">
-                                Good {greetingMessage}, {firstName}!
+                            <div>
+                                <h1 className="text-[1.5rem] font-bold text-[#212121]">
+                                    Welcome, <span className="text-[#246427] font-bold">{firstName}!</span>
+                                </h1>
+                                <p className="text-[0.75rem] text-[#616161] font-medium uppercase tracking-wider">
+                                    {user?.role === 'ADMIN' ? 'SAHAYOG ADMINISTRATOR' : 
+                                     user?.role === 'TEAM_LEAD' ? 'SAHAYOG TEAM LEAD' : 
+                                     'SAHAYOG FIELD WORKER'}
+                                </p>
                             </div>
                             {user?.role === 'TEAM_LEAD' && ['/teamlead', '/teamlead/tasks'].includes(location.pathname) && (
                                 <button
@@ -193,7 +205,7 @@ const Layout = ({ children }) => {
                                     </button>
                                 )}
                                 <div className="flex flex-col">
-                                    <h1 className="text-[1.125rem] font-bold text-[#212121] leading-tight">
+                                    <h1 className="text-[1.5rem] font-bold text-[#212121] leading-tight">
                                         {meta.title}
                                     </h1>
                                     {meta.subtitle && (
@@ -227,7 +239,7 @@ const Layout = ({ children }) => {
                 <div className="fixed inset-0 bg-black/35 backdrop-blur-sm z-40 md:hidden" onClick={() => setSidebarOpen(false)}>
                     <div className="w-64 bg-white h-full flex flex-col" onClick={e => e.stopPropagation()}>
                         <div className="p-4 mb-4 bg-white border-b border-[#E0E7DC] flex items-center justify-between">
-                            <h1 className="text-xl font-bold text-[#246427]">SevaSetu</h1>
+                            <h1 className="text-xl font-bold text-[#246427]">Sahayog</h1>
                             <button onClick={() => setSidebarOpen(false)} className="text-[#616161] hover:text-[#246427]"><X className="w-6 h-6" /></button>
                         </div>
                         <nav className="flex-1 space-y-1 px-4 overflow-y-auto">

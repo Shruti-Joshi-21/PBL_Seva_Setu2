@@ -13,6 +13,7 @@ itsdangerous
 jinja2
 markupsafe
 werkzeug
-face-recognition-models==0.3.0
 dlib-bin==19.24.6
-face-recognition==1.3.0
+face-recognition-models==0.3.0
+
+#to overcome dlib installation issuse run this file file then install py -m pip install face-recognition==1.3.0 --no-deps via terminal

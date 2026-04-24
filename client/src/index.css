@@ -20,11 +20,12 @@
 }
 
 body {
-    font-family: 'DM Sans', sans-serif;
-    background-color: var(--color-bg);
+    font-family: 'Outfit', sans-serif;
+    background-color: #F9FDF7;
     color: var(--color-text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
 }
 
 /* Custom Scrollbar */
@@ -86,4 +87,18 @@ select:focus {
 
 .dashboard-card {
     @apply bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300;
+}
+
+/* Custom Toast Styles */
+.Toastify__toast {
+    border-radius: 12px !important;
+    font-family: 'Outfit', sans-serif !important;
+}
+
+.Toastify__toast--success {
+    background-color: #81C784 !important;
+}
+
+.Toastify__toast-body {
+    font-weight: 500 !important;
 }

@@ -25,6 +25,7 @@ import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import CheckInModal from "../../components/worker/CheckInModal";
 import CheckOutModal from "../../components/worker/CheckOutModal";
+import SubmitReportModal from "../../components/worker/SubmitReportModal";
 
 function formatLongDate(d) {
   return new Intl.DateTimeFormat('en-GB', {
@@ -65,6 +66,16 @@ function formatTimeAmPmFromDate(iso) {
   if (!iso) return '—';
   const d = new Date(iso);
   return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
+function formatTimeAmPmFromString(timeStr) {
+  if (!timeStr) return '—';
+  const mins = parseHM(timeStr);
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const displayH = h % 12 || 12;
+  return `${displayH}:${String(m).padStart(2, '0')} ${ampm}`;
 }
 
 function formatRelativeTime(iso) {
@@ -151,6 +162,7 @@ export default function WorkerDashboard() {
   const [elapsedTime, setElapsedTime] = useState('0h 0m 0s');
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [showCheckOut, setShowCheckOut] = useState(false);
+  const [showSubmitReport, setShowSubmitReport] = useState(false);
   const [checkInTaskOverride, setCheckInTaskOverride] = useState(null);
 
   const fullName = user?.fullName || user?.name || 'there';
@@ -329,27 +341,27 @@ export default function WorkerDashboard() {
     const st = todayAttendance?.status;
     if (st === 'VERIFIED') {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-green-400/30 px-4 py-1.5 text-sm text-white">
+        <span className="inline-flex items-center gap-1 rounded-full bg-[#E8F5E9] px-4 py-1.5 text-sm text-[#246427] font-semibold">
           ✓ Verified
         </span>
       );
     }
     if (st === 'FLAGGED') {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/30 px-4 py-1.5 text-sm text-white">
+        <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF8E1] px-4 py-1.5 text-sm text-[#B07D00] font-semibold">
           ⚠ Flagged
         </span>
       );
     }
     if (st === 'REJECTED') {
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-red-400/30 px-4 py-1.5 text-sm text-white">
+        <span className="inline-flex items-center gap-1 rounded-full bg-[#FFEBEE] px-4 py-1.5 text-sm text-[#C62828] font-semibold">
           ✕ Rejected
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-blue-400/30 px-4 py-1.5 text-sm text-white">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#E3F2FD] px-4 py-1.5 text-sm text-[#0277BD] font-semibold">
         ⏳ Pending Review
       </span>
     );
@@ -357,7 +369,7 @@ export default function WorkerDashboard() {
 
   return (
     <motion.div
-      className="space-y-8 pb-10 bg-[#F9FBF7] -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 min-h-full rounded-b-[20px]"
+      className="space-y-8 pb-10 bg-transparent -mx-4 md:-mx-8 -mt-4 md:-mt-8 px-4 md:px-8 pt-4 md:pt-8 min-h-full rounded-b-[20px]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
@@ -415,9 +427,9 @@ export default function WorkerDashboard() {
 
       {/* Row 2: Hero (Check-in/Today Task) */}
       <motion.div {...section(2)}>
-        <div 
-          className={`relative overflow-hidden ${attendanceState === 'NOT_CHECKED_IN' ? 'rounded-[16px] shadow-[0_4px_20px_rgba(36,100,39,0.1)] px-[32px] py-[28px]' : 'rounded-[20px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] bg-[#246427] p-6 md:p-8'}`}
-          style={attendanceState === 'NOT_CHECKED_IN' ? { background: 'linear-gradient(135deg, #F1F8E9 0%, #C8E6C9 100%)' } : {}}
+        <div
+          className="relative overflow-hidden rounded-[16px] shadow-[0_4px_20px_rgba(36,100,39,0.1)] px-[32px] py-[28px]"
+          style={{ background: 'linear-gradient(135deg, #F1F8E9 0%, #C8E6C9 100%)' }}
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -427,9 +439,10 @@ export default function WorkerDashboard() {
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.35 }}
             >
+              {/* ── NOT CHECKED IN ── */}
               {attendanceState === 'NOT_CHECKED_IN' && (
                 <>
-                  <div 
+                  <div
                     className="absolute top-0 right-0 text-[0.6875rem] font-[700] tracking-[0.08em] text-[#246427] uppercase"
                     style={{ background: 'rgba(36,100,39,0.1)', borderBottomLeftRadius: '16px', padding: '6px 16px' }}
                   >
@@ -466,11 +479,6 @@ export default function WorkerDashboard() {
                       )}
                     </div>
                     <div className="w-full lg:w-auto flex flex-col sm:flex-row lg:flex-row gap-4 items-center sm:items-end lg:items-center shrink-0 mt-4 lg:mt-0">
-                      {todayTask && (
-                        <p className="text-[0.7rem] text-[#2d5a2e]/70 italic whitespace-nowrap">
-                          Attendance allowed {todayTask.checkInBuffer || 15}m before & {todayTask.checkOutBuffer || 15}m after
-                        </p>
-                      )}
                       <motion.button
                         type="button"
                         disabled={!todayTask}
@@ -478,74 +486,116 @@ export default function WorkerDashboard() {
                         whileHover={todayTask ? { scale: 1.02, backgroundColor: '#1a4d1c' } : {}}
                         whileTap={todayTask ? { scale: 0.97 } : {}}
                         transition={{ duration: 0.18, ease: "easeOut" }}
-                        className={`flex items-center justify-center gap-2 rounded-[12px] px-[32px] py-[14px] text-[0.9375rem] font-[700] tracking-[0.03em] text-[#FFFFFF] w-full lg:w-auto ${
-                          todayTask
-                            ? 'bg-[#246427] shadow-[0_4px_14px_rgba(36,100,39,0.2)]'
-                            : 'bg-[#246427]/40 cursor-not-allowed'
-                        }`}
+                        className={`flex items-center justify-center gap-2 rounded-[12px] px-[32px] py-[14px] text-[0.9375rem] font-[700] tracking-[0.03em] text-[#FFFFFF] w-full lg:w-auto ${todayTask
+                          ? 'bg-[#246427] shadow-[0_4px_14px_rgba(36,100,39,0.2)]'
+                          : 'bg-[#246427]/40 cursor-not-allowed'
+                          }`}
                       >
                         CHECK IN
                         <LogIn className="w-[18px] h-[18px]" />
                       </motion.button>
                     </div>
                   </div>
+                  {todayTask && (
+                    <div className="flex justify-end mt-4">
+                      <p className="text-[14px] text-[#2d5a2e]/60 italic text-right whitespace-nowrap">
+                        You can mark attendance 15 minutes before and 15 minutes after the scheduled time, the minutes will be specified by the team lead as buffer
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
 
+              {/* ── CHECKED IN ── */}
               {attendanceState === 'CHECKED_IN' && (
-                <div className="flex flex-col lg:flex-row gap-8">
-                  <div className="lg:w-[60%] space-y-4">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs text-white">
-                      <span className="h-1.5 w-1.5 rounded-full bg-white" aria-hidden />
-                      CHECKED IN
-                    </span>
-                    <p className="text-sm text-white/60">Time Elapsed</p>
-                    <p className="text-4xl font-mono font-bold text-white tabular-nums">{elapsedTime}</p>
-                    <p className="text-sm text-white/70">
-                      Checked in at {formatTimeAmPmFromDate(todayAttendance?.checkInTime)}
-                    </p>
-                    {todayAttendance?.checkInFaceMatch === true ? (
-                      <p className="text-sm text-white/80">Location verified ✓</p>
-                    ) : (
-                      <p className="text-sm text-amber-200">⚠ Location flagged</p>
-                    )}
+                <>
+                  <div className="flex flex-col lg:flex-row gap-8">
+                    <div className="lg:w-[60%] space-y-4">
+                      <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-bold text-[#212121]">{todayTask?.title}</h1>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#246427]/15 px-3 py-1 text-xs text-[#246427] font-semibold">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#246427]" aria-hidden />
+                          CHECKED IN
+                        </span>
+                      </div>
+                      <p className="text-sm text-[#616161]">Time Elapsed</p>
+                      <p className="text-4xl font-mono font-bold text-[#212121] tabular-nums">{elapsedTime}</p>
+                      <div className="flex flex-wrap items-center gap-x-8 gap-y-1 mt-1">
+                        <p className="text-sm text-[#616161] font-semibold">
+                          Checked in at {formatTimeAmPmFromDate(todayAttendance?.checkInTime)}
+                        </p>
+                        {todayTask && (
+                          <p className="text-sm text-[#616161] font-semibold">
+                            Check out after {formatTimeAmPmFromString(adjustTimeHM(todayTask.endTime, -(todayTask.checkOutBuffer || 15)))}
+                          </p>
+                        )}
+                      </div>
+                      {todayAttendance?.checkInFaceMatch === true ? (
+                        <p className="text-sm text-[#246427]">Face verified ✓</p>
+                      ) : (
+                        <p className="text-sm text-[#B07D00]">⚠ Face not verified</p>
+                      )}
+                    </div>
+                    <div className="lg:w-[40%] flex flex-col items-center justify-center gap-3">
+                      <motion.button
+                        type="button"
+                        onClick={onCheckOut}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        className="flex items-center gap-2 rounded-[12px] bg-[#246427] px-10 py-4 text-[1rem] font-bold text-white shadow-[0_4px_14px_rgba(36,100,39,0.2)] transition-colors hover:bg-[#1a4d1c]"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        CHECK OUT
+                      </motion.button>
+                    </div>
                   </div>
-                  <div className="lg:w-[40%] flex flex-col items-center justify-center gap-3">
-                    <motion.button
-                      type="button"
-                      onClick={onCheckOut}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      className="flex items-center gap-2 rounded-[10px] bg-[#FFFFFF] px-10 py-4 text-[1rem] font-bold text-[#C62828] shadow-lg transition-colors hover:bg-[#FFEBEE]"
-                    >
-                      <LogOut className="w-5 h-5" />
-                      CHECK OUT
-                    </motion.button>
-                    <p className="text-xs italic text-white/50 text-center">Captures GPS + after photo on click</p>
-                  </div>
-                </div>
+                </>
               )}
 
+              {/* ── COMPLETED ── */}
               {attendanceState === 'COMPLETED' && (
-                <div className="flex flex-col items-center text-center gap-4 py-4">
-                  <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/20">
-                    <CheckCircle2 className="w-12 h-12 text-white" strokeWidth={1.5} />
-                  </div>
-                  <h2 className="text-xl font-bold text-white">Attendance Recorded</h2>
-                  {completedStatusBadge()}
-                  <div className="flex flex-wrap justify-center gap-2 mt-2">
-                    <span className="rounded-full bg-white/10 px-4 py-1.5 text-sm text-white/80">
-                      In: {formatTimeAmPmFromDate(todayAttendance?.checkInTime)}
-                    </span>
-                    <span className="rounded-full bg-white/10 px-4 py-1.5 text-sm text-white/80">
-                      Out: {formatTimeAmPmFromDate(todayAttendance?.checkOutTime)}
-                    </span>
-                  </div>
-                  {todayAttendance?.flagReasons?.length > 0 && (
-                    <div className="mt-2 max-w-lg rounded-xl bg-amber-400/20 px-4 py-3 text-sm text-white text-left">
-                      Flag reasons: {todayAttendance.flagReasons.join(', ')}
+                <div className="flex flex-col lg:flex-row gap-8">
+                  <div className="lg:w-[60%] space-y-4">
+                    {/* Row 1: Attendance Recorded with Icon */}
+                    <div className="flex items-center gap-2">
+                       <CheckCircle2 className="w-6 h-6 text-[#246427]" strokeWidth={2.5} />
+                       <h2 className="text-xl font-bold text-[#212121]">Attendance Recorded</h2>
                     </div>
-                  )}
+
+                    {/* Row 2: Task Name with badge on Right */}
+                    <div className="flex items-center gap-3">
+                      <h1 className="text-2xl font-bold text-[#212121]">{todayTask?.title}</h1>
+                      {completedStatusBadge()}
+                    </div>
+
+                    {/* Row 3: Timestamps adjacent */}
+                    <div className="flex flex-wrap items-center gap-x-8 gap-y-1 mt-1">
+                      <p className="text-sm text-[#616161] font-semibold">
+                        Checked in at {formatTimeAmPmFromDate(todayAttendance?.checkInTime)}
+                      </p>
+                      <p className="text-sm text-[#616161] font-semibold">
+                        Checked out at {formatTimeAmPmFromDate(todayAttendance?.checkOutTime)}
+                      </p>
+                    </div>
+
+                    {todayAttendance?.flagReasons?.length > 0 && (
+                      <div className="mt-2 rounded-xl bg-amber-400/10 border border-amber-200/50 px-4 py-3 text-sm text-[#212121]">
+                        <span className="font-bold text-amber-800">Flag reasons:</span> {todayAttendance.flagReasons.join(', ')}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="lg:w-[40%] flex items-center justify-center">
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setShowSubmitReport(true)}
+                      className="flex items-center gap-2 rounded-xl bg-[#246427] px-8 py-4 text-[1rem] font-bold text-white shadow-[0_4px_14px_rgba(36,100,39,0.2)] hover:bg-[#1a4d1c] transition-all"
+                    >
+                      <FileText size={20} />
+                      SUBMIT REPORT
+                    </motion.button>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -568,8 +618,8 @@ export default function WorkerDashboard() {
             title: 'Request Leave',
             subtitle: 'Apply for time off',
             Icon: Calendar,
-            circle: 'bg-[#FFF8E1]',
-            iconColor: '#B07D00',
+            circle: 'bg-[#E8F5E9]',
+            iconColor: '#246427',
             onClick: () => navigate('/worker/leave', { state: { openModal: true } }),
           },
           {
@@ -724,6 +774,16 @@ export default function WorkerDashboard() {
           setShowCheckOut(false);
           refreshDashboard();
           if (result?.message) toast.success(result.message);
+        }}
+      />
+      <SubmitReportModal
+        isOpen={showSubmitReport}
+        onClose={() => setShowSubmitReport(false)}
+        initialTaskId={todayTask?._id || ''}
+        initialAttendanceId={todayAttendance?._id || ''}
+        onSuccess={() => {
+          setShowSubmitReport(false);
+          refreshDashboard();
         }}
       />
     </motion.div>

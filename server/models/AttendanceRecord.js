@@ -23,6 +23,10 @@ const AttendanceRecordSchema = new mongoose.Schema(
     flagReasons: [{ type: String }],
     resolvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     resolutionRemark: { type: String, default: '' },
+    isEarlyCheckout: { type: Boolean, default: false },
+    earlyCheckoutReason: { type: String, default: '' },
+    earlyCheckoutMinutes: { type: Number, default: 0 },
+    tlApprovalStatus: { type: String, enum: ['PENDING', 'APPROVED', 'REJECTED'], default: 'PENDING' },
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }

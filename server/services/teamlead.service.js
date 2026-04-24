@@ -365,6 +365,7 @@ const resolveFlaggedRecord = async (teamLeadId, recordId, action, remark) => {
   if (!record || !record.task) return null;
   if (String(record.task.createdBy) !== String(teamLeadId)) return false;
   record.status = action === 'APPROVE' ? ATTENDANCE_STATUS.VERIFIED : ATTENDANCE_STATUS.REJECTED;
+  record.tlApprovalStatus = action === 'APPROVE' ? 'APPROVED' : 'REJECTED';
   record.resolvedBy = teamLeadId;
   record.resolutionRemark = remark || '';
   await record.save();

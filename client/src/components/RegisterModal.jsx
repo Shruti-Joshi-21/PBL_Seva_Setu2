@@ -28,7 +28,7 @@ const RegisterModal = ({ isOpen, onClose, role }) => {
             return;
         }
 
-        if (role === 'Volunteer' && !faceImage) {
+        if (role === 'Field Worker' && !faceImage) {
             toast.error('Please capture your face for verification.');
             return;
         }
@@ -36,7 +36,7 @@ const RegisterModal = ({ isOpen, onClose, role }) => {
         setLoading(true);
 
         try {
-            if (role === 'Volunteer') {
+            if (role === 'Field Worker') {
                 const res = await fetch(faceImage);
                 const blob = await res.blob();
                 const formData = new FormData();
@@ -78,7 +78,7 @@ const RegisterModal = ({ isOpen, onClose, role }) => {
 
     const getRoleIcon = () => {
         switch (role) {
-            case 'Volunteer': return <User className="text-[#427A43]" />;
+            case 'Field Worker': return <User className="text-[#427A43]" />;
             case 'Team Lead': return <Users className="text-[#246427]" />;
             case 'Administrator': return <Shield className="text-[#F8AC3B]" />;
             default: return null;
@@ -97,7 +97,7 @@ const RegisterModal = ({ isOpen, onClose, role }) => {
                         </div>
                         <div>
                             <h2 className="text-[1rem] font-semibold text-[#212121]">Register as {role}</h2>
-                            <p className="text-xs text-[#616161]">Create your SevaSetu account</p>
+                            <p className="text-xs text-[#616161]">Create your Sahayog account</p>
                         </div>
                     </div>
                     <button 
@@ -112,10 +112,10 @@ const RegisterModal = ({ isOpen, onClose, role }) => {
                 <form onSubmit={handleSubmit} className="p-[24px] bg-[#FFFFFF] space-y-4 max-h-[70vh] overflow-y-auto">
                     
                     {/* Role Warning / Context */}
-                    {(role === 'Volunteer') && (
+                    {(role === 'Field Worker') && (
                         <div className="bg-[#FFF8E1] border border-[#FFE082] p-3 rounded-[10px] flex gap-3 text-xs text-[#B07D00]">
                             <Camera size={16} className="shrink-0" />
-                            <p>For Volunteers, face capture is mandatory for attendance verification during work.</p>
+                            <p>For Field Workers, face capture is mandatory for attendance verification during work.</p>
                         </div>
                     )}
 
@@ -172,7 +172,7 @@ const RegisterModal = ({ isOpen, onClose, role }) => {
                     </div>
 
                     {/* Face Capture Section - only for Volunteer */}
-                    {(role === 'Volunteer') && (
+                    {(role === 'Field Worker') && (
                         <div className="pt-4 border-t border-gray-100">
                             <label className="block text-sm font-medium text-gray-700 mb-2">Verification Photo</label>
                             

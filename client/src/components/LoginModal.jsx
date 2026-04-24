@@ -23,8 +23,8 @@ const LoginModal = ({ isOpen, onClose, role }) => {
       const response = await api.post('/auth/login', { username, password });
       const { token, role: userRole, name, id } = response.data.data;
 
-      localStorage.setItem('sevasetu_token', token);
-      localStorage.setItem('sevasetu_role', userRole);
+      localStorage.setItem('sahayog_token', token);
+      localStorage.setItem('sahayog_role', userRole);
 
       login({ token, role: userRole, name, id });
 
@@ -49,7 +49,7 @@ const LoginModal = ({ isOpen, onClose, role }) => {
 
   const getRoleIcon = () => {
     switch (role) {
-      case 'Volunteer':
+      case 'Field Worker':
         return <User className="text-[#427A43]" />;
       case 'Team Lead':
         return <Users className="text-[#246427]" />;
@@ -68,7 +68,7 @@ const LoginModal = ({ isOpen, onClose, role }) => {
             <div className="p-2 rounded-xl bg-white shadow-sm">{getRoleIcon()}</div>
             <div>
               <h2 className="text-[1rem] font-semibold text-[#212121]">Login as {role}</h2>
-              <p className="text-xs text-[#616161]">Access your dashboard</p>
+              <p className="text-xs text-[#616161]">Access your Sahayog dashboard</p>
             </div>
           </div>
           <button
@@ -144,7 +144,7 @@ const LoginModal = ({ isOpen, onClose, role }) => {
 
           <div className="mt-4 text-center">
             <p className="text-xs text-gray-400">
-              By signing in, you agree to the SevaSetu Terms & Privacy Policy
+              By signing in, you agree to the Sahayog Terms & Privacy Policy
             </p>
           </div>
         </form>

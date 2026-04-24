@@ -20,7 +20,7 @@ const RADIUS_PRESETS = [100, 200, 300, 500];
 
 const FIELD_SUGGESTIONS = [
   { label: 'Total weight (kg)', type: 'Number' },
-  { label: 'Volunteers present', type: 'Number' },
+  { label: 'Field workers present', type: 'Number' },
   { label: 'Vehicles deployed', type: 'Number' },
   { label: 'Site photo', type: 'Image' },
   { label: 'Hazards found', type: 'Text' },
