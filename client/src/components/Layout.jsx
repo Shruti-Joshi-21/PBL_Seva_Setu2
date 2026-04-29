@@ -173,6 +173,15 @@ const Layout = ({ children }) => {
                                      'SAHAYOG FIELD WORKER'}
                                 </p>
                             </div>
+                            {user?.role === 'TEAM_LEAD' && ['/teamlead', '/teamlead/tasks'].includes(location.pathname) && (
+                                <button
+                                    onClick={() => navigate('/teamlead/tasks/create')}
+                                    className="flex items-center gap-1.5 rounded-[10px] bg-[#246427] px-3 py-2 text-xs font-bold text-white shadow-md hover:bg-[#1a4d1c] transition-all flex-shrink-0"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>Create Task</span>
+                                </button>
+                            )}
                         </div>
                     ) : (
                         <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -181,12 +190,21 @@ const Layout = ({ children }) => {
                                     <ArrowLeft className="w-5 h-5" />
                                 </button>
                             )}
-                            <div className="flex flex-col min-w-0">
+                            <div className="flex flex-col min-w-0 flex-1">
                                 <h1 className="text-[1.125rem] font-bold text-[#212121] leading-tight truncate">{meta.title}</h1>
                                 {meta.subtitle && (
                                     <p className="text-[0.7rem] text-[#616161] truncate">{meta.subtitle}</p>
                                 )}
                             </div>
+                            {user?.role === 'TEAM_LEAD' && location.pathname === '/teamlead/tasks' && (
+                                <button
+                                    onClick={() => navigate('/teamlead/tasks/create')}
+                                    className="flex items-center gap-1.5 rounded-[10px] bg-[#246427] px-3 py-2 text-xs font-bold text-white shadow-md hover:bg-[#1a4d1c] transition-all flex-shrink-0"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>Create Task</span>
+                                </button>
+                            )}
                         </div>
                     )}
                 </header>
