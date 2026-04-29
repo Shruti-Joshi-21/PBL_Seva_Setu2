@@ -50,17 +50,6 @@ function truncate(s, n) {
   return t.length <= n ? t : `${t.slice(0, n)}…`;
 }
 
-function leaveTypeBadgeClass(type) {
-  switch (type) {
-    case 'SICK':
-      return 'border border-[#246427]/20 bg-[#246427]/10 text-[#246427]';
-    case 'EMERGENCY':
-      return 'border border-[#EF9A9A] bg-[#FFEBEE] text-[#C62828]';
-    case 'CASUAL':
-    default:
-      return 'border border-[#E0E7DC] bg-[#F9FBF7] text-[#616161]';
-  }
-}
 
 function statusPillClass(status) {
   switch (status) {
@@ -232,7 +221,7 @@ export default function LeavePage() {
         )}
 
         <div>
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <h2 className="font-semibold text-[#212121]">Leave History</h2>
               <span className="rounded-full bg-[#E8F5E9] px-2 py-0.5 text-[0.75rem] text-[#246427]">
@@ -242,7 +231,7 @@ export default function LeavePage() {
             <button
               type="button"
               onClick={() => setShowModal(true)}
-              className="flex items-center justify-center gap-2 rounded-[12px] bg-[#246427] px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-[#1a4d1c] transition-all"
+              className="flex items-center justify-center gap-2 rounded-[12px] bg-[#246427] px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-[#1a4d1c] transition-all w-full sm:w-auto"
             >
               Create Request
             </button>
@@ -273,9 +262,9 @@ export default function LeavePage() {
                     transition={{ duration: 0.3, delay: 0.04 * index }}
                     className="relative rounded-[20px] bg-[#FFFFFF] p-6 shadow-[var(--shadow-card)] border border-[#E0E7DC]"
                   >
-                    <div className="absolute top-4 right-6 flex flex-col items-center gap-2 min-w-[100px]">
+                    <div className="sm:absolute sm:top-4 sm:right-6 flex flex-row sm:flex-col items-center gap-2 min-w-[100px] mb-4 sm:mb-0 justify-between sm:justify-start">
                       <span
-                        className={`rounded-full px-4 py-1.5 text-[0.7rem] font-bold text-center w-full shadow-sm ${statusPillClass(leave.status)}`}
+                        className={`rounded-full px-4 py-1.5 text-[0.7rem] font-bold text-center sm:w-full shadow-sm ${statusPillClass(leave.status)}`}
                       >
                         {leave.status}
                       </span>
@@ -295,13 +284,11 @@ export default function LeavePage() {
                       )}
                     </div>
 
-                    <div className="flex flex-col gap-5 sm:flex-row sm:items-start pr-[120px]">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:pr-[120px]">
                       <div className="flex w-full shrink-0 flex-col items-center sm:w-20 pt-1">
-                        <span
-                          className={`rounded-[12px] px-3 py-1.5 text-[0.7rem] font-bold uppercase tracking-wider text-center w-full ${leaveTypeBadgeClass(lt)}`}
-                        >
+                        <p className="text-[0.7rem] font-semibold uppercase tracking-wider text-[#616161] text-center">
                           {lt}
-                        </span>
+                        </p>
                         <p className="mt-2 text-[0.75rem] font-medium text-[#616161]">
                           {days} day{days !== 1 ? 's' : ''}
                         </p>

@@ -157,16 +157,38 @@ const Layout = ({ children }) => {
                 style={{ background: 'linear-gradient(to bottom, #DCE9D5 0%, #F9FDF7 20%, #F9FDF7 100%)' }}
             >
                 {/* Header Mobile */}
-                <header className="md:hidden bg-[#FFFFFF] border-b border-[#E0E7DC] p-4 flex items-center justify-between text-[#212121] sticky top-0 z-30">
-                    <div className="flex items-center gap-3">
-                        {!isHome && (
-                            <button onClick={() => navigate(-1)} className="text-[#246427]">
-                                <ArrowLeft className="w-5 h-5" />
-                            </button>
-                        )}
-                        <h1 className="text-xl font-bold">{isHome ? 'Sahayog' : meta.title}</h1>
-                    </div>
-                    <button onClick={() => setSidebarOpen(true)} className="text-[#616161] hover:text-[#246427]"><Menu className="w-6 h-6" /></button>
+                <header className="md:hidden flex items-center gap-3 px-4 z-30 py-4" style={{ background: 'transparent' }}>
+                    <button onClick={() => setSidebarOpen(true)} className="text-[#616161] hover:text-[#246427] flex-shrink-0">
+                        <Menu className="w-6 h-6" />
+                    </button>
+                    {isHome ? (
+                        <div className="flex-1 flex items-center justify-between">
+                            <div>
+                                <h1 className="text-[1.25rem] font-bold text-[#212121]">
+                                    Welcome, <span className="text-[#246427] font-bold">{firstName}!</span>
+                                </h1>
+                                <p className="text-[0.7rem] text-[#616161] font-medium uppercase tracking-wider">
+                                    {user?.role === 'ADMIN' ? 'SAHAYOG ADMINISTRATOR' :
+                                     user?.role === 'TEAM_LEAD' ? 'SAHAYOG TEAM LEAD' :
+                                     'SAHAYOG FIELD WORKER'}
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {!getLinks().some(l => l.to === location.pathname) && (
+                                <button onClick={() => navigate(-1)} className="text-[#246427] flex-shrink-0">
+                                    <ArrowLeft className="w-5 h-5" />
+                                </button>
+                            )}
+                            <div className="flex flex-col min-w-0">
+                                <h1 className="text-[1.125rem] font-bold text-[#212121] leading-tight truncate">{meta.title}</h1>
+                                {meta.subtitle && (
+                                    <p className="text-[0.7rem] text-[#616161] truncate">{meta.subtitle}</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </header>
 
                 {/* Header Desktop */}
@@ -239,7 +261,10 @@ const Layout = ({ children }) => {
                 <div className="fixed inset-0 bg-black/35 backdrop-blur-sm z-40 md:hidden" onClick={() => setSidebarOpen(false)}>
                     <div className="w-64 bg-white h-full flex flex-col" onClick={e => e.stopPropagation()}>
                         <div className="p-4 mb-4 bg-white border-b border-[#E0E7DC] flex items-center justify-between">
-                            <h1 className="text-xl font-bold text-[#246427]">Sahayog</h1>
+                            <div className="flex items-center gap-2">
+                                <img src="/sahayog_icon.svg" alt="Sahayog" className="w-7 h-7" />
+                                <h1 className="text-xl font-bold text-[#246427]" style={{ fontFamily: "'Merriweather', serif" }}>Sahayog</h1>
+                            </div>
                             <button onClick={() => setSidebarOpen(false)} className="text-[#616161] hover:text-[#246427]"><X className="w-6 h-6" /></button>
                         </div>
                         <nav className="flex-1 space-y-1 px-4 overflow-y-auto">

@@ -127,7 +127,7 @@ const MarkAttendance = () => {
 
 
             <div className="bg-[#FFFFFF] rounded-[20px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC] overflow-hidden">
-                <div className="p-6 border-b border-[#E0E7DC] flex items-center justify-between">
+                <div className="p-6 border-b border-[#E0E7DC] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${isCheckout ? 'bg-[#FFF8E1] text-[#B07D00]' : 'bg-[#E8F5E9] text-[#246427]'}`}>
                             {isCheckout ? <LogOut className="w-5 h-5" /> : <LogIn className="w-5 h-5" />}
@@ -137,7 +137,7 @@ const MarkAttendance = () => {
                             <p className="text-[0.875rem] text-[#616161]">{isCheckout ? 'Perform face check-out' : 'Verify face to begin task'}</p>
                         </div>
                     </div>
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-[10px] text-[0.75rem] font-bold ${location ? 'bg-[#E8F5E9] text-[#246427]' : 'bg-[#F9FBF7] text-[#9E9E9E]'
+                    <div className={`flex items-center gap-2 px-3 py-1 rounded-[10px] text-[0.75rem] font-bold w-full sm:w-auto justify-center sm:justify-start ${location ? 'bg-[#E8F5E9] text-[#246427]' : 'bg-[#F9FBF7] text-[#9E9E9E]'
                         }`}>
                         <MapPin className="w-3 h-3" />
                         {location ? 'GPS Fixed' : 'Acquiring GPS...'}

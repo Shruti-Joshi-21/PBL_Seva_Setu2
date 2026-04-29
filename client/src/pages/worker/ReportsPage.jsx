@@ -144,17 +144,7 @@ export default function ReportsPage() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex-1" />
-        <button
-          type="button"
-          onClick={() => setShowModal(true)}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#246427] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1a4d1c]"
-        >
-          <Plus className="h-4 w-4" />
-          Submit Report
-        </button>
-      </div>
+
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
@@ -208,24 +198,34 @@ export default function ReportsPage() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {FILTERS.map((f, index) => (
-          <motion.button
-            key={f.label}
-            type="button"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: 0.03 * index }}
-            onClick={() => onFilterClick(f.value)}
-            className={`rounded-[10px] px-4 py-2 text-[0.875rem] font-medium transition ${
-              statusFilter === f.value
-                ? 'bg-[#246427] text-white shadow-sm'
-                : 'border border-[#E0E7DC] bg-[#FFFFFF] text-[#616161] hover:border-[#246427]/40 hover:bg-[#F1F8E9]'
-            }`}
-          >
-            {f.label}
-          </motion.button>
-        ))}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap gap-2">
+          {FILTERS.map((f, index) => (
+            <motion.button
+              key={f.label}
+              type="button"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: 0.03 * index }}
+              onClick={() => onFilterClick(f.value)}
+              className={`rounded-[10px] px-4 py-2 text-[0.875rem] font-medium transition ${
+                statusFilter === f.value
+                  ? 'bg-[#246427] text-white shadow-sm'
+                  : 'border border-[#E0E7DC] bg-[#FFFFFF] text-[#616161] hover:border-[#246427]/40 hover:bg-[#F1F8E9]'
+              }`}
+            >
+              {f.label}
+            </motion.button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowModal(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#246427] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1a4d1c] sm:ml-auto"
+        >
+          <Plus className="h-4 w-4" />
+          Submit Report
+        </button>
       </div>
 
       {loading ? (

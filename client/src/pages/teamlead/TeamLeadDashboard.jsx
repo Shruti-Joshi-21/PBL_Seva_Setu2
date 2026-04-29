@@ -99,7 +99,7 @@ const TeamLeadDashboard = () => {
     <>
       <div className="bg-transparent  p-6 space-y-6">
         {error ? <p className="text-sm font-normal text-red-600">{error}</p> : null}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: 'Active tasks', value: stats.activeTasks || 0, Icon: ClipboardList },
             { label: 'Workers present', value: `${stats.presentToday || 0}/${stats.totalWorkers || 0}`, Icon: UserCheck },

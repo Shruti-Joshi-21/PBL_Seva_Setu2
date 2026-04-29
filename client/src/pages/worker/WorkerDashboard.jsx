@@ -428,7 +428,7 @@ export default function WorkerDashboard() {
       {/* Row 2: Hero (Check-in/Today Task) */}
       <motion.div {...section(2)}>
         <div
-          className="relative overflow-hidden rounded-[16px] shadow-[0_4px_20px_rgba(36,100,39,0.1)] px-[32px] py-[28px]"
+          className="relative overflow-hidden rounded-[16px] border-[1.5px] border-[#A5D6A7] shadow-[0_4px_20px_rgba(36,100,39,0.1)] px-4 py-5 sm:px-8 sm:py-7"
           style={{ background: 'linear-gradient(135deg, #F1F8E9 0%, #C8E6C9 100%)' }}
         >
           <AnimatePresence mode="wait">
@@ -498,7 +498,7 @@ export default function WorkerDashboard() {
                   </div>
                   {todayTask && (
                     <div className="flex justify-end mt-4">
-                      <p className="text-[14px] text-[#2d5a2e]/60 italic text-right whitespace-nowrap">
+                      <p className="text-[13px] text-[#2d5a2e]/60 italic text-right">
                         You can mark attendance 15 minutes before and 15 minutes after the scheduled time, the minutes will be specified by the team lead as buffer
                       </p>
                     </div>
@@ -519,7 +519,7 @@ export default function WorkerDashboard() {
                         </span>
                       </div>
                       <p className="text-sm text-[#616161]">Time Elapsed</p>
-                      <p className="text-4xl font-mono font-bold text-[#212121] tabular-nums">{elapsedTime}</p>
+                      <p className="text-3xl sm:text-4xl font-mono font-bold text-[#212121] tabular-nums">{elapsedTime}</p>
                       <div className="flex flex-wrap items-center gap-x-8 gap-y-1 mt-1">
                         <p className="text-sm text-[#616161] font-semibold">
                           Checked in at {formatTimeAmPmFromDate(todayAttendance?.checkInTime)}
@@ -542,7 +542,7 @@ export default function WorkerDashboard() {
                         onClick={onCheckOut}
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
-                        className="flex items-center gap-2 rounded-[12px] bg-[#246427] px-10 py-4 text-[1rem] font-bold text-white shadow-[0_4px_14px_rgba(36,100,39,0.2)] transition-colors hover:bg-[#1a4d1c]"
+                        className="flex w-full lg:w-auto items-center justify-center gap-2 rounded-[12px] bg-[#246427] px-10 py-4 text-[1rem] font-bold text-white shadow-[0_4px_14px_rgba(36,100,39,0.2)] transition-colors hover:bg-[#1a4d1c]"
                       >
                         <LogOut className="w-5 h-5" />
                         CHECK OUT
@@ -590,7 +590,7 @@ export default function WorkerDashboard() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowSubmitReport(true)}
-                      className="flex items-center gap-2 rounded-xl bg-[#246427] px-8 py-4 text-[1rem] font-bold text-white shadow-[0_4px_14px_rgba(36,100,39,0.2)] hover:bg-[#1a4d1c] transition-all"
+                      className="flex w-full lg:w-auto items-center justify-center gap-2 rounded-xl bg-[#246427] px-8 py-4 text-[1rem] font-bold text-white shadow-[0_4px_14px_rgba(36,100,39,0.2)] hover:bg-[#1a4d1c] transition-all"
                     >
                       <FileText size={20} />
                       SUBMIT REPORT
@@ -648,15 +648,15 @@ export default function WorkerDashboard() {
             transition={{ duration: 0.35, delay: 0.05 * i }}
             whileHover={{ scale: 1.02, boxShadow: '0 8px 24px rgba(0,0,0,0.08)' }}
             whileTap={{ scale: 0.98 }}
-            className="rounded-[20px] bg-[#FFFFFF] p-6 shadow-[0_4px_12px_rgba(0,0,0,0.05)] text-left border border-[#E0E7DC] hover:border-[#246427] transition-all"
+            className="rounded-[20px] bg-[#FFFFFF] p-4 sm:p-6 shadow-[0_4px_12px_rgba(0,0,0,0.05)] text-left border border-[#E0E7DC] hover:border-[#246427] transition-all"
           >
             <div
-              className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full ${action.circle}`}
+              className={`mx-auto mb-3 flex h-11 w-11 sm:h-14 sm:w-14 items-center justify-center rounded-full ${action.circle}`}
             >
-              <action.Icon className="w-7 h-7" style={{ color: action.iconColor }} />
+              <action.Icon className="w-6 h-6 sm:w-7 sm:h-7" style={{ color: action.iconColor }} />
             </div>
-            <h3 className="font-semibold text-[#212121] text-center">{action.title}</h3>
-            <p className="text-[0.75rem] text-[#616161] text-center mt-1">{action.subtitle}</p>
+            <h3 className="font-semibold text-[#212121] text-center text-sm sm:text-base">{action.title}</h3>
+            <p className="text-[0.7rem] sm:text-[0.75rem] text-[#616161] text-center mt-1 hidden sm:block">{action.subtitle}</p>
           </motion.button>
         ))}
       </motion.div>

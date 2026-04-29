@@ -237,10 +237,10 @@ export default function TasksPage() {
                     className="rounded-[20px] bg-[#FFFFFF] border border-[#E0E7DC] shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-6 relative"
                   >
                     <div className="flex items-start justify-between gap-4 mb-4">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-3">
+                      <div className="flex flex-col gap-1 min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
                           <h2 className="text-[1.125rem] font-bold text-[#212121]">{task.title}</h2>
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[10px] bg-[#E8F5E9] text-[#246427] whitespace-nowrap">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[10px] bg-[#E8F5E9] text-[#246427] whitespace-nowrap shrink-0">
                             {task.workType}
                           </span>
                         </div>
@@ -354,7 +354,7 @@ export default function TasksPage() {
                                 )}
                             </div>
 
-                            <div className="text-right shrink-0">
+                            <div className="text-left sm:text-right shrink-0">
                                 <p className="text-[0.7rem] text-[#212121]/50 italic font-medium">
                                     Attendance allowed {inBuf}m before & {outBuf}m after schedule
                                 </p>

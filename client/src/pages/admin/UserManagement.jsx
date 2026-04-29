@@ -65,7 +65,7 @@ const UserManagement = () => {
                     <h2 className="text-2xl font-bold text-[#005F02]">User Management</h2>
                     <p className="text-gray-500">Manage all staff members and their roles.</p>
                 </div>
-                <button className="flex items-center justify-center gap-2 px-6 py-3 bg-[#005F02] text-white rounded-xl font-bold hover:bg-[#427A43] transition-all shadow-md">
+                <button className="flex items-center justify-center gap-2 px-6 py-3 bg-[#005F02] text-white rounded-xl font-bold hover:bg-[#427A43] transition-all shadow-md w-full md:w-auto">
                     <UserPlus className="w-5 h-5" /> Add New User
                 </button>
             </div>
@@ -85,7 +85,7 @@ const UserManagement = () => {
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left whitespace-nowrap">
                         <thead>
                             <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                                 <th className="px-6 py-4 font-semibold">User</th>
