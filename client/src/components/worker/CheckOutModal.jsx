@@ -199,8 +199,8 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
           <motion.div
             role="dialog"
             aria-modal="true"
-            className="relative mt-8 w-full max-w-lg rounded-[20px] bg-[#FFFFFF] p-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
-            style={{ maxHeight: '90vh' }}
+            className="relative mt-2 sm:mt-6 w-full max-w-lg rounded-[20px] bg-[#FFFFFF] p-4 sm:p-[24px] shadow-[0_8px_32px_rgba(0,0,0,0.14)]"
+            style={{ maxHeight: '92vh' }}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -332,8 +332,8 @@ export default function CheckOutModal({ isOpen, onClose, task, attendanceRecord,
 
             {task && attendanceRecord && !result && (
               <>
-                <h2 className="bg-[#F1F8E9] border-b border-[#E0E7DC] px-[24px] py-[16px] rounded-t-[20px] text-[1rem] font-semibold text-[#212121] -mx-[24px] -mt-[24px] mb-[24px] pr-12">Check Out</h2>
-                <div className="mb-6 mt-4">
+                <h2 className="bg-[#F1F8E9] border-b border-[#E0E7DC] px-4 sm:px-[24px] py-[16px] rounded-t-[20px] text-[1rem] font-semibold text-[#212121] -mx-4 sm:-mx-[24px] -mt-4 sm:-mt-[24px] mb-[24px] pr-12">Check Out</h2>
+                <div className="mb-5 mt-3 overflow-x-auto">
                   <StepIndicator steps={STEPS} currentStep={step} />
                 </div>
 

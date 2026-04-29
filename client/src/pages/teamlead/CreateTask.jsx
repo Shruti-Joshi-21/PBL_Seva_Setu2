@@ -247,7 +247,7 @@ const CreateTask = () => {
                 onChange={(e) => setFormData({ ...formData, allowedRadius: Number(e.target.value) })}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Task date</label>
                 <input
@@ -259,7 +259,7 @@ const CreateTask = () => {
               </div>
               <div />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Start time</label>
                 <input
@@ -279,7 +279,7 @@ const CreateTask = () => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1.5 block">Check-in buffer (mins)</label>
                 <input
@@ -419,47 +419,51 @@ const CreateTask = () => {
         {currentStep === 3 ? (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             <div className="space-y-3">
-              <div className="bg-transparent rounded-t-lg px-4 py-2 grid grid-cols-[1fr_120px_40px] gap-2 text-[10px] uppercase tracking-widest text-gray-400 font-normal">
-                <span>Field name</span>
-                <span>Type</span>
-                <span />
-              </div>
-              <div id="report-fields-list" className="border border-[#e8e0d0] rounded-b-lg overflow-hidden">
-                {reportFields.map((f, i) => (
-                  <div
-                    key={i}
-                    className="grid grid-cols-[1fr_120px_40px] items-center gap-2 px-4 py-2 border-b border-[#e8e0d0] last:border-0 bg-white"
-                  >
-                    <input
-                      className="w-full border border-[#e8e0d0] rounded-lg px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:border-[#1a4a1a] transition-colors placeholder:text-gray-300"
-                      placeholder="Field name"
-                      value={f.fieldName}
-                      onChange={(e) =>
-                        setReportFields((prev) => prev.map((x, idx) => (idx === i ? { ...x, fieldName: e.target.value } : x)))
-                      }
-                    />
-                    <select
-                      className="border border-[#e8e0d0] rounded-lg px-2 py-1.5 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a]"
-                      value={f.fieldType}
-                      onChange={(e) =>
-                        setReportFields((prev) => prev.map((x, idx) => (idx === i ? { ...x, fieldType: e.target.value } : x)))
-                      }
-                    >
-                      <option>Number</option>
-                      <option>Text</option>
-                      <option>Image</option>
-                      <option>Yes/No</option>
-                      <option>Date</option>
-                    </select>
-                    <button
-                      type="button"
-                      className="w-6 h-6 border border-red-200 text-red-400 rounded-full text-sm leading-none hover:bg-red-50 font-normal"
-                      onClick={() => setReportFields((prev) => (prev.length > 1 ? prev.filter((_, idx) => idx !== i) : prev))}
-                    >
-                      ×
-                    </button>
+              <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0">
+                <div className="min-w-[400px]">
+                  <div className="bg-transparent rounded-t-lg px-4 py-2 grid grid-cols-[1fr_120px_40px] gap-2 text-[10px] uppercase tracking-widest text-gray-400 font-normal">
+                    <span>Field name</span>
+                    <span>Type</span>
+                    <span />
                   </div>
-                ))}
+                  <div id="report-fields-list" className="border border-[#e8e0d0] rounded-b-lg overflow-hidden">
+                    {reportFields.map((f, i) => (
+                      <div
+                        key={i}
+                        className="grid grid-cols-[1fr_120px_40px] items-center gap-2 px-4 py-2 border-b border-[#e8e0d0] last:border-0 bg-white"
+                      >
+                        <input
+                          className="w-full border border-[#e8e0d0] rounded-lg px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:border-[#1a4a1a] transition-colors placeholder:text-gray-300"
+                          placeholder="Field name"
+                          value={f.fieldName}
+                          onChange={(e) =>
+                            setReportFields((prev) => prev.map((x, idx) => (idx === i ? { ...x, fieldName: e.target.value } : x)))
+                          }
+                        />
+                        <select
+                          className="border border-[#e8e0d0] rounded-lg px-2 py-1.5 text-sm text-gray-800 bg-white focus:outline-none focus:border-[#1a4a1a]"
+                          value={f.fieldType}
+                          onChange={(e) =>
+                            setReportFields((prev) => prev.map((x, idx) => (idx === i ? { ...x, fieldType: e.target.value } : x)))
+                          }
+                        >
+                          <option>Number</option>
+                          <option>Text</option>
+                          <option>Image</option>
+                          <option>Yes/No</option>
+                          <option>Date</option>
+                        </select>
+                        <button
+                          type="button"
+                          className="w-6 h-6 border border-red-200 text-red-400 rounded-full text-sm leading-none hover:bg-red-50 font-normal"
+                          onClick={() => setReportFields((prev) => (prev.length > 1 ? prev.filter((_, idx) => idx !== i) : prev))}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
               <button
                 type="button"

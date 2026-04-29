@@ -64,7 +64,7 @@ const SubmitReport = () => {
         <div className="max-w-2xl mx-auto space-y-6">
 
 
-            <div className="bg-[#FFFFFF] rounded-[20px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC] p-8">
+            <div className="bg-[#FFFFFF] rounded-[20px] shadow-[0_4px_12px_rgba(0,0,0,0.05)] border border-[#E0E7DC] p-4 sm:p-8">
 
 
                 <form onSubmit={handleSubmit} className="space-y-6">

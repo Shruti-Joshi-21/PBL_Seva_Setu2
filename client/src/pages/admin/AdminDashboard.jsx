@@ -38,6 +38,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  Menu,
 } from 'lucide-react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
@@ -573,7 +574,7 @@ function AnalyticsTab({
         </button>
       </div>
 
-      <div className="grid grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         {analyticsLoading || !kpis
           ? [1, 2, 3, 4].map((i) => (
               <div key={i} className="rounded-[14px] border border-[#E0E7DC] p-4 h-24 animate-pulse bg-[#F9FBF7]" />
@@ -598,7 +599,7 @@ function AnalyticsTab({
             ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <div className="bg-white rounded-[14px] border border-[#E0E7DC] p-4">
           <div className="text-xs font-medium text-[#212121] mb-2">NGO attendance rate — last 30 days</div>
           <div className="h-40">
@@ -645,7 +646,7 @@ function AnalyticsTab({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <div className="bg-white rounded-[14px] border border-[#E0E7DC] p-4">
           <div className="text-xs font-medium text-[#212121] mb-2">Team attendance comparison</div>
           <div className="h-56">
@@ -661,7 +662,7 @@ function AnalyticsTab({
       </div>
 
       {monthlyCompare && (
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
           {['thisMonth', 'lastMonth'].map((key) => {
             const m = monthlyCompare[key];
             return (
@@ -697,54 +698,56 @@ function AnalyticsTab({
             <Download size={14} /> Export CSV
           </button>
         </div>
-        <table className="w-full text-sm">
-          <thead className="bg-[#F9FBF7] border-b">
-            <tr>
-              {['Team Lead', 'Task', 'Date', 'Present', 'Absent', 'Rate', 'Status'].map((h) => (
-                <th key={h} className="px-4 py-3 text-left text-[#616161] text-xs">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {analyticsLoading
-              ? [1, 2, 3].map((i) => (
-                  <tr key={i}>
-                    <td colSpan={7} className="px-4 py-3">
-                      <div className="h-6 animate-pulse bg-gray-200 rounded" />
-                    </td>
-                  </tr>
-                ))
-              : rawRecords.map((r) => (
-                  <tr key={r._id} className="border-b border-[var(--color-border)]">
-                    <td className="px-4 py-3 text-[#212121]">{r.teamLead?.fullName}</td>
-                    <td className="px-4 py-3 text-[#212121]">{r.task?.title}</td>
-                    <td className="px-4 py-3 text-[#212121]">
-                      {r.date ? format(new Date(r.date), 'MMM d, yyyy') : '—'}
-                    </td>
-                    <td className="px-4 py-3">{r.present}</td>
-                    <td className="px-4 py-3">{r.absent}</td>
-                    <td className="px-4 py-3">{r.rate}%</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                          r.status === 'VERIFIED'
-                            ? 'bg-[#E8F5E9] text-[#1B5E20]'
-                            : r.status === 'PENDING'
-                              ? 'bg-[#F9F3E0] text-[#5D4E00]'
-                              : r.status === 'REJECTED'
-                                ? 'bg-[#FFEBEE] text-[#B71C1C]'
-                                : 'bg-[#FFF3E0] text-[#BF360C]'
-                        }`}
-                      >
-                        {r.status}
-                      </span>
-                    </td>
-                  </tr>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm whitespace-nowrap">
+            <thead className="bg-[#F9FBF7] border-b">
+              <tr>
+                {['Team Lead', 'Task', 'Date', 'Present', 'Absent', 'Rate', 'Status'].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left text-[#616161] text-xs">
+                    {h}
+                  </th>
                 ))}
-          </tbody>
-        </table>
+              </tr>
+            </thead>
+            <tbody>
+              {analyticsLoading
+                ? [1, 2, 3].map((i) => (
+                    <tr key={i}>
+                      <td colSpan={7} className="px-4 py-3">
+                        <div className="h-6 animate-pulse bg-gray-200 rounded" />
+                      </td>
+                    </tr>
+                  ))
+                : rawRecords.map((r) => (
+                    <tr key={r._id} className="border-b border-[var(--color-border)]">
+                      <td className="px-4 py-3 text-[#212121]">{r.teamLead?.fullName}</td>
+                      <td className="px-4 py-3 text-[#212121]">{r.task?.title}</td>
+                      <td className="px-4 py-3 text-[#212121]">
+                        {r.date ? format(new Date(r.date), 'MMM d, yyyy') : '—'}
+                      </td>
+                      <td className="px-4 py-3">{r.present}</td>
+                      <td className="px-4 py-3">{r.absent}</td>
+                      <td className="px-4 py-3">{r.rate}%</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                            r.status === 'VERIFIED'
+                              ? 'bg-[#E8F5E9] text-[#1B5E20]'
+                              : r.status === 'PENDING'
+                                ? 'bg-[#F9F3E0] text-[#5D4E00]'
+                                : r.status === 'REJECTED'
+                                  ? 'bg-[#FFEBEE] text-[#B71C1C]'
+                                  : 'bg-[#FFF3E0] text-[#BF360C]'
+                          }`}
+                        >
+                          {r.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+            </tbody>
+          </table>
+        </div>
         <div className="flex justify-between items-center p-4 border-t text-xs text-[#616161]">
           <span>
             Showing {(rawPage - 1) * 15 + 1}–{Math.min(rawPage * 15, rawTotal)} of {rawTotal} records
@@ -829,7 +832,7 @@ function LeaveTab({
       className="space-y-4"
     >
       {leaveSummary && (
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
           <div className="bg-white rounded-[14px] border border-[#E0E7DC] p-4">
             <div className="text-xs text-[#616161]">On Leave Today</div>
             <div className="text-2xl font-medium text-[#212121]">{leaveSummary.onLeaveToday}</div>
@@ -1011,8 +1014,9 @@ function LeaveTab({
       </div>
 
       <div className="bg-white rounded-[14px] border border-[#E0E7DC] overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-[#F9FBF7] border-b">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm whitespace-nowrap">
+            <thead className="bg-[#F9FBF7] border-b">
             <tr>
               {['Worker', 'Team Lead', 'Type', 'From', 'To', 'Days', 'Reason', 'Status'].map((h) => (
                 <th key={h} className="px-4 py-3 text-left text-xs text-[#616161]">
@@ -1092,6 +1096,7 @@ function LeaveTab({
                   ))}
           </tbody>
         </table>
+        </div>
         <div className="flex justify-between items-center p-4 border-t text-xs text-[#616161]">
           <span>
             Showing {(leavePage - 1) * 15 + 1}–{Math.min(leavePage * 15, leaveTotal)} of {leaveTotal}
@@ -1138,6 +1143,7 @@ const AdminDashboard = () => {
   const currentUser = user;
   const navigate = useNavigate();
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(TAB_OVERVIEW);
   const location = useLocation();
 
@@ -1615,7 +1621,15 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex h-screen" style={{ backgroundColor: '#F9FDF7' }}>
-      <aside className="w-64 min-w-[256px] bg-white border-r border-[#E0E7DC] flex flex-col z-20">
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden" 
+          onClick={() => setSidebarOpen(false)} 
+        />
+      )}
+
+      <aside className={`fixed inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0 transition duration-200 ease-in-out w-64 min-w-[256px] bg-white border-r border-[#E0E7DC] flex flex-col z-40`}>
         <div className="p-4 mb-4 bg-white border-b border-[#E0E7DC] flex items-center gap-2">
           <img src="/sahayog_icon.svg" alt="Sahayog" className="w-8 h-8 object-contain" />
           <h1 className="text-2xl font-bold text-[#246427]">Sahayog</h1>
@@ -1627,7 +1641,7 @@ const AdminDashboard = () => {
               <button
                 key={id}
                 type="button"
-                onClick={() => setActiveTab(id)}
+                onClick={() => { setActiveTab(id); setSidebarOpen(false); }}
                 className={`group flex items-center gap-3 px-[14px] py-[10px] w-full rounded-[10px] transition-all duration-200 text-left ${
                     active
                         ? 'bg-[#E8F5E9] text-[#246427] font-semibold'
@@ -1656,7 +1670,13 @@ const AdminDashboard = () => {
             className="flex-1 overflow-y-auto relative w-full !max-w-none"
             style={{ background: 'linear-gradient(to bottom, #DCE9D5 0%, #F9FDF7 20%, #F9FDF7 100%)' }}
           >
-            <header className="flex items-center px-8 z-30 py-4" style={{ background: 'transparent' }}>
+            <header className="flex items-center gap-4 px-4 sm:px-8 z-30 py-4" style={{ background: 'transparent' }}>
+                <button 
+                  className="lg:hidden p-2 -ml-2 text-[#616161]" 
+                  onClick={() => setSidebarOpen(true)}
+                >
+                  <Menu className="w-6 h-6" />
+                </button>
                 {activeTab === TAB_OVERVIEW ? (
                     <div className="flex items-center justify-between w-full">
                         <div>
@@ -1763,7 +1783,7 @@ const AdminDashboard = () => {
           </motion.div>
 
           {/* Charts */}
-          <motion.div {...sectionMotion(1)} className="grid grid-cols-[58%_1fr] gap-[16px] mb-[16px]">
+          <motion.div {...sectionMotion(1)} className="grid grid-cols-1 lg:grid-cols-[58%_1fr] gap-[16px] mb-[16px]">
             <div className="bg-[#FFFFFF] border border-[#E0E7DC] rounded-[14px] px-[24px] py-[20px] shadow-[0_2px_12px_rgba(36,100,39,0.07)] overflow-visible">
               <div className="text-[0.9375rem] font-[600] text-[#212121] mb-[16px]">Attendance trend — last 7 days</div>
               {loadTrend ? (
@@ -1836,8 +1856,9 @@ const AdminDashboard = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-3 divide-x divide-gray-100">
-                <div className="pr-3">
+              <div className="overflow-x-auto">
+                <div className="grid grid-cols-[2fr_1fr_2fr] divide-x divide-gray-100 min-w-[600px]">
+                  <div className="pr-3">
                   {displayedLeads.map((row, idx) => (
                     <motion.div
                       key={row.id + row.todayTask}
@@ -1908,6 +1929,7 @@ const AdminDashboard = () => {
                   ))}
                 </div>
               </div>
+              </div>
             )}
             {activeTeamLeads.length > 6 ? (
               <button
@@ -1921,7 +1943,7 @@ const AdminDashboard = () => {
           </motion.div>
 
           {/* Impact metrics */}
-          <motion.div {...sectionMotion(3)} className="grid grid-cols-3 gap-[16px] mb-[16px]">
+          <motion.div {...sectionMotion(3)} className="grid grid-cols-1 sm:grid-cols-3 gap-[16px] mb-[16px]">
             {[
               {
                 key: 'waste',
@@ -2017,7 +2039,7 @@ const AdminDashboard = () => {
           </motion.div>
 
           {/* Map + alerts */}
-          <motion.div {...sectionMotion(4)} className="grid grid-cols-[60%_1fr] gap-[16px]">
+          <motion.div {...sectionMotion(4)} className="grid grid-cols-1 lg:grid-cols-[60%_1fr] gap-[16px]">
             <div className="bg-[#FFFFFF] border border-[#E0E7DC] rounded-[14px] px-[24px] py-[20px] shadow-[0_2px_12px_rgba(36,100,39,0.07)] overflow-hidden">
               <div className="flex items-center justify-between mb-[16px]">
                 <span className="text-[0.9375rem] font-[600] text-[#212121]">Active task locations today</span>
@@ -2141,8 +2163,9 @@ const AdminDashboard = () => {
                 </div>
               </div>
               <div className="bg-white rounded-[14px] border border-[#E0E7DC] overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-[#F9FBF7] border-b border-[#E0E7DC]">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm whitespace-nowrap">
+                    <thead className="bg-[#F9FBF7] border-b border-[#E0E7DC]">
                     <tr>
                       {['User', 'Username', 'Role', 'Status', 'Team Lead'].map((h) => (
                         <th
@@ -2246,6 +2269,7 @@ const AdminDashboard = () => {
                           })}
                   </tbody>
                 </table>
+                </div>
               </div>
               {editDrawerOpen && selectedUser && (
                 <>

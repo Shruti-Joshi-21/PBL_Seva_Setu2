@@ -291,7 +291,7 @@ export default function AttendancePage() {
                   <AlertTriangle className="h-2.5 w-2.5 text-[#B07D00]" strokeWidth={2.5} />
                 )}
               </div>
-              <span className={`text-[10px] font-medium leading-none ${labelClass}`}>{labelText}</span>
+              <span className={`text-[10px] font-medium leading-none ${labelClass} hidden sm:block truncate`}>{labelText}</span>
             </div>
           )}
         </motion.div>

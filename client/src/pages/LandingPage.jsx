@@ -157,7 +157,7 @@ export default function LandingPage() {
       </section>
 
       {/* 3. DASHBOARD ACCESS SECTION */}
-      <section className="bg-white py-[80px] px-[40px] w-full shrink-0">
+      <section className="bg-white py-[80px] px-6 md:px-[40px] w-full shrink-0">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-[#212121] mb-2" style={{ fontFamily: "'Merriweather', serif" }}>
@@ -275,7 +275,7 @@ export default function LandingPage() {
       </section>
 
       {/* 4. FEATURES SECTION */}
-      <section id="features" className="bg-[#f9f9f5] py-[80px] px-[40px] w-full shrink-0">
+      <section id="features" className="bg-[#f9f9f5] py-[80px] px-6 md:px-[40px] w-full shrink-0">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-[#212121] mb-2" style={{ fontFamily: "'Merriweather', serif" }}>
@@ -335,14 +335,14 @@ export default function LandingPage() {
       </section>
 
       {/* 5. FOOTER */}
-      <footer className="bg-[#005F02] w-full shrink-0 pt-[48px] pb-[24px] px-[40px] mt-auto">
+      <footer className="bg-[#005F02] w-full shrink-0 pt-[48px] pb-[24px] px-6 md:px-[40px] mt-auto">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
             
             {/* Column 1 */}
             <div className="flex flex-col">
               <div className="flex items-center gap-2 mb-4">
-                <img src="/sahayog_icon.svg" alt="Sahayog" className="w-8 h-8 object-contain" />
+                <img src="/sahayog_tab_icon.svg" alt="Sahayog" className="w-8 h-8 object-contain" />
                 <span className="text-white font-bold text-lg" style={{ fontFamily: "'Merriweather', serif" }}>Sahayog</span>
               </div>
               <p className="text-white/80 text-[0.85rem] max-w-[220px] leading-relaxed">

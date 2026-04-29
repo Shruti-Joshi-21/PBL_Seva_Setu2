@@ -78,7 +78,7 @@ export default function AttendanceDetailDrawer({ isOpen, onClose, record, loadin
             onClick={onClose}
           />
           <motion.aside
-            className="fixed right-0 top-0 z-50 h-full w-[420px] max-w-[100vw] overflow-y-auto bg-[#FFFFFF] shadow-2xl"
+            className="fixed right-0 top-0 z-50 h-full w-full sm:w-[420px] overflow-y-auto bg-[#FFFFFF] shadow-2xl"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
