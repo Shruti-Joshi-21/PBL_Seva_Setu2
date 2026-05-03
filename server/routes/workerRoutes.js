@@ -1,16 +1,10 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const router = express.Router();
 const workerController = require('../controllers/workerController');
 const { verifyToken, authorizeRoles } = require('../middlewares/authMiddleware');
 const { ROLES } = require('../utils/constants');
-
-const attendanceDir = path.join(__dirname, '..', 'uploads', 'attendance');
-const reportsDir = path.join(__dirname, '..', 'uploads', 'reports');
-if (!fs.existsSync(attendanceDir)) fs.mkdirSync(attendanceDir, { recursive: true });
-if (!fs.existsSync(reportsDir)) fs.mkdirSync(reportsDir, { recursive: true });
+const { attendanceStorage, reportStorage } = require('../config/cloudinary');
 
 function badRequest(msg) {
   const e = new Error(msg);
@@ -26,8 +20,9 @@ const attendanceImageMimes = [
   'image/webp',
 ];
 
+// Both faceImage and fieldImage go to sevasetu/attendance on Cloudinary
 const attendanceUpload = multer({
-  dest: attendanceDir,
+  storage: attendanceStorage,
   limits: { fileSize: 12 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (attendanceImageMimes.includes(file.mimetype)) return cb(null, true);
@@ -39,13 +34,14 @@ const attendanceUpload = multer({
 ]);
 
 const reportUpload = multer({
-  dest: reportsDir,
+  storage: reportStorage,
   limits: { fileSize: 12 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (attendanceImageMimes.includes(file.mimetype)) return cb(null, true);
     cb(badRequest(`Unsupported image type (${file.mimetype || 'unknown'}). Use JPEG, PNG, or WebP.`));
   },
 }).array('images', 5);
+
 
 router.get('/dashboard', verifyToken, authorizeRoles(ROLES.FIELD_WORKER), workerController.getDashboardData);
 router.get(

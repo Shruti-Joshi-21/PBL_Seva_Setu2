@@ -1,4 +1,3 @@
-const fs = require('fs');
 const axios = require('axios');
 const FormData = require('form-data');
 const mongoose = require('mongoose');
@@ -357,11 +356,18 @@ function checkWindowAgainstTimeStr(timeStr, bufferMinutes, now, outsideReason) {
   return { timeValid, reason: timeValid ? '' : outsideReason };
 }
 
-async function verifyFaceWithPythonService(faceFilePath, userId) {
+async function verifyFaceWithPythonService(faceImageUrl, userId) {
   const baseUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:5001';
   try {
+    // Fetch the image from Cloudinary URL and forward it as a buffer to Python
+    const imgResp = await axios.get(faceImageUrl, {
+      responseType: 'arraybuffer',
+      timeout: 30000,
+    });
+    const imageBuffer = Buffer.from(imgResp.data);
+
     const form = new FormData();
-    form.append('image', fs.createReadStream(faceFilePath));
+    form.append('image', imageBuffer, { filename: 'face.jpg', contentType: 'image/jpeg' });
     form.append('userId', String(userId));
     const resp = await axios.post(`${baseUrl}/verify-face`, form, {
       headers: form.getHeaders(),
@@ -379,9 +385,10 @@ async function verifyFaceWithPythonService(faceFilePath, userId) {
   }
 }
 
-function fieldImageRelativePath(file) {
-  if (!file?.filename) return '';
-  return `attendance/${file.filename}`;
+// Returns the Cloudinary secure_url stored in file.path by multer-storage-cloudinary
+function getFieldImageUrl(file) {
+  if (!file) return '';
+  return file.path || '';
 }
 
 async function checkIn(req, res, next) {
@@ -452,6 +459,7 @@ async function checkIn(req, res, next) {
       locationReason = `Location too far from task site (${Math.round(distance)}m away, limit: ${task.allowedRadius}m)`;
     }
 
+    // faceFile.path is the Cloudinary https:// URL after upload
     const faceResult = await verifyFaceWithPythonService(faceFile.path, workerId);
     const faceValid = faceResult.faceValid;
     const faceReason = faceResult.reason;
@@ -462,7 +470,7 @@ async function checkIn(req, res, next) {
     if (!faceValid) flagReasons.push(faceReason);
 
     const status = flagReasons.length > 0 ? 'FLAGGED' : 'PENDING';
-    const beforeRel = fieldImageRelativePath(fieldFile);
+    const beforeUrl = getFieldImageUrl(fieldFile);
 
     const record = await AttendanceRecord.create({
       worker: oid,
@@ -470,7 +478,7 @@ async function checkIn(req, res, next) {
       checkInTime: now,
       checkInLocation: { latitude: lat, longitude: lon },
       checkInFaceMatch: faceValid,
-      beforeImage: beforeRel,
+      beforeImage: beforeUrl,
       status,
       flagReasons,
     });
@@ -584,6 +592,7 @@ async function checkOut(req, res, next) {
       locationReason = `Location too far from task site (${Math.round(distance)}m away, limit: ${task.allowedRadius}m)`;
     }
 
+    // faceFile.path is the Cloudinary https:// URL after upload
     const faceResult = await verifyFaceWithPythonService(faceFile.path, workerId);
     const faceValid = faceResult.faceValid;
     const faceReason = faceResult.reason;
@@ -604,7 +613,7 @@ async function checkOut(req, res, next) {
     const allFlags = [...existingFlags, ...newFlagReasons];
     const finalStatus = allFlags.length === 0 ? 'VERIFIED' : 'FLAGGED';
 
-    const afterImageRel = fieldImageRelativePath(fieldFile);
+    const afterImageUrl = getFieldImageUrl(fieldFile);
     const updated = await AttendanceRecord.findOneAndUpdate(
       {
         _id: attendanceId,
@@ -617,7 +626,7 @@ async function checkOut(req, res, next) {
           checkOutTime: now,
           checkOutLocation: { latitude: lat, longitude: lon },
           checkOutFaceMatch: faceValid,
-          afterImage: afterImageRel,
+          afterImage: afterImageUrl,
           status: finalStatus,
           flagReasons: allFlags,
           isEarlyCheckout: isEarly,
@@ -1189,7 +1198,7 @@ async function submitReport(req, res, next) {
       reportFieldResponses.push({ fieldName, fieldType, value: valueStr });
     }
 
-    const imagePaths = (req.files || []).map((f) => `reports/${f.filename}`);
+    const imagePaths = (req.files || []).map((f) => f.path);
 
     const created = await FieldReport.create({
       worker: oid,

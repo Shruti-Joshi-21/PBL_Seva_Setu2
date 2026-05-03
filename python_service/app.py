@@ -1,7 +1,9 @@
 import os
 import tempfile
-
+import requests
 import numpy as np
+from io import BytesIO
+from PIL import Image
 from bson import ObjectId
 from bson.errors import InvalidId
 from dotenv import load_dotenv
@@ -50,6 +52,14 @@ def _safe_unlink(path):
         pass
 
 
+def load_image_from_url(url):
+    """Fetch an image from a URL and return it as a numpy array for face_recognition."""
+    resp = requests.get(url, timeout=30)
+    resp.raise_for_status()
+    img_pil = Image.open(BytesIO(resp.content)).convert("RGB")
+    return np.array(img_pil)
+
+
 @app.route("/health", methods=["GET"])
 def health():
     try:
@@ -61,23 +71,24 @@ def health():
 
 @app.route("/register-face", methods=["POST"])
 def register_face():
-    """Compute face encoding from image path on disk (Node passes absolute path). Shares process with /verify-face (dotenv + optional Mongo client init pattern)."""
+    """Compute face encoding from a Cloudinary image URL. Node passes imageUrl."""
     try:
         if not request.is_json:
             return jsonify({"success": False, "message": "JSON body required"}), 400
 
         data = request.get_json(silent=True) or {}
-        image_path = data.get("imagePath")
-        if not image_path or not isinstance(image_path, str):
-            return jsonify({"success": False, "message": "imagePath is required"}), 400
-
-        if not os.path.isfile(image_path):
-            return jsonify({"success": False, "message": "Image file not found"}), 404
+        image_url = data.get("imageUrl")
+        if not image_url or not isinstance(image_url, str):
+            return jsonify({"success": False, "message": "imageUrl is required"}), 400
 
         if not FACE_RECOGNITION_AVAILABLE:
             return jsonify({"success": True, "encoding": [0.1] * 128}), 200
 
-        image = face_recognition.load_image_file(image_path)
+        try:
+            image = load_image_from_url(image_url)
+        except Exception as fetch_err:
+            return jsonify({"success": False, "message": f"Failed to fetch image: {fetch_err}"}), 400
+
         encodings = face_recognition.face_encodings(image)
         if len(encodings) == 0:
             return jsonify({"success": False, "message": "No face detected"}), 400
