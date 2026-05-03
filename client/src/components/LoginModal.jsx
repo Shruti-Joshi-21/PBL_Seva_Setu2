@@ -1,27 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { X, User, Lock, Loader, Shield, Users } from 'lucide-react';
+import { X, User, Lock, Loader, Shield, Users, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
+
+// Map landing-page display role → backend role constant
+const ROLE_MAP = {
+  'Field Worker': 'FIELD_WORKER',
+  'Team Lead': 'TEAM_LEAD',
+  'Administrator': 'ADMIN',
+};
+
+// Human-readable label used in the mismatch message
+const ROLE_LABEL = {
+  'Field Worker': 'Field Worker',
+  'Team Lead': 'Team Lead',
+  'Administrator': 'Administrator',
+};
 
 const LoginModal = ({ isOpen, onClose, role }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [roleMismatch, setRoleMismatch] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // Reset form state whenever the modal opens / role changes
+  useEffect(() => {
+    if (isOpen) {
+      setUsername('');
+      setPassword('');
+      setError('');
+      setRoleMismatch(false);
+    }
+  }, [isOpen, role]);
+
+  const handleClose = () => {
+    setUsername('');
+    setPassword('');
+    setError('');
+    setRoleMismatch(false);
+    onClose();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setRoleMismatch(false);
 
     try {
       const response = await api.post('/auth/login', { username, password });
       const { token, role: userRole, name, id } = response.data.data;
+
+      // ── Role mismatch guard ──────────────────────────────────────────────
+      const expectedRole = ROLE_MAP[role];
+      if (expectedRole && userRole !== expectedRole) {
+        // Show mismatch popup — do NOT persist token or navigate
+        setRoleMismatch(true);
+        return;
+      }
+      // ────────────────────────────────────────────────────────────────────
 
       localStorage.setItem('sahayog_token', token);
       localStorage.setItem('sahayog_role', userRole);
@@ -73,7 +116,7 @@ const LoginModal = ({ isOpen, onClose, role }) => {
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 rounded-full text-[#616161] hover:text-[#246427] transition-colors"
           >
             <X size={20} />
@@ -81,6 +124,16 @@ const LoginModal = ({ isOpen, onClose, role }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-[24px] space-y-5 bg-[#FFFFFF]">
+          {roleMismatch && (
+            <div className="flex items-start gap-3 bg-[#FFF8E1] border border-[#F8AC3B] text-[#7A5400] px-4 py-3 rounded-xl text-sm">
+              <AlertTriangle size={18} className="shrink-0 mt-0.5 text-[#F8AC3B]" />
+              <p>
+                <span className="font-semibold">Access denied.</span> This {ROLE_LABEL[role]} does not exist.
+                Please use the correct login portal for your role.
+              </p>
+            </div>
+          )}
+
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm animate-in shake-in duration-300">
               {error}
