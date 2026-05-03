@@ -1,5 +1,3 @@
-const path = require('path');
-const fs = require('fs');
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -50,17 +48,14 @@ async function signupFieldWorker(req, res) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const facesDir = path.join(__dirname, '..', 'uploads', 'faces');
-    if (!fs.existsSync(facesDir)) fs.mkdirSync(facesDir, { recursive: true });
-
-    const finalImagePath = path.join(facesDir, `${normalizedUsername}.jpg`);
-    fs.renameSync(req.file.path, finalImagePath);
+    // Cloudinary already uploaded the file — req.file.path is the secure_url
+    const faceImageUrl = req.file.path;
 
     let encoding = null;
     try {
       const pythonResp = await axios.post(
         'http://localhost:5001/register-face',
-        { imagePath: finalImagePath, userId: normalizedUsername },
+        { imageUrl: faceImageUrl, userId: normalizedUsername },
         { headers: { 'Content-Type': 'application/json' } }
       );
       encoding = pythonResp?.data?.encoding;
@@ -78,7 +73,7 @@ async function signupFieldWorker(req, res) {
       username: normalizedUsername,
       password: hashedPassword,
       role: 'FIELD_WORKER',
-      faceImagePath: finalImagePath,
+      faceImagePath: faceImageUrl,   // now a Cloudinary https:// URL
       faceEncoding: encodingArrayToBuffer(encoding),
     });
 

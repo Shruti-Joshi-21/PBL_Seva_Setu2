@@ -1,25 +1,17 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { attendanceStorage, reportStorage } = require('../config/cloudinary');
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        let folder = 'uploads/';
-        if (file.fieldname === 'face') folder += 'faces/';
-        else if (file.fieldname === 'attendance') folder += 'attendance/';
-        else if (file.fieldname === 'report') folder += 'reports/';
-
-        if (!fs.existsSync(folder)) {
-            fs.mkdirSync(folder, { recursive: true });
-        }
-        cb(null, folder);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-    }
+// Generic upload for legacy routes that use .array('images', 5)
+// (e.g. attendance.routes.js POST /report)
+const upload = multer({
+  storage: reportStorage,
+  limits: { fileSize: 12 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/pjpeg'];
+    if (allowed.includes(file.mimetype)) return cb(null, true);
+    return cb(new Error(`Unsupported image type: ${file.mimetype}`));
+  },
 });
 
-const upload = multer({ storage: storage });
-
 module.exports = upload;
+
