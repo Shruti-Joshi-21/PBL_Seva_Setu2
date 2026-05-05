@@ -1,4 +1,4 @@
-# 🌉 Sahayog — Bridge of Service
+# 🚀 Sahayog — Bridge of Service
 
 Sahayog is a **field workforce management system** designed for civic sanitation operations. It helps non-governmental organizations efficiently manage field workers involved in **waste collection, recycling drives, and public awareness campaigns many more**.
 
@@ -165,9 +165,12 @@ CLOUDINARY_API_SECRET=your_api_secret
 ## 🌟 Tagline
 
 > _"Bridging the gap between service and accountability."
+
+
 ##  Archiytecture Diagram
 
-<img width="1392" height="1600" alt="Architecture" src="https://github.com/user-attachments/assets/3b3ca66b-0aaf-454f-b29a-d6e7a883af83" />
+<img width="1390" height="1600" alt="image" src="https://github.com/user-attachments/assets/628fd117-bab9-4c66-8309-bdb7e74d7dae" />
+
 
 
 ## System Overview
