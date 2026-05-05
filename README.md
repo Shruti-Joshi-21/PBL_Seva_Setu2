@@ -167,7 +167,7 @@ CLOUDINARY_API_SECRET=your_api_secret
 > _"Bridging the gap between service and accountability."
 
 
-##  Archiytecture Diagram
+##  Architecture Diagram
 
 <img width="1390" height="1600" alt="image" src="https://github.com/user-attachments/assets/628fd117-bab9-4c66-8309-bdb7e74d7dae" />
 
