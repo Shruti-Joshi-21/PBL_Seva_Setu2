@@ -164,8 +164,13 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 ## 🌟 Tagline
 
-> _"Bridging the gap between service and accountability."_
-> <img width="754" height="869" alt="image" src="https://github.com/user-attachments/assets/f1c68d5e-6710-4810-a575-f059f67f4fe2" />
+> _"Bridging the gap between service and accountability."
+##  Archiytecture Diagram
+
+<img width="1392" height="1600" alt="Architecture" src="https://github.com/user-attachments/assets/3b3ca66b-0aaf-454f-b29a-d6e7a883af83" />
+
+
+## System Overview
 <img width="1899" height="880" alt="image" src="https://github.com/user-attachments/assets/bc3ea59f-db2f-4c25-804b-db788afa29f5" />
 <img width="1913" height="892" alt="image" src="https://github.com/user-attachments/assets/32d691b6-eb50-4771-9b81-cbc8c1e749ee" />
 
